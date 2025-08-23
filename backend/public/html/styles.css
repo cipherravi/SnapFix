@@ -1,0 +1,94 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* ✅ Prevents scrolling */
+}
+
+body {
+  background-color: darkcyan;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+}
+
+#parent {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* ✅ Just in case child elements overflow */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rem;
+}
+
+#heading {
+  text-align: center;
+  font-weight: bold;
+  font-size: 3rem;
+  padding: 10px 0; /* ✅ optional if you want spacing */
+  margin: 0;
+  color: #0b0a0a;
+}
+
+#msg_input_box {
+  position: absolute;
+  bottom: 5px;
+  left: 23%;
+  width: 50%;
+  height: 2rem;
+  background-color: white; /* Optional for visibility */
+  border: none;
+  padding: 0.5rem;
+}
+
+#msg_box {
+  width: 55%;
+  height: 55%;
+  border: 3px solid white;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+#send_message {
+  position: absolute;
+  bottom: 5px;
+  right: 22%;
+  width: 4rem;
+  height: 2rem;
+  cursor: pointer;
+  background-color: #00897b;
+  color: white;
+}
+
+.chat-message {
+  font-size: large;
+  padding: 10px;
+  max-width: 70%;
+  list-style: none;
+  word-wrap: break-word;
+  color: floralwhite;
+  border-radius: 10px;
+}
+.chat-sent {
+  align-self: flex-end;
+  background-color: #4caf50;
+  color: white;
+}
+
+.chat-received {
+  align-self: flex-start;
+  background-color: #555;
+  color: white;
+}
