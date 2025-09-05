@@ -1,5 +1,5 @@
 const CrudRepository = require("./crud-repository");
-const { Job, User } = require("../models");
+const { Job, User, JobAsset } = require("../models");
 class JobRepository extends CrudRepository {
   constructor() {
     super(Job);
@@ -25,6 +25,10 @@ class JobRepository extends CrudRepository {
             as: "worker",
             attributes: ["name", "profilePicUrl", "gender"],
           },
+          {
+            model: JobAsset,
+            attributes: { exclude: ["createdAt", "updatedAt"] },
+          },
         ],
       });
       return job;
@@ -38,6 +42,12 @@ class JobRepository extends CrudRepository {
         where: filter,
         order: sortBy,
         ...options,
+        include: [
+          {
+            model: JobAsset,
+            attributes: { exclude: ["createdAt", "updatedAt"] },
+          },
+        ],
       });
       return jobs;
     } catch (error) {

@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
-interface option {
-  name: string;
+interface BaseOption {
   id: number;
+  name: string;
+}
+
+interface AddressOption extends BaseOption {
   building: string;
   street: string;
   area: string;
@@ -10,28 +13,29 @@ interface option {
   district: string;
   state: string;
 }
+type DropDownOptionType = BaseOption | AddressOption;
 
-interface DropDownOptionsProps {
-  selected: option | null;
-  setSelected: (option: option) => void;
-  options: option[];
+interface DropDownOptionsProps<T extends DropDownOptionType> {
+  selected: T | null;
+  setSelected: (option: T) => void;
+  options: T[];
   variant: "name" | "address";
   placeholder: string;
   disabled?: boolean;
 }
 
-const DropDownOptions = ({
+const DropDownOptions = <T extends DropDownOptionType>({
   selected,
   setSelected,
   options,
   variant,
   placeholder,
   disabled = false,
-}: DropDownOptionsProps) => {
+}: DropDownOptionsProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleSelect = (option: option) => {
+  const handleSelect = (option: T) => {
     if (disabled) return;
     setSelected(option);
     setIsOpen(false);
@@ -59,10 +63,23 @@ const DropDownOptions = ({
     }
   };
 
+  function isAddressOption(
+    option: DropDownOptionType
+  ): option is AddressOption {
+    return (
+      "building" in option &&
+      "street" in option &&
+      "area" in option &&
+      "city" in option &&
+      "district" in option &&
+      "state" in option
+    );
+  }
+
   return (
     <div
       ref={dropdownRef}
-      className={`w-full px-4 relative ${
+      className={`w-full  px-4 relative ${
         disabled ? "opacity-50 cursor-not-allowed" : ""
       }`}
     >
@@ -73,7 +90,7 @@ const DropDownOptions = ({
           disabled={disabled}
         >
           {selected
-            ? variant === "address"
+            ? variant === "address" && isAddressOption(selected)
               ? `${selected.building}, ${selected.street}, ${selected.area}, ${selected.city}, ${selected.district}, ${selected.state}`
               : selected.name
             : placeholder}
@@ -89,10 +106,10 @@ const DropDownOptions = ({
       </div>
 
       {isOpen && !disabled && (
-        <ul className="absolute top-full left-4 w-11/12 bg-[#F4F4F4] border rounded shadow mt-1 z-10">
+        <ul className="absolute top-full left-4 w-11/12 max-h-[50vh] overflow-scroll bg-[#F4F4F4] border rounded shadow mt-1 z-10">
           {options.map((option) => {
             const displayValue =
-              variant === "address"
+              variant === "address" && isAddressOption(option)
                 ? `${option.building}, ${option.street}, ${option.area}, ${option.city}, ${option.district}, ${option.state}`
                 : option.name;
 

@@ -6,6 +6,8 @@ const JobApplicationController = require("./jobapplication-controller");
 const ReviewController = require("./review-controller");
 const ConversationController = require("./conversation-controller");
 const AddressController = require("./address-controller");
+const AssetsController = require("./assets-controller");
+const KycController = require("./kyc-controller");
 
 module.exports = {
   UserController,
@@ -16,4 +18,6 @@ module.exports = {
   ReviewController,
   ConversationController,
   AddressController,
+  AssetsController,
+  KycController,
 };

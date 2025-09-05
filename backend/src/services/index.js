@@ -6,6 +6,8 @@ const JobApplicationService = require("./jobapplication-service");
 const ReviewService = require("./review-service");
 const ConversationService = require("./conversation-service");
 const AddressService = require("./address-service");
+const KycService = require("./kyc-service");
+const JobAssetService = require("./jobAsset-service");
 
 module.exports = {
   UserService,
@@ -16,4 +18,6 @@ module.exports = {
   ReviewService,
   ConversationService,
   AddressService,
+  KycService,
+  JobAssetService,
 };

@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       Job.hasMany(models.JobApplication, { foreignKey: "jobId" });
       Job.hasMany(models.Review, { foreignKey: "jobId" });
       Job.belongsTo(models.Address, { foreignKey: "addressId" });
+      Job.hasMany(models.JobAsset, { foreignKey: "jobId" });
     }
   }
   Job.init(
@@ -29,7 +30,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
         validate: {
-          len: [1, 150],
+          isValidLength(value) {
+            if (value && value.length < 1) {
+              throw new Error("Description cannot be empty string");
+            }
+            if (value && value.length > 150) {
+              throw new Error("Description too long");
+            }
+          },
         },
       },
       status: {
@@ -55,11 +63,6 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-          model: "users",
-          key: "id",
-        },
-        onDelete: "CASCADE",
       },
       workerId: {
         type: DataTypes.INTEGER,

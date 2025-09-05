@@ -6,10 +6,12 @@ const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Register = () => {
   const navigate = useNavigate();
-  const [checkPassword, setCheckPassword] = useState(false);
+  const [name, setName] = useState("");
   const [phone, setPhoneNo] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -27,6 +29,16 @@ const Register = () => {
         return;
       }
 
+      if (name.length > 8) {
+        toast.error("Full name must be atleast 8 letters");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        toast.error("Password must be same");
+        return;
+      }
+
       if (password.length < 8) {
         toast.error("Password must be atleast 8 digit");
         return;
@@ -36,15 +48,15 @@ const Register = () => {
         headers: {
           "Content-type": "application/json",
         },
-        credentials: "include", // 🔥 critical to include cookies in request
-        body: JSON.stringify({ phone, password }),
+        credentials: "include",
+        body: JSON.stringify({ name, phone, password }),
       });
       const data = await response.json();
       if (response.ok) {
         toast.success(data.message || "Login successfully!");
         setPhoneNo("");
         setPassword("");
-        navigate("/explore");
+        navigate("/login");
       } else {
         toast.error(data.message || "Login failed!");
       }
@@ -61,13 +73,27 @@ const Register = () => {
       <div className="w-11/12">
         <h1 className="text-3xl  poppins-bold  ">Register Now</h1>
         <p className="text-sm text-gray-600 poppins-light pt-1">
-          Sign up with your phone number and password to continue
+          Sign up with your name , phone number and password to continue
         </p>
       </div>
 
       {/* Form */}
       <div className="w-full flex flex-col items-center">
         <div className="w-full flex flex-col gap-4 pt-2">
+          <div className="relative">
+            <img
+              src="/svg/profile.svg"
+              alt="Profile logo"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5"
+            />
+            <input
+              type="tel"
+              placeholder="Enter Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="bg-[#F4F4F4]  rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
+            />
+          </div>
           <div className="relative">
             <img
               src="/svg/call.svg"
@@ -89,7 +115,7 @@ const Register = () => {
               className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
             />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Enter Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -99,10 +125,10 @@ const Register = () => {
               className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
             />
             <img
-              src={checkPassword ? "/svg/eye-slash.svg" : "/svg/eye.svg"}
+              src={showPassword ? "/svg/eye-slash.svg" : "/svg/eye.svg"}
               alt="Toggle password visibility"
               className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 cursor-pointer"
-              onClick={() => setCheckPassword(!checkPassword)}
+              onClick={() => setShowPassword(!showPassword)}
             />
           </div>
           <div className="relative">
@@ -112,7 +138,7 @@ const Register = () => {
               className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
             />
             <input
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -122,10 +148,10 @@ const Register = () => {
               className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4  focus:outline-none focus:ring "
             />
             <img
-              src={checkPassword ? "/svg/eye-slash.svg" : "/svg/eye.svg"}
+              src={showConfirmPassword ? "/svg/eye-slash.svg" : "/svg/eye.svg"}
               alt="Toggle password visibility"
               className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 cursor-pointer"
-              onClick={() => setCheckPassword(!checkPassword)}
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             />
           </div>
         </div>

@@ -28,9 +28,23 @@ const {
 } = JobApplicationController;
 
 const { verifyUser } = require("../../middlewares");
+const multer = require("multer");
+
+// Create multer instance first
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 //Static first
-router.post("/", verifyUser, createJob);
+router.post(
+  "/",
+  verifyUser,
+  upload.fields([
+    { name: "main", maxCount: 1 },
+    { name: "secondary", maxCount: 1 },
+    { name: "third", maxCount: 1 },
+  ]),
+  createJob
+);
 router.get("/applicants", getAllJobApplications);
 router.get("/me", verifyUser, getMyJobs);
 router.get("/", getAllJobs);

@@ -98,7 +98,7 @@ async function login(phone, email, password) {
 
 async function getProfile(id) {
   try {
-    const user = await userRepository.getById(id);
+    const user = await userRepository.getByUserId(id);
 
     if (!user) {
       throw new AppError(USER_NOT_FOUND, StatusCodes.NOT_FOUND);

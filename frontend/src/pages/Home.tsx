@@ -72,6 +72,11 @@ function Home() {
           ) : jobs.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
               {jobs.map((job) => {
+                const mainAsset = job.JobAssets.find(
+                  (file) => file.filePosition === "main"
+                );
+                const mainUrl = mainAsset?.fileName || "";
+
                 return (
                   <JobCard
                     key={job.id}
@@ -79,6 +84,7 @@ function Home() {
                     title={job.title}
                     description={job.description}
                     budget={job.budget}
+                    src={mainUrl}
                     createdAt={job.createdAt}
                   />
                 );

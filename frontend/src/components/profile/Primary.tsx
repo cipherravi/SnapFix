@@ -18,6 +18,7 @@ const Primary = () => {
           />
           <div className="w-full border-b border-white/30 py-2 flex justify-between items-center">
             <p className="text-white text-sm inter-regular">Wallet</p>
+
             <img
               src="/svg/dropdown-arrow.svg"
               alt="Arrow icon"

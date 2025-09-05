@@ -15,10 +15,20 @@ import ProtectedRoute from "../utils/common/ProtectedRoute";
 import Search from "../pages/Search";
 import Create from "../pages/Create";
 import PostedJobs from "../pages/Profile/PostedJobs";
-import Main from "../pages/Profile/Main";
+import ProfileMain from "../pages/Profile/Main";
 import JobPoster from "../pages/JobPoster";
 import PostedJobDashboard from "../pages/Profile/PostedJobDashboard";
 import AssignedTasks from "../pages/Profile/AssignedTasks";
+import AssignedTaskDashboard from "../pages/Profile/AssignedTaskDashboard";
+import Addresses from "../pages/Profile/Addresses";
+import CreateAddress from "../pages/Addresses/CreateAddress";
+import Account from "../pages/Profile/Account";
+import Kyc from "../pages/Profile/Kyc";
+import AddressMain from "../pages/Addresses/Main";
+import EditAddress from "../pages/Addresses/EditAddress";
+import Admin from "../pages/Admin";
+import Dashboard from "../pages/Admin/Dashboard";
+import Main from "../pages/Admin/Main";
 
 const router = createBrowserRouter([
   {
@@ -74,12 +84,40 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
-          { index: true, element: <Main /> },
+          { index: true, element: <ProfileMain /> },
           { path: "jobs", element: <PostedJobs /> },
           { path: "jobs/:id", element: <PostedJobDashboard /> },
           {
             path: "tasks",
             element: <AssignedTasks />,
+          },
+          {
+            path: "tasks/:id",
+            element: <AssignedTaskDashboard />,
+          },
+          {
+            path: "addresses",
+            element: <Addresses />,
+            children: [
+              { index: true, element: <AddressMain /> },
+              {
+                path: "edit/:id",
+                element: <EditAddress />,
+              },
+              {
+                path: "create",
+                element: <CreateAddress />,
+              },
+            ],
+          },
+
+          {
+            path: "account",
+            element: <Account />,
+          },
+          {
+            path: "kyc",
+            element: <Kyc />,
           },
         ],
       },
@@ -94,6 +132,14 @@ const router = createBrowserRouter([
       {
         path: `job/:id/:title`,
         element: <JobPoster />,
+      },
+      {
+        path: "admin",
+        element: <Admin />,
+        children: [
+          { index: true, element: <Main /> },
+          { path: "dashboard", element: <Dashboard /> },
+        ],
       },
     ],
   },

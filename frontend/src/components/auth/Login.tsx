@@ -12,9 +12,9 @@ const Login = () => {
   const { checkAuth } = useAuth();
   const { fetchProfile } = useUserInfo();
   const { fetchConversations } = useConversation();
-  const [checkPassword, setCheckPassword] = useState(false);
-  const [phone, setPhoneNo] = useState("7667372516");
-  const [password, setPassword] = useState("181229@Rk");
+  const [showPassword, setShowPassword] = useState(false);
+  const [phone, setPhoneNo] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -101,7 +101,7 @@ const Login = () => {
               className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
             />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Enter Password"
               value={password}
               onChange={(e) => {
@@ -113,10 +113,10 @@ const Login = () => {
               className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
             />
             <img
-              src={checkPassword ? "/svg/eye-slash.svg" : "/svg/eye.svg"}
+              src={showPassword ? "/svg/eye-slash.svg" : "/svg/eye.svg"}
               alt="Toggle password visibility"
               className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 cursor-pointer"
-              onClick={() => setCheckPassword(!checkPassword)}
+              onClick={() => setShowPassword(!showPassword)}
             />
           </div>
           <div className="flex  items-center justify-around gap-15">

@@ -1,5 +1,6 @@
 import { formatTime } from "../../utils/formatTime";
 import { useNavigate } from "react-router-dom";
+import useImageFetcher from "../../utils/Hooks/useImageFetcher";
 
 interface JobCardProps {
   id: number;
@@ -12,22 +13,26 @@ interface JobCardProps {
 
 const JobCard = ({
   id,
-  src = "/svg/profile.svg",
+  src,
   title,
   description,
   budget,
   createdAt,
 }: JobCardProps) => {
   const navigate = useNavigate();
+  const { getImageUrl } = useImageFetcher();
+
+  const url = getImageUrl(src, "jobAssets");
+
   return (
     <div
       className="bg-[#ececea] rounded-2xl p-2 max-h-80 overflow-hidden"
       onClick={() => navigate(`/job/${id}/${title.split(" ").join("-")}`)}
     >
       <img
-        src={src}
+        src={url}
         alt="Job Poster Image"
-        className="w-full object-cover p-2 rounded-2xl overflow-hidden bg-white"
+        className="w-full min-h-3/5 max-h-2/3 object-cover p-2 rounded-2xl overflow-hidden bg-white"
       />
 
       <h1 className="inter-semibold text-lg truncate">{title}</h1>

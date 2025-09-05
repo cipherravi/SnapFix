@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       User.belongsTo(models.City, { foreignKey: "cityId", as: "city" });
+      User.hasOne(models.Kyc, { foreignKey: "userId" });
     }
   }
   User.init(
@@ -38,9 +39,6 @@ module.exports = (sequelize, DataTypes) => {
       profilePicUrl: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-          isUrl: true,
-        },
       },
       password: { type: DataTypes.STRING, allowNull: false },
       role: {

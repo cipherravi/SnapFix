@@ -1,5 +1,5 @@
 const CrudRepository = require("./crud-repository");
-const { User } = require("../models");
+const { User, Kyc, City } = require("../models");
 const { Op } = require("sequelize");
 class UserRepository extends CrudRepository {
   constructor() {
@@ -35,6 +35,27 @@ class UserRepository extends CrudRepository {
         attributes: ["id", "name", "profilePicUrl"],
       });
       return users;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getByUserId(id) {
+    try {
+      const user = await User.findOne({
+        where: { id },
+        attributes: { exclude: ["password"] },
+        include: [
+          { model: Kyc, attributes: { exclude: ["userId", "verifiedBy"] } },
+          {
+            model: City,
+            as: "city",
+            attributes: { exclude: ["createdAt", "updatedAt"] },
+          },
+        ],
+      });
+
+      return user;
     } catch (error) {
       throw error;
     }

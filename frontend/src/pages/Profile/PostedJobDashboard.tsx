@@ -5,6 +5,21 @@ import { useEffect, useState } from "react";
 import InfoSection from "../../components/postedJobDashboard/InfoSection";
 import ApplicantsSection from "../../components/postedJobDashboard/ApplicantsSection";
 import EditSection from "../../components/postedJobDashboard/EditSection";
+import useImageFetcher from "../../utils/Hooks/useImageFetcher";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/pagination";
+
+interface Asset {
+  id: number;
+  jobId: number;
+  fileName: string;
+  fileType: string;
+  filePosition: string;
+}
 
 interface Job {
   budget: number;
@@ -27,6 +42,7 @@ interface Job {
     gender: string;
     profilePicUrl: string;
   };
+  JobAssets: Asset[];
 }
 
 // Define as const to get literal types
@@ -38,9 +54,11 @@ export const TabIndex = {
 
 // Define a union type of the values
 type TabIndex = (typeof TabIndex)[keyof typeof TabIndex];
+
 const PostedJobDashboard = () => {
   const { id } = useParams();
   const { fetchJobById } = useJobFetcher();
+  const { getImageUrl } = useImageFetcher();
   const [jobDetails, setJobDetails] = useState<Job | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<TabIndex>(TabIndex.INFO);
   useEffect(() => {
@@ -53,6 +71,11 @@ const PostedJobDashboard = () => {
     fetchData();
   }, [id]);
 
+  const imageUrls =
+    jobDetails?.JobAssets?.filter(
+      (file) => file.fileType === "image" && file.fileName
+    ).map((file) => getImageUrl(file.fileName, "jobAssets")) || [];
+
   const isActive = (tab: TabIndex) =>
     activeTab === tab ? "bg-white text-black" : "bg-transparent text-white";
 
@@ -62,13 +85,31 @@ const PostedJobDashboard = () => {
       <div className="shrink-0 pt-4 px-3 flex flex-col gap-4 absolute z-10">
         <BackButton navigateTo="/profile/jobs" />
       </div>
-      {/* Banner */}
-      <div className="w-full h-60 bg-[#b18686] flex items-center justify-center">
-        <img
-          src="/svg/profile.svg"
-          alt="Poster"
-          className="h-40 object-contain"
-        />
+      {/* Banner Swiper */}
+      <div className="h-60 rounded-b-4xl overflow-hidden">
+        {imageUrls.length > 0 ? (
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            pagination={{ clickable: true }}
+            loop
+            className="w-full h-full"
+          >
+            {imageUrls.map((src, index) => (
+              <SwiperSlide key={index}>
+                <img
+                  src={src}
+                  alt={`Job Image ${index + 1}`}
+                  className="w-full h-full object-contain"
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+            No images available
+          </div>
+        )}
       </div>
       {/* Tabs */}
       <div className="flex justify-between bg-[#282727] p-4 gap-2 text-white">

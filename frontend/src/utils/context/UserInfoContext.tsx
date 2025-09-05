@@ -7,6 +7,22 @@ import {
 } from "react";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+interface Kyc {
+  id: number;
+  userId: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+interface City {
+  id: number;
+  name: string;
+  state: string;
+  pincode: string;
+  latitude: string;
+  longitude: string;
+}
+
 // ✅ 1. Define the shape of your user data
 interface User {
   id: number;
@@ -20,6 +36,8 @@ interface User {
   cityId: number;
   createdAt: string;
   updatedAt: string;
+  Kyc: Kyc;
+  city: City;
   // Add more fields as per your backend response
 }
 

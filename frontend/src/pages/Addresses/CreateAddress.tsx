@@ -1,0 +1,152 @@
+import { useState } from "react";
+import BackButton from "../../components/Buttons/BackButton";
+import toast from "react-hot-toast";
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const CreateAddress = () => {
+  const [building, setBuilding] = useState("");
+  const [street, setStreet] = useState("");
+  const [area, setArea] = useState("");
+
+  const validateInput = (value: any) => {
+    // Not only numbers or whitespace, and min 3 non-whitespace characters
+    const cleaned = value.trim();
+    return cleaned.length >= 3 && /\D/.test(cleaned); // Must contain at least one non-digit
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    try {
+      if (![building, street, area].every(validateInput)) {
+        toast.error(
+          "Please fill in all fields correctly. Fields must contain letters and not just numbers."
+        );
+        return;
+      }
+
+      const response = await fetch(`${VITE_API_BASE_URL}/api/v1/addresses`, {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          building,
+          street,
+          area,
+          city: "Arrah",
+          district: "Bhojpur",
+          state: "Bihar",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || "Address Created Successfully!");
+        setBuilding("");
+        setStreet("");
+        setArea("");
+      } else {
+        toast.error(data.message || "Address creation Failed!");
+      }
+    } catch (err) {
+      toast.error("An error occurred while Address creation.");
+    }
+  };
+
+  const inputProps = {
+    className:
+      "bg-[#F4F4F4] rounded-xl text-xl h-14 w-full pl-4 pr-4 border focus:ring",
+    maxLength: 30,
+  };
+
+  return (
+    <div className="w-full h-full flex flex-col overflow-hidden bg-white">
+      {/* Header */}
+      <div className="shrink-0 pt-4 px-4 flex flex-col gap-4">
+        <BackButton navigateTo="/profile/addresses" />
+        <h1 className="text-3xl poppins-bold">Create Address</h1>
+
+        <form
+          onSubmit={handleSubmit}
+          className="w-full py-4 flex flex-col gap-3"
+        >
+          <input
+            {...inputProps}
+            type="text"
+            name="building"
+            placeholder="Building Name"
+            value={building}
+            onChange={(e) => setBuilding(e.target.value)}
+            required
+            autoComplete="off"
+            title="Must include letters and be at least 3 characters long"
+          />
+
+          <input
+            {...inputProps}
+            type="text"
+            name="street"
+            placeholder="Street"
+            value={street}
+            onChange={(e) => setStreet(e.target.value)}
+            required
+            autoComplete="off"
+            title="Must include letters and be at least 3 characters long"
+          />
+
+          <input
+            {...inputProps}
+            type="text"
+            name="area"
+            placeholder="Area"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            required
+            autoComplete="off"
+            title="Must include letters and be at least 3 characters long"
+          />
+
+          <input
+            {...inputProps}
+            type="text"
+            name="city"
+            placeholder="City"
+            value="Arrah"
+            readOnly
+          />
+
+          <input
+            {...inputProps}
+            type="text"
+            name="district"
+            placeholder="District"
+            value="Bhojpur"
+            readOnly
+          />
+
+          <input
+            {...inputProps}
+            type="text"
+            name="state"
+            placeholder="State"
+            value="Bihar"
+            readOnly
+          />
+
+          <div className="w-full flex justify-center ">
+            <button
+              type="submit"
+              className="py-2 px-5 bg-[#0385c2] rounded-2xl text-2xl text-white inter-medium cursor-pointer absolute bottom-10"
+            >
+              Create
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default CreateAddress;

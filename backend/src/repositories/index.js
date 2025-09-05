@@ -6,6 +6,9 @@ const JobApplicationRepository = require("./jobapplication-repository");
 const ReviewRepository = require("./review-repository");
 const ConversationRepository = require("./conversation-repository");
 const AddressRepository = require("./address-repository");
+const KycRepository = require("./kyc-repository");
+const KycDocumentRepository = require("./kycDocument-repository");
+const JobAssetRepository = require("./jobAsset-repository");
 
 module.exports = {
   UserRepository,
@@ -16,4 +19,7 @@ module.exports = {
   ReviewRepository,
   ConversationRepository,
   AddressRepository,
+  KycRepository,
+  KycDocumentRepository,
+  JobAssetRepository,
 };

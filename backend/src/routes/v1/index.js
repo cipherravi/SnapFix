@@ -10,6 +10,8 @@ const reviewRoutes = require("./review-routes");
 const adminRoutes = require("./admin-routes");
 const conversationRoutes = require("./coversation-routes");
 const addressRoutes = require("./address-routes");
+const assetsRoutes = require("./assets-routes");
+const kycRoutes = require("./kyc-routes");
 const { verifyUser } = require("../../middlewares");
 
 router.get("/health", (req, res) => {
@@ -28,5 +30,7 @@ router.use("/reviews", reviewRoutes);
 router.use("/admin", adminRoutes); // only admin can access
 router.use("/conversations", conversationRoutes);
 router.use("/addresses", addressRoutes);
+router.use("/assets", assetsRoutes);
+router.use("/kyc", kycRoutes);
 
 module.exports = router;

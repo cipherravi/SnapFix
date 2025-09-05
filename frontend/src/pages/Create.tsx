@@ -6,12 +6,18 @@ import useCategoryFetcher from "../utils/Hooks/useCategoryFetcher";
 import userCityFetcher from "../utils/Hooks/userCityFetcher";
 import useAddressFetcher from "../utils/Hooks/useAddressFetcher";
 import MapPicker from "../components/map/MapPicker";
+import sortByName from "../utils/sortByName";
+import { useNavigate } from "react-router-dom";
+import ImageCapturer from "../components/ImageCapturer";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-interface option {
-  name: string;
+interface BaseOption {
   id: number;
+  name: string;
+}
+
+interface AddressOption extends BaseOption {
   building: string;
   street: string;
   area: string;
@@ -19,53 +25,50 @@ interface option {
   district: string;
   state: string;
 }
-
 const Create = () => {
-  const [selectedCategory, setSelectedCategory] = useState<null | option>(null);
-  const [selectedCity, setSelectedCity] = useState<null | option>(null);
-  const [selectedAddress, setSelectedAddress] = useState<null | option>(null);
+  const navigate = useNavigate();
+
+  const [categoryOptions, setCategoryOptions] = useState<BaseOption[]>([]);
+  const [cityOptions, setCityOptions] = useState<BaseOption[]>([]);
+  const [addressOptions, setAddressOptions] = useState<AddressOption[]>([]);
+
+  const [selectedCategory, setSelectedCategory] = useState<BaseOption | null>(
+    null
+  );
+  const [selectedCity, setSelectedCity] = useState<BaseOption | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<AddressOption | null>(
+    null
+  );
+
   const [jobTitle, setJobTitle] = useState("");
   const [jobBudget, setJobBudget] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [coords, setCoords] = useState<[number, number] | null>(null);
   const [jobPhotos, setJobPhotos] = useState<File[]>([]);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-
-    // Limit to 3 photos
-    const newFiles = files.slice(0, 3 - jobPhotos.length);
-    setJobPhotos((prev) => [...prev, ...newFiles]);
-  };
-
-  const [categoryOptions, setCategoryOptions] = useState([]);
-
   const fetchCategories = useCategoryFetcher();
-
-  const [cityOptions, setCityOptions] = useState([]);
 
   const fetchCities = userCityFetcher();
 
-  const [addressOptions, setAddressOptions] = useState([]);
-
   const [showAddressModal, setShowAddressModal] = useState(false);
 
-  const fetchAddresses = useAddressFetcher();
+  const { fetchAddresses } = useAddressFetcher();
 
   useEffect(() => {
     const loadOptions = async () => {
       const fetchedCategories = await fetchCategories();
-      setCategoryOptions(() => fetchedCategories);
+      // Sort categories by name (case-insensitive)
+      setCategoryOptions(sortByName(fetchedCategories));
 
       const fetchedCities = await fetchCities();
-      setCityOptions(() => fetchedCities);
+
+      setCityOptions(sortByName(fetchedCities));
 
       const fetchedAddresses = await fetchAddresses();
       if (fetchedAddresses.length < 1) {
         setShowAddressModal(true);
       } else {
-        setAddressOptions(() => fetchedAddresses);
+        setAddressOptions(sortByName(fetchedAddresses));
       }
     };
     loadOptions();
@@ -77,29 +80,41 @@ const Create = () => {
       return;
     }
     try {
+      const formData = new FormData();
+      // Append images
+      if (jobPhotos[0]) formData.append("main", jobPhotos[0]);
+      if (jobPhotos[1]) formData.append("secondary", jobPhotos[1]);
+      if (jobPhotos[2]) formData.append("third", jobPhotos[2]);
+
+      // Append job details
+      formData.append("title", jobTitle);
+      formData.append("description", jobDescription);
+      formData.append("budget", jobBudget);
+      if (selectedCity?.id) formData.append("cityId", String(selectedCity.id));
+      if (selectedCategory?.id)
+        formData.append("categoryId", String(selectedCategory.id));
+      if (selectedAddress?.id)
+        formData.append("addressId", String(selectedAddress.id));
+      if (coords?.[0]) formData.append("lat", String(coords[0]));
+      if (coords?.[1]) formData.append("lng", String(coords[1]));
+
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/jobs`, {
         method: "POST",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({
-          title: jobTitle,
-          description: jobDescription,
-          budget: jobBudget,
-          cityId: selectedCity?.id,
-          categoryId: selectedCategory?.id,
-          addressId: selectedAddress?.id,
-          lat: coords[0],
-          lng: coords[1],
-        }),
+        body: formData,
         credentials: "include",
       });
 
       const data = await response.json();
       if (response.ok) {
         toast.success(data.message);
+        navigate("/explore");
       } else {
         toast.error(data.message);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Something went wrong!");
+    }
   };
 
   return (
@@ -165,8 +180,7 @@ const Create = () => {
             </p>
             <button
               onClick={() => {
-                // Do something: open another modal, route to address page, etc.
-                alert("Redirect to Add Address screen...");
+                navigate("/profile/addresses/create");
               }}
               className="px-4 py-2 rounded bg-blue-500 text-white text-sm"
             >
@@ -190,45 +204,11 @@ const Create = () => {
           onChange={(e) => setJobDescription(e.target.value)}
         ></textarea>
 
-        {/* Image add */}
-        <div className="w-11/12 grid grid-cols-3 gap-4">
-          {/* Show image */}
-          {jobPhotos.map((file, idx) => (
-            <div
-              key={idx}
-              className="relative w-full aspect-square rounded-xl overflow-hidden border shadow"
-            >
-              <img
-                src={URL.createObjectURL(file)}
-                alt={`Upload ${idx + 1}`}
-                className="w-full h-full object-cover"
-              />
-              {/* Remove Image */}
-              <button
-                onClick={() => {
-                  const newList = [...jobPhotos];
-                  newList.splice(idx, 1);
-                  setJobPhotos(newList);
-                }}
-                className="absolute top-1 right-1 bg-white rounded-full text-red-500 text-xs px-1"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-          {/* Add image */}
-          {jobPhotos.length < 3 && (
-            <label className="w-full aspect-square flex items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-400 cursor-pointer hover:border-blue-400">
-              +
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoChange}
-              />
-            </label>
-          )}
-        </div>
+        <ImageCapturer
+          photos={jobPhotos}
+          setPhotos={setJobPhotos}
+          photoLimit={3}
+        />
         <MapPicker onLocationSelect={(coords) => setCoords(coords)} />
 
         <button
@@ -243,3 +223,9 @@ const Create = () => {
 };
 
 export default Create;
+
+//  formData.append("title", jobTitle);
+//     formData.append("description", jobDescription);
+//     formData.append("budget", jobBudget);
+//     formData.append("cityId", String(selectedCity?.id));
+//     formData.append("cityId", String(selectedCity?.id));

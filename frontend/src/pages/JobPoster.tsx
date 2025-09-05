@@ -1,58 +1,84 @@
-import { useParams } from "react-router-dom";
-import useJobFetcher from "../utils/Hooks/useJobFetcher";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+
+import useJobFetcher from "../utils/Hooks/useJobFetcher";
+import useImageFetcher from "../utils/Hooks/useImageFetcher";
 import BackButton from "../components/Buttons/BackButton";
-import { formatTime } from "../utils/formatTime";
 import MapDisplay from "../components/map/MapDisplay";
+import { formatTime } from "../utils/formatTime";
+
 import toast from "react-hot-toast";
+import "swiper/css";
+import "swiper/css/pagination";
+
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-interface Job {
-  budget: number;
-  categoryId: number;
-  cityId: number;
-  createdAt: string;
-  description: string;
+interface Asset {
   id: number;
-  status: string;
+  jobId: number;
+  fileName: string;
+  fileType: string;
+  filePosition: string;
+}
+
+interface Job {
+  id: number;
   title: string;
-  updatedAt: string;
+  description: string;
+  budget: number;
+  status: string;
   userId: number;
   workerId: number;
+  categoryId: number;
+  cityId: number;
   address: string;
+  addressId?: number;
   lat: string;
   lng: string;
+  createdAt: string;
+  updatedAt: string;
+  JobAssets: Asset[];
 }
 
 const JobPoster = () => {
   const { id } = useParams();
   const { fetchJobById } = useJobFetcher();
-  const [jobDetails, setJobDetails] = useState<Job | undefined>(undefined);
+  const { getImageUrl } = useImageFetcher();
+
+  const [jobDetails, setJobDetails] = useState<Job | undefined>();
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (id) {
-        const data = await fetchJobById(id);
-        setJobDetails(data);
-      }
+    const fetchJobDetails = async () => {
+      if (!id) return;
+      const data = await fetchJobById(id);
+      setJobDetails(data);
     };
-    fetchData();
+
+    fetchJobDetails();
   }, [id]);
 
-  async function applyHandler() {
+  const imageUrls =
+    jobDetails?.JobAssets?.filter(
+      (file) => file.fileType === "image" && file.fileName
+    ).map((file) => getImageUrl(file.fileName, "jobAssets")) || [];
+
+  const applyHandler = async () => {
     try {
       const response = await fetch(
         `${VITE_API_BASE_URL}/api/v1/jobs/${id}/apply`,
         {
           method: "POST",
           headers: {
-            "Content-type": "application/json",
+            "Content-Type": "application/json",
           },
           credentials: "include",
         }
       );
+
       const data = await response.json();
       if (response.ok) {
         toast.success(data.message);
@@ -60,9 +86,9 @@ const JobPoster = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("An error occured while applying");
+      toast.error("An error occurred while applying.");
     }
-  }
+  };
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white relative">
@@ -71,18 +97,36 @@ const JobPoster = () => {
         <BackButton navigateTo="/explore" />
       </div>
 
-      {/* Banner */}
-      <div className="w-full h-60 bg-[#f3f3f3] flex items-center justify-center">
-        <img
-          src="/svg/profile.svg"
-          alt="Poster"
-          className="h-40 object-contain"
-        />
+      {/* Banner Swiper */}
+      <div className="h-60 rounded-b-4xl overflow-hidden">
+        {imageUrls.length > 0 ? (
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            pagination={{ clickable: true }}
+            loop
+            className="w-full h-full"
+          >
+            {imageUrls.map((src, index) => (
+              <SwiperSlide key={index}>
+                <img
+                  src={src}
+                  alt={`Job Image ${index + 1}`}
+                  className="w-full h-full object-contain"
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+            No images available
+          </div>
+        )}
       </div>
 
       {/* Info Section */}
       <div className="flex flex-col gap-6 p-5">
-        {/* Title + Apply */}
+        {/* Title & Apply */}
         <div className="flex justify-between items-start gap-4">
           <h1
             className={`text-2xl poppins-semibold flex-1 cursor-pointer ${
@@ -95,14 +139,14 @@ const JobPoster = () => {
           </h1>
 
           <button
-            className="px-5 py-2 rounded-xl bg-[#0385C2] text-white inter-semibold hover:bg-[#0274aa] transition-all "
+            className="px-5 py-2 rounded-xl bg-[#0385C2] text-white inter-semibold hover:bg-[#0274aa] transition-all"
             onClick={applyHandler}
           >
             Apply
           </button>
         </div>
 
-        {/* Budget & Date */}
+        {/* Budget & Posted Date */}
         <div className="flex flex-col gap-2 text-gray-700 text-[16px]">
           <p>
             <strong>Budget:</strong> ₹{jobDetails?.budget}
@@ -115,7 +159,7 @@ const JobPoster = () => {
         {/* Description */}
         <div
           className={`text-gray-800 text-sm leading-relaxed cursor-pointer ${
-            isDescExpanded ? "max-h-none whitespace-pre-wrap" : "line-clamp-4"
+            isDescExpanded ? "whitespace-pre-wrap" : "line-clamp-4"
           }`}
           onClick={() => setIsDescExpanded((prev) => !prev)}
           title="Click to expand/collapse"
@@ -124,20 +168,24 @@ const JobPoster = () => {
         </div>
 
         {/* Address */}
-        <div className="text-gray-700 text-sm">
-          <strong>Address:</strong> {jobDetails?.address}
-        </div>
+        {jobDetails?.address && (
+          <div className="text-gray-700 text-sm">
+            <strong>Address:</strong> {jobDetails.address}
+          </div>
+        )}
+
+        {/* Map Section */}
         {jobDetails?.lat &&
           jobDetails?.lng &&
-          !isNaN(Number(jobDetails?.lat)) &&
-          !isNaN(Number(jobDetails?.lng)) && (
+          !isNaN(Number(jobDetails.lat)) &&
+          !isNaN(Number(jobDetails.lng)) && (
             <>
               <MapDisplay
                 location={[Number(jobDetails.lat), Number(jobDetails.lng)]}
               />
+
               <a
                 href={`https://www.google.com/maps?q=${jobDetails.lat},${jobDetails.lng}`}
-                // href={`https://www.google.com/maps/dir/?api=1&destination=${jobDetails.lat},${jobDetails.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 inline-block px-4 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition"

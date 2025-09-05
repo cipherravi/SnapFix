@@ -59,7 +59,7 @@ const EditSection = ({
 
   const fetchCategories = useCategoryFetcher();
   const fetchCities = userCityFetcher();
-  const fetchAddresses = useAddressFetcher();
+  const { fetchAddresses } = useAddressFetcher();
 
   useEffect(() => {
     const loadOptions = async () => {
@@ -87,6 +87,11 @@ const EditSection = ({
 
     loadOptions();
   }, []);
+
+  async function handleSubmit() {
+    try {
+    } catch (error) {}
+  }
 
   const handleCancel = () => {
     setJobTitle(title);
@@ -198,6 +203,8 @@ const EditSection = ({
           onClick={() => {
             if (canEdit) {
               // Handle submit logic here
+              handleSubmit();
+              setCanEdit(false);
               console.log({
                 title: jobTitle,
                 budget: jobBudget,

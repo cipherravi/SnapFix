@@ -8,6 +8,13 @@ import {
 } from "react";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+interface Asset {
+  id: number;
+  jobId: number;
+  fileName: string;
+  fileType: string;
+  filePosition: string;
+}
 interface Job {
   id: number;
   title: string;
@@ -16,7 +23,9 @@ interface Job {
   categoryId: number;
   cityId: number;
   createdAt: string;
+  JobAssets: Asset[];
 }
+
 interface Category {
   id: number;
   name: string;
