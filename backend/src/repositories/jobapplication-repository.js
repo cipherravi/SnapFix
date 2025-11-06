@@ -3,6 +3,10 @@ const { JobApplication, User, City } = require("../models");
 const { JOB_APPLICATION_STATUS } = require("../utils/common/ENUM");
 const { REJECTED } = JOB_APPLICATION_STATUS;
 const { Op } = require("sequelize");
+
+const { getLogger } = require("../config");
+const logger = getLogger(__filename);
+
 class JobApplicationRepository extends CrudRepository {
   constructor() {
     super(JobApplication);
@@ -31,19 +35,16 @@ class JobApplicationRepository extends CrudRepository {
             model: User,
             as: "worker",
             attributes: ["name", "profilePicUrl", "gender"],
-            include: [
-              {
-                model: City,
-                as: "city",
-                attributes: ["name", "state", "pincode"],
-              },
-            ],
           },
         ],
       });
 
       return applications;
     } catch (error) {
+      logger.error(
+        "Error occured in findAllJobApplications of jobapplication-repository",
+        error
+      );
       throw error;
     }
   }

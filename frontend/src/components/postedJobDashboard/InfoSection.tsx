@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MapDisplay from "../../components/map/MapDisplay";
 import { formatTime } from "../../utils/formatTime";
 
@@ -9,30 +9,45 @@ interface InfoSectionProps {
   status: string;
   title: string;
   workerId: number;
-  address: string;
-  lat: string;
-  lng: string;
+  initialAddress: string;
+  latitude: string;
+  longitude: string;
   worker: {
     name: string;
     gender: string;
     profilePicUrl: string;
   };
+  mapAnimated?: boolean;
+  setMapAnimated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const InfoSection = ({
   title,
   budget,
-  address,
+  initialAddress,
   status,
   description,
   workerId,
-  lat,
-  lng,
+  latitude,
+  longitude,
   createdAt,
   worker,
+  mapAnimated,
+  setMapAnimated,
 }: InfoSectionProps) => {
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!mapAnimated) {
+      const timeout = setTimeout(() => {
+        setMapAnimated(true);
+      }, 200);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [mapAnimated]);
+
   return (
     <div className="flex flex-col gap-6 p-5">
       {/* Title + Apply */}
@@ -82,27 +97,33 @@ const InfoSection = ({
         onClick={() => setIsDescExpanded((prev) => !prev)}
         title="Click to expand/collapse"
       >
-        {description}
+        <strong>Description:</strong> {description}
       </div>
 
       {/* Address */}
       <div className="text-gray-700 text-sm">
-        <strong>Address:</strong> {address}
+        <strong>Address:</strong> {initialAddress}
       </div>
-      {lat && lng && !isNaN(Number(lat)) && !isNaN(Number(lng)) && (
-        <>
-          <MapDisplay location={[Number(lat), Number(lng)]} />
-          <a
-            href={`https://www.google.com/maps?q=${lat},${lng}`}
-            // href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block px-4 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition"
-          >
-            Track on Google Maps
-          </a>
-        </>
-      )}
+      {latitude &&
+        longitude &&
+        !isNaN(Number(latitude)) &&
+        !isNaN(Number(longitude)) && (
+          <>
+            <MapDisplay
+              location={[Number(latitude), Number(longitude)]}
+              animateOnLoad={!mapAnimated}
+            />
+            <a
+              href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+              // href={`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block px-4 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition"
+            >
+              Track on Google Maps
+            </a>
+          </>
+        )}
     </div>
   );
 };

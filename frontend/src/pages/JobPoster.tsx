@@ -14,47 +14,24 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-interface Asset {
-  id: number;
-  jobId: number;
-  fileName: string;
-  fileType: string;
-  filePosition: string;
-}
-
-interface Job {
-  id: number;
-  title: string;
-  description: string;
-  budget: number;
-  status: string;
-  userId: number;
-  workerId: number;
-  categoryId: number;
-  cityId: number;
-  address: string;
-  addressId?: number;
-  lat: string;
-  lng: string;
-  createdAt: string;
-  updatedAt: string;
-  JobAssets: Asset[];
-}
+import type { Job } from "@types";
+import ApplyJobModal from "@/components/modals/ApplyJobModal";
 
 const JobPoster = () => {
   const { id } = useParams();
-  const { fetchJobById } = useJobFetcher();
+  const { fetchJobByIdForPublic } = useJobFetcher();
   const { getImageUrl } = useImageFetcher();
 
   const [jobDetails, setJobDetails] = useState<Job | undefined>();
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchJobDetails = async () => {
       if (!id) return;
-      const data = await fetchJobById(id);
+      const data = await fetchJobByIdForPublic(id);
       setJobDetails(data);
     };
 
@@ -62,9 +39,14 @@ const JobPoster = () => {
   }, [id]);
 
   const imageUrls =
-    jobDetails?.JobAssets?.filter(
-      (file) => file.fileType === "image" && file.fileName
-    ).map((file) => getImageUrl(file.fileName, "jobAssets")) || [];
+    jobDetails?.assets
+      ?.filter(
+        (file) =>
+          file.fileType === "image" &&
+          file.filePosition !== "thumbnail" &&
+          file.fileName
+      )
+      .map((file) => getImageUrl(file.fileName, "jobAssets")) || [];
 
   const applyHandler = async () => {
     try {
@@ -76,6 +58,7 @@ const JobPoster = () => {
             "Content-Type": "application/json",
           },
           credentials: "include",
+          body: JSON.stringify({ message }),
         }
       );
 
@@ -87,6 +70,8 @@ const JobPoster = () => {
       }
     } catch (error) {
       toast.error("An error occurred while applying.");
+    } finally {
+      setShowMessageModal(false);
     }
   };
 
@@ -99,7 +84,7 @@ const JobPoster = () => {
 
       {/* Banner Swiper */}
       <div className="h-60 rounded-b-4xl overflow-hidden">
-        {imageUrls.length > 0 ? (
+        {imageUrls.length > 1 ? (
           <Swiper
             modules={[Autoplay, Pagination]}
             autoplay={{ delay: 3000, disableOnInteraction: false }}
@@ -117,6 +102,15 @@ const JobPoster = () => {
               </SwiperSlide>
             ))}
           </Swiper>
+        ) : imageUrls.length == 1 ? (
+          imageUrls.map((src, index) => (
+            <img
+              key={index}
+              src={src}
+              alt={`Job Image`}
+              className="w-full h-full object-contain"
+            />
+          ))
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
             No images available
@@ -140,11 +134,21 @@ const JobPoster = () => {
 
           <button
             className="px-5 py-2 rounded-xl bg-[#0385C2] text-white inter-semibold hover:bg-[#0274aa] transition-all"
-            onClick={applyHandler}
+            onClick={() => setShowMessageModal(true)}
           >
             Apply
           </button>
         </div>
+
+        <ApplyJobModal
+          isOpen={showMessageModal}
+          onConfirm={applyHandler}
+          onCancel={() => {
+            setShowMessageModal(false);
+          }}
+          message="Send custom message to client which will increase chances of your selection"
+          setMessage={setMessage}
+        />
 
         {/* Budget & Posted Date */}
         <div className="flex flex-col gap-2 text-gray-700 text-[16px]">
@@ -164,28 +168,33 @@ const JobPoster = () => {
           onClick={() => setIsDescExpanded((prev) => !prev)}
           title="Click to expand/collapse"
         >
-          {jobDetails?.description}
+          <strong>Description:</strong>{" "}
+          {jobDetails?.description || "No description provided."}
         </div>
 
         {/* Address */}
-        {jobDetails?.address && (
+        {jobDetails?.initialAddress && (
           <div className="text-gray-700 text-sm">
-            <strong>Address:</strong> {jobDetails.address}
+            <strong>Address:</strong> {jobDetails.initialAddress}
           </div>
         )}
 
         {/* Map Section */}
-        {jobDetails?.lat &&
-          jobDetails?.lng &&
-          !isNaN(Number(jobDetails.lat)) &&
-          !isNaN(Number(jobDetails.lng)) && (
+        {jobDetails?.latitude &&
+          jobDetails?.longitude &&
+          !isNaN(Number(jobDetails.latitude)) &&
+          !isNaN(Number(jobDetails.longitude)) && (
             <>
               <MapDisplay
-                location={[Number(jobDetails.lat), Number(jobDetails.lng)]}
+                location={[
+                  Number(jobDetails.latitude),
+                  Number(jobDetails.longitude),
+                ]}
+                animateOnLoad={true}
               />
 
               <a
-                href={`https://www.google.com/maps?q=${jobDetails.lat},${jobDetails.lng}`}
+                href={`https://www.google.com/maps?q=${jobDetails.latitude},${jobDetails.longitude}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 inline-block px-4 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition"

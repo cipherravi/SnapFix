@@ -8,6 +8,7 @@ const Register = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [phone, setPhoneNo] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +22,7 @@ const Register = () => {
       setPhoneNo(newValue);
     }
   };
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   async function registerHandler() {
     try {
@@ -29,27 +31,33 @@ const Register = () => {
         return;
       }
 
-      if (name.length > 8) {
+      if (name.length < 8) {
         toast.error("Full name must be atleast 8 letters");
         return;
       }
 
+      if (!emailRegex.test(email)) {
+        toast.error("Please provide a valid email address.");
+        return;
+      }
+
       if (password !== confirmPassword) {
-        toast.error("Password must be same");
+        toast.error("Passwords must match.");
         return;
       }
 
       if (password.length < 8) {
-        toast.error("Password must be atleast 8 digit");
+        toast.error("Password must be at least 8 characters.");
         return;
       }
+
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/auth/signup`, {
         method: "POST",
         headers: {
           "Content-type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ name, phone, password }),
+        body: JSON.stringify({ name, phone, email, password }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -73,7 +81,7 @@ const Register = () => {
       <div className="w-11/12">
         <h1 className="text-3xl  poppins-bold  ">Register Now</h1>
         <p className="text-sm text-gray-600 poppins-light pt-1">
-          Sign up with your name , phone number and password to continue
+          Sign up with your valid details to continue
         </p>
       </div>
 
@@ -87,7 +95,7 @@ const Register = () => {
               className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5"
             />
             <input
-              type="tel"
+              type="text"
               placeholder="Enter Full Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -105,6 +113,20 @@ const Register = () => {
               placeholder="Enter Phone number"
               value={phone}
               onChange={handleChange}
+              className="bg-[#F4F4F4]  rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
+            />
+          </div>
+          <div className="relative">
+            <img
+              src="/svg/email.svg"
+              alt="Profile logo"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
+            />
+            <input
+              type="text"
+              placeholder="Enter Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="bg-[#F4F4F4]  rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
             />
           </div>

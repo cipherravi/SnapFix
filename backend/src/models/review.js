@@ -6,7 +6,7 @@ const { CLIENT, WORKER } = ENUM.USER_ROLE;
 module.exports = (sequelize, DataTypes) => {
   class Review extends Model {
     static associate(models) {
-      Review.belongsTo(models.Job, { foreignKey: "jobId" });
+      Review.belongsTo(models.Job, { foreignKey: "jobId", as: "job" });
       Review.belongsTo(models.User, {
         foreignKey: "reviewerId",
         as: "reviewer",
@@ -47,6 +47,16 @@ module.exports = (sequelize, DataTypes) => {
       comment: {
         type: DataTypes.TEXT,
         allowNull: true,
+        validate: {
+          isValidLength(value) {
+            if (value && value.length < 1) {
+              throw new Error("Comment cannot be empty string");
+            }
+            if (value && value.length > 50) {
+              throw new Error("Comment too long");
+            }
+          },
+        },
       },
     },
     {

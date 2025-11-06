@@ -22,8 +22,12 @@ interface Job {
   budget: number;
   categoryId: number;
   cityId: number;
+  addressId: number;
+  initialAddress: string;
+  latitude: string;
+  longitude: string;
   createdAt: string;
-  JobAssets: Asset[];
+  assets: Asset[];
 }
 
 interface Category {

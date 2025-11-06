@@ -12,15 +12,11 @@ interface Application {
   userId: number;
   jobId: number;
   createdAt: string;
+  message: string;
   worker: {
     name: string;
     gender: string;
     profilePicUrl: string;
-    city: {
-      name: string;
-      pincode: string;
-      state: string;
-    };
   };
 }
 
@@ -59,6 +55,7 @@ const ApplicantsSection = ({ id }: ApplicantsSectionProps) => {
                 key={applicant.id}
                 applicant={applicant}
                 onReject={removeApplicant}
+                onAssign={setApplicants}
               />
             ))}
         </div>

@@ -12,6 +12,14 @@ const conversationRoutes = require("./coversation-routes");
 const addressRoutes = require("./address-routes");
 const assetsRoutes = require("./assets-routes");
 const kycRoutes = require("./kyc-routes");
+const stateRoutes = require("./state-routes");
+const districtRoutes = require("./district-routes");
+const areaRoutes = require("./area-routes");
+const paymentRoutes = require("./payment-routes");
+const chargeRoutes = require("./charge-routes");
+const clientRoutes = require("./client-routes");
+const workerRoutes = require("./worker-routes");
+const walletRoutes = require("./wallet-routes");
 const { verifyUser } = require("../../middlewares");
 
 router.get("/health", (req, res) => {
@@ -32,5 +40,13 @@ router.use("/conversations", conversationRoutes);
 router.use("/addresses", addressRoutes);
 router.use("/assets", assetsRoutes);
 router.use("/kyc", kycRoutes);
+router.use("/states", stateRoutes);
+router.use("/districts", districtRoutes);
+router.use("/areas", areaRoutes);
+router.use("/payments", paymentRoutes);
+router.use("/charges", chargeRoutes);
+router.use("/client", clientRoutes);
+router.use("/worker", workerRoutes);
+router.use("/wallet", walletRoutes);
 
 module.exports = router;

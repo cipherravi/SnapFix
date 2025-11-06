@@ -14,7 +14,9 @@ const Login = () => {
   const { fetchConversations } = useConversation();
   const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhoneNo] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginWithEmail, setLoginWithEmail] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -24,25 +26,34 @@ const Login = () => {
       setPhoneNo(newValue);
     }
   };
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   async function loginHandler() {
     try {
-      if (phone.length !== 10) {
-        toast.error("Mobile number must be 10 digits.");
+      if (loginWithEmail) {
+        if (!emailRegex.test(email)) {
+          toast.error("Please provide a valid email address.");
+          return;
+        }
+      } else {
+        if (phone.length !== 10) {
+          toast.error("Mobile number must be 10 digits.");
+          return;
+        }
+      }
+      if (password.length < 8) {
+        toast.error("Please provide valid password");
         return;
       }
 
-      if (password.length < 8) {
-        toast.error("Password must be atleast 8 digit");
-        return;
-      }
+      const body = loginWithEmail ? { email, password } : { phone, password };
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/auth/login`, {
         method: "POST",
         headers: {
           "Content-type": "application/json",
         },
         credentials: "include", // 🔥 critical to include cookies in request
-        body: JSON.stringify({ phone, password }),
+        body: JSON.stringify(body),
       });
       const data = await response.json();
       if (response.ok) {
@@ -70,30 +81,50 @@ const Login = () => {
       <div className="w-11/12">
         <h1 className="text-3xl  poppins-bold ">Welcome Back</h1>
         <p className="text-sm text-gray-600 poppins-light pt-1">
-          Access your account securely by using your phone and password
+          Access your account securely by using credentials
         </p>
       </div>
 
       {/* Form */}
       <div className="w-full flex flex-col items-center">
         <div className="w-full flex flex-col gap-4 pt-2">
-          <div className="relative">
-            <img
-              src="/svg/call.svg"
-              alt="Call logo"
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
-            />
-            <input
-              type="tel"
-              required
-              min={10}
-              maxLength={10}
-              value={phone}
-              onChange={handleChange}
-              placeholder="Enter Phone number"
-              className="bg-[#F4F4F4]  rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
-            />
-          </div>
+          {!loginWithEmail ? (
+            <div className="relative">
+              <img
+                src="/svg/call.svg"
+                alt="Call logo"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
+              />
+              <input
+                type="tel"
+                required
+                min={10}
+                maxLength={10}
+                value={phone}
+                onChange={handleChange}
+                placeholder="Enter Phone number"
+                className="bg-[#F4F4F4]  rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
+              />
+            </div>
+          ) : (
+            <div className="relative">
+              <img
+                src="/svg/email.svg"
+                alt="Call logo"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
+              />
+              <input
+                type="text"
+                required
+                maxLength={40}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter Email"
+                className="bg-[#F4F4F4]  rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
+              />
+            </div>
+          )}
+
           <div className="relative">
             <img
               src="/svg/lock.svg"
@@ -119,10 +150,21 @@ const Login = () => {
               onClick={() => setShowPassword(!showPassword)}
             />
           </div>
-          <div className="flex  items-center justify-around gap-15">
+          <div className="flex  items-center justify-around gap-15 ">
             <div>
-              <input type="checkbox" name="keep-login" id="keep-login" />
-              <span> Keep me login</span>
+              <p
+                className="text-sm inter-medium text-[#444]"
+                onClick={() => {
+                  if (loginWithEmail) {
+                    setEmail("");
+                  } else {
+                    setPhoneNo("");
+                  }
+                  setLoginWithEmail((prev) => !prev);
+                }}
+              >
+                Login with Email?
+              </p>
             </div>
             <span className="text-[#B00000]">
               <Link to="/reset">Forgot password?</Link>

@@ -7,7 +7,7 @@ const { ID_BACK, ID_FRONT, SELFIE, OTHER } = KYC_DOCUMENT_TYPE;
 module.exports = (sequelize, DataTypes) => {
   class KycDocument extends Model {
     static associate(models) {
-      KycDocument.belongsTo(models.Kyc, { foreignKey: "kycId" });
+      KycDocument.belongsTo(models.Kyc, { foreignKey: "kycId", as: "kyc" });
     }
   }
   KycDocument.init(
@@ -18,7 +18,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: OTHER,
       },
-      doc_url: { type: DataTypes.STRING, allowNull: false, unique: true },
+      doc_url: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: { len: [5, 100] },
+      },
     },
     {
       sequelize,

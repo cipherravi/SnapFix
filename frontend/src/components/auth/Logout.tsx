@@ -5,7 +5,7 @@ const Logout = () => {
   const { logout, checkAuth } = useAuth();
   return (
     <button
-      className="w-1/2  border px-4 py-2 rounded-3xl bg-[#0385c2] text-white inter-regular"
+      className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 border px-4 py-2 rounded-3xl bg-[#0385c2] text-white inter-regular text-sm sm:text-base"
       onClick={async () => {
         await logout();
         await checkAuth();

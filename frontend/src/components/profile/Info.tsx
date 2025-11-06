@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useUserInfo } from "../../utils/context/UserInfoContext";
 import useImageFetcher from "../../utils/Hooks/useImageFetcher";
+
 const Info = () => {
   const { userData } = useUserInfo();
   const { fetchPublicImage } = useImageFetcher();
-
   const [profilePicUrl, setProfilePicUrl] = useState("/svg/profile.svg");
 
   useEffect(() => {
@@ -18,31 +18,37 @@ const Info = () => {
     };
     fetchData();
   }, [userData]);
+
   return (
-    <div className="w-full min-h-1/4 flex bg-[#545454] rounded-2xl p-2 pb-5">
-      <div className="w-[25%] flex pt-2 justify-center  ">
+    <div className="w-full flex flex-col items-center  rounded-2xl p-4 gap-4">
+      {/* Profile Pic */}
+      <div className="flex justify-center">
         <img
           src={profilePicUrl}
           alt="Profile Pic"
-          className="w-16 h-16 rounded-full object-cover"
+          className="w-24 h-24 rounded-full object-cover border p-2"
         />
       </div>
-      <div className="w-[75%]  flex flex-col justify-center gap-3">
-        <div className=" flex gap-3 pl-2">
-          <h1 className="text-white text-2xl inter-medium">{userData?.name}</h1>
-          {userData?.Kyc?.status == "verified" && (
-            <img src="/svg/verified.svg" alt="verified icon" className="w-7" />
+
+      {/* Name + Verified */}
+      <div className="flex flex-col items-center gap-2 text-center">
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl inter-medium">{userData?.name}</h1>
+          {userData?.kyc?.status === "verified" && (
+            <img src="/svg/verified.svg" alt="verified" className="w-6" />
           )}
         </div>
-        <div className="flex gap-2 items-center ">
-          <img src="/svg/money-in.svg" alt="wallet icon" className="w-8 " />
-          <p className="inter-regular text-white">Balance :</p>
-          <p className="inter-medium text-white">₹ {1200}</p>
 
-          <button className="h-8 w-18 rounded-md bg-[#0385C2] inter-medium text-white">
+        {/* Optional Wallet Section */}
+
+        {/* <div className="flex gap-2 items-center flex-wrap justify-center">
+          <img src="/svg/money-in.svg" alt="wallet" className="w-6" />
+          <p className="inter-regular">Balance:</p>
+          <p className="inter-medium text-nowrap">₹ {1200}</p>
+          <button className="ml-2 px-3 py-1 bg-[#0385C2] text-sm rounded-md text-white">
             Add
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

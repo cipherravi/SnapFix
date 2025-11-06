@@ -48,11 +48,6 @@ async function handleKycSubmit(req, res) {
     SuccessResponse.data = kycApplication;
     SuccessResponse.message = "KYC submitted successfully";
     return res.status(StatusCodes.OK).json(SuccessResponse);
-    // return res.status(StatusCodes.OK).json({
-    //   message: "KYC submitted successfully",
-    //   kycApplication,
-    //   documents: uploads,
-    // });
   } catch (error) {
     logger.error(error.stack || error.message);
     const statusCode =
@@ -67,6 +62,19 @@ async function handleKycSubmit(req, res) {
     ErrorResponse.message = message;
     return res.status(statusCode).json(ErrorResponse);
   }
+}
+
+async function verifyApplicant(req, res) {
+  try {
+  } catch (error) {}
+}
+async function rejectApplicant(req, res) {
+  try {
+  } catch (error) {}
+}
+async function getApplicants(req, res) {
+  try {
+  } catch (error) {}
 }
 
 module.exports = { handleKycSubmit };

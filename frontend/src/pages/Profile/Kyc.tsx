@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -6,58 +6,20 @@ import BackButton from "../../components/Buttons/BackButton";
 import DropDownOptions from "../../components/modals/DropDownOptions";
 import ImageCapturer from "../../components/ImageCapturer";
 
-import useAddressFetcher from "../../utils/Hooks/useAddressFetcher";
+import { useAddressContext } from "@/utils/context/AddressContext";
 import useKycUpload from "../../utils/Hooks/useKycUpload";
 import { useUserInfo } from "../../utils/context/UserInfoContext";
-import sortByName from "../../utils/sortByName";
-
-interface BaseOption {
-  id: number;
-  name: string;
-}
-
-interface AddressOption extends BaseOption {
-  building: string;
-  street: string;
-  area: string;
-  city: string;
-  district: string;
-  state: string;
-}
+import type { Address } from "@types";
 
 const Kyc = () => {
   const navigate = useNavigate();
   const { userData, isLoading, fetchProfile } = useUserInfo();
+  const { addresses } = useAddressContext();
   const { uploadKyc, uploading } = useKycUpload();
 
   const [idPhotos, setIdPhotos] = useState<File[]>([]);
   const [userPhoto, setUserPhoto] = useState<File[]>([]);
-  const [addressOptions, setAddressOptions] = useState<AddressOption[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<AddressOption | null>(
-    null
-  );
-
-  const [showAddressModal, setShowAddressModal] = useState(false);
-
-  const { fetchAddresses } = useAddressFetcher();
-
-  // Load user addresses on mount
-  useEffect(() => {
-    const loadOptions = async () => {
-      // Do not fetch address when diesn't need
-      if (userData?.Kyc == undefined && !isLoading) {
-        const fetchedAddresses = await fetchAddresses();
-
-        if (fetchedAddresses.length < 1) {
-          setShowAddressModal(true);
-        } else {
-          setAddressOptions(sortByName(fetchedAddresses));
-        }
-      }
-    };
-
-    loadOptions();
-  }, [userData]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   // Handle KYC form submission
   const handleUpload = async () => {
@@ -103,7 +65,7 @@ const Kyc = () => {
 
       {/* Address Selection or Modal */}
       <div className="mt-10 w-full flex justify-center">
-        {showAddressModal ? (
+        {addresses.length < 1 ? (
           <div className="w-11/12 border bg-[#FFF0F0] rounded-lg p-4 shadow text-center">
             <p className="text-sm text-red-600 mb-2">
               🚫 No address found. Please add one before continuing.
@@ -119,7 +81,7 @@ const Kyc = () => {
           <DropDownOptions
             selected={selectedAddress}
             setSelected={setSelectedAddress}
-            options={addressOptions}
+            options={addresses}
             variant="address"
             placeholder="Select Address"
           />
@@ -140,7 +102,7 @@ const Kyc = () => {
   );
 
   const renderStatusMessage = () => {
-    const status = userData?.Kyc?.status;
+    const status = userData?.kyc?.status;
 
     switch (status) {
       case "pending":

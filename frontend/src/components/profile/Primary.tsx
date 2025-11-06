@@ -16,7 +16,10 @@ const Primary = () => {
             alt="wallet icon"
             className="w-7 filter invert"
           />
-          <div className="w-full border-b border-white/30 py-2 flex justify-between items-center">
+          <div
+            className="w-full border-b border-white/30 py-2 flex justify-between items-center"
+            onClick={() => navigate("wallet")}
+          >
             <p className="text-white text-sm inter-regular">Wallet</p>
 
             <img

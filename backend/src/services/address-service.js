@@ -53,13 +53,13 @@ async function getAddress(id) {
     );
   }
 }
-async function updateAddress(AddressId, data) {
+async function updateAddress(addressId, data) {
   try {
     // verify does address exist??
     // check that address belong to user??
     //update address
 
-    const address = await addressRepository.getById(AddressId);
+    const address = await addressRepository.getById(addressId);
     if (!address) {
       throw new AppError("Address doesn't exisits", StatusCodes.NOT_FOUND);
     }
@@ -71,7 +71,7 @@ async function updateAddress(AddressId, data) {
       );
     }
 
-    const response = await addressRepository.update(AddressId, data);
+    const response = await addressRepository.update(addressId, data);
 
     if (!response) {
       throw new AppError("Failed to update address", StatusCodes.BAD_REQUEST);
@@ -88,9 +88,39 @@ async function updateAddress(AddressId, data) {
     );
   }
 }
-async function removeAddress() {
+async function removeAddress(userId, addressId) {
   try {
-  } catch (error) {}
+    // check does address exist??
+    // check does address id === userId ??
+    // then delete
+
+    const address = await addressRepository.getById(addressId);
+
+    if (!address) {
+      throw new AppError(
+        "Failed to remove, Address doesn't exists",
+        StatusCodes.NOT_FOUND
+      );
+    }
+
+    if (address.userId !== Number(userId)) {
+      throw new AppError(
+        "Failed to remove, Address doesn't belong to you",
+        StatusCodes.NOT_FOUND
+      );
+    }
+
+    const response = await addressRepository.destroy(addressId);
+    return response;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to update address",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
 }
 
 module.exports = {

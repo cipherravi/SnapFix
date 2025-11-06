@@ -8,6 +8,14 @@ const ConversationService = require("./conversation-service");
 const AddressService = require("./address-service");
 const KycService = require("./kyc-service");
 const JobAssetService = require("./jobAsset-service");
+const StateService = require("./state-service");
+const DistrictService = require("./district-service");
+const AreaService = require("./area-service");
+const ChargeMasterService = require("./chargeMaster-service");
+const JobChargeService = require("./jobCharge-service");
+const PaymentService = require("./payment-service");
+const WalletService = require("./wallet-service");
+const WalletPaymentService = require("./walletPayment-service");
 
 module.exports = {
   UserService,
@@ -20,4 +28,12 @@ module.exports = {
   AddressService,
   KycService,
   JobAssetService,
+  StateService,
+  DistrictService,
+  AreaService,
+  ChargeMasterService,
+  JobChargeService,
+  PaymentService,
+  WalletService,
+  WalletPaymentService,
 };

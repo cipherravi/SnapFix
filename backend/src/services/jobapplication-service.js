@@ -1,4 +1,8 @@
-const { JobApplicationRepository, JobRepository } = require("../repositories");
+const {
+  JobApplicationRepository,
+  JobRepository,
+  UserRepository,
+} = require("../repositories");
 const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/AppError");
 const { getLogger } = require("../config");
@@ -10,9 +14,22 @@ const { sequelize } = require("../models");
 
 const jobApplicationRepository = new JobApplicationRepository();
 const jobRepository = new JobRepository();
+const userRepository = new UserRepository();
+
+const { USER_ROLE } = require("../utils/common/ENUM");
+const { WORKER } = USER_ROLE;
 
 async function createJobApplication(data) {
   try {
+    const user = await userRepository.getByUserId(data.userId);
+
+    if (user.role !== WORKER) {
+      throw new AppError(
+        "Only worker can apply for jobs, try doing KYC first",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
     const job = await jobRepository.findByJobId(data.jobId);
 
     if (!job) {

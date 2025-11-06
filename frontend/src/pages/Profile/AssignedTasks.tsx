@@ -7,23 +7,22 @@ interface Task {
   id: number;
   title: string;
   description: string;
-  status: "assigned";
+  status: string;
   budget: number;
   userId: number;
   workerId: number;
   categoryId: number;
   cityId: number;
   addressId: number;
-  address: string;
-  lat: string;
-  lng: string;
+  initialAddress: string;
+  latitude: string;
+  longitude: string;
   createdAt: string;
   updatedAt: string;
 }
 
 const AssignedTasks = () => {
   const { fetchMyTasks } = useTaskFetcher();
-
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
@@ -35,16 +34,19 @@ const AssignedTasks = () => {
   }, []);
 
   const buttonStyleClass =
-    "bg-[#0385C2] text-white px-4 py-1 rounded-2xl inter-medium";
+    "bg-[#0385C2] text-white px-4 py-1 rounded-full text-sm sm:text-base whitespace-nowrap transition hover:bg-[#0271a4]";
+
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-white">
-      {/* Header + Filter */}
-
-      <div className="shrink-0 pt-4 px-3 flex flex-col gap-4">
+    <div className="w-full h-full flex flex-col justify-center overflow-hidden bg-white">
+      {/* Header */}
+      <div className="shrink-0 pt-4 px-4 sm:px-6 flex flex-col gap-4">
         <BackButton navigateTo="/profile" />
-        <h1 className="text-3xl poppins-bold">Tasks</h1>
+        <h1 className="text-2xl sm:text-3xl poppins-bold text-gray-800">
+          Tasks
+        </h1>
 
-        <div className="w-full flex justify-around gap-2">
+        {/* Filter Buttons */}
+        <div className="w-full flex justify-start gap-2  overflow-x-auto hide-scrollbar">
           <button className={buttonStyleClass}>All</button>
           <button className={buttonStyleClass}>Active</button>
           <button className={buttonStyleClass}>Completed</button>
@@ -52,12 +54,11 @@ const AssignedTasks = () => {
         </div>
       </div>
 
-      {/* Cards */}
-
-      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 pt-10">
-        {tasks.length > 0 ? (
-          tasks.map((task) => {
-            return (
+      {/* Task Cards List */}
+      <div className="flex-1 overflow-y-auto px-3 py-2 pt-10">
+        <div className="w-full max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg mx-auto space-y-4">
+          {tasks.length > 0 ? (
+            tasks.map((task) => (
               <TaskCard
                 key={task.id}
                 id={task.id}
@@ -66,12 +67,13 @@ const AssignedTasks = () => {
                 budget={task.budget}
                 status={task.status}
                 createdAt={task.createdAt}
+                workerId={task.workerId}
               />
-            );
-          })
-        ) : (
-          <p>No Tasks Found</p>
-        )}
+            ))
+          ) : (
+            <p className="text-center text-gray-500 mt-24">No Tasks Found</p>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -9,6 +9,16 @@ const AddressRepository = require("./address-repository");
 const KycRepository = require("./kyc-repository");
 const KycDocumentRepository = require("./kycDocument-repository");
 const JobAssetRepository = require("./jobAsset-repository");
+const StateRepository = require("./state-repository");
+const DistrictRepository = require("./district-repository");
+const AreaRepository = require("./area-repository");
+const ChargeMasterRepository = require("./chargeMaster-repository");
+const JobChargeRepository = require("./jobCharge-repository");
+const PaymentRepository = require("./payment-repository");
+const JobHistoryRepository = require("./jobHistory-repository");
+const WalletRepository = require("./wallet-repository");
+const WalletPaymentRepository = require("./walletPayment-repository");
+const WalletTransactionRepository = require("./walletTransaction-repository");
 
 module.exports = {
   UserRepository,
@@ -22,4 +32,14 @@ module.exports = {
   KycRepository,
   KycDocumentRepository,
   JobAssetRepository,
+  StateRepository,
+  DistrictRepository,
+  AreaRepository,
+  ChargeMasterRepository,
+  JobChargeRepository,
+  PaymentRepository,
+  JobHistoryRepository,
+  WalletRepository,
+  WalletPaymentRepository,
+  WalletTransactionRepository,
 };

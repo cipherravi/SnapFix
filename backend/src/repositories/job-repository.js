@@ -1,5 +1,5 @@
 const CrudRepository = require("./crud-repository");
-const { Job, User, JobAsset } = require("../models");
+const { Job, User, JobAsset, Payment } = require("../models");
 class JobRepository extends CrudRepository {
   constructor() {
     super(Job);
@@ -27,6 +27,7 @@ class JobRepository extends CrudRepository {
           },
           {
             model: JobAsset,
+            as: "assets",
             attributes: { exclude: ["createdAt", "updatedAt"] },
           },
         ],
@@ -36,6 +37,68 @@ class JobRepository extends CrudRepository {
       throw error;
     }
   }
+  async getByjobIdForWorker(jobId) {
+    try {
+      const job = await Job.findOne({
+        where: { id: jobId },
+        include: [
+          {
+            model: Payment,
+            as: "activePayment",
+            attributes: {
+              exclude: [
+                "refund_amount",
+                "refund_reference",
+                "provider",
+                "razorpay_order_id",
+                "razorpay_payment_id",
+                "razorpay_signature",
+                "txn_reference",
+                "attempt_status",
+              ],
+            },
+          },
+          {
+            model: JobAsset,
+            as: "assets",
+            attributes: { exclude: ["createdAt", "updatedAt"] },
+          },
+        ],
+      });
+      return job;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getByjobIdForPublic(jobId) {
+    try {
+      const job = await Job.findOne({
+        where: { id: jobId },
+        attributes: {
+          exclude: [
+            "status",
+            "updatedAt",
+            "userId",
+            "worker",
+            "workerId",
+            "addressId",
+          ],
+        },
+        include: [
+          {
+            model: JobAsset,
+            as: "assets",
+            attributes: { exclude: ["createdAt", "updatedAt"] },
+          },
+        ],
+      });
+      return job;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getAllJobs(filter, sortBy, options = {}) {
     try {
       const jobs = await Job.findAll({
@@ -45,6 +108,7 @@ class JobRepository extends CrudRepository {
         include: [
           {
             model: JobAsset,
+            as: "assets",
             attributes: { exclude: ["createdAt", "updatedAt"] },
           },
         ],
@@ -59,6 +123,7 @@ class JobRepository extends CrudRepository {
     try {
       const tasks = await Job.findAll({
         where: { workerId: userId },
+        order: [["updatedAt", "DESC"]],
       });
       return tasks;
     } catch (error) {
@@ -69,7 +134,7 @@ class JobRepository extends CrudRepository {
     try {
       const jobs = await Job.findAll({
         where: { userId },
-        order: [["createdAt", "DESC"]],
+        order: [["updatedAt", "DESC"]],
       });
       return jobs;
     } catch (error) {

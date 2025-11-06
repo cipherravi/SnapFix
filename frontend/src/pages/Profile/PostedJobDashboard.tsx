@@ -6,6 +6,7 @@ import InfoSection from "../../components/postedJobDashboard/InfoSection";
 import ApplicantsSection from "../../components/postedJobDashboard/ApplicantsSection";
 import EditSection from "../../components/postedJobDashboard/EditSection";
 import useImageFetcher from "../../utils/Hooks/useImageFetcher";
+import type { Job } from "@types";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -13,36 +14,13 @@ import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 
-interface Asset {
-  id: number;
-  jobId: number;
-  fileName: string;
-  fileType: string;
-  filePosition: string;
-}
-
-interface Job {
-  budget: number;
-  categoryId: number;
-  cityId: number;
-  createdAt: string;
-  description: string;
-  id: number;
-  status: string;
-  title: string;
-  updatedAt: string;
-  userId: number;
+interface JobDetails extends Job {
   workerId: number;
-  address: string;
-  addressId: number;
-  lat: string;
-  lng: string;
   worker: {
     name: string;
     gender: string;
     profilePicUrl: string;
   };
-  JobAssets: Asset[];
 }
 
 // Define as const to get literal types
@@ -57,14 +35,20 @@ type TabIndex = (typeof TabIndex)[keyof typeof TabIndex];
 
 const PostedJobDashboard = () => {
   const { id } = useParams();
-  const { fetchJobById } = useJobFetcher();
+  const { fetchJobByIdForClient } = useJobFetcher();
   const { getImageUrl } = useImageFetcher();
-  const [jobDetails, setJobDetails] = useState<Job | undefined>(undefined);
+  const [jobDetails, setJobDetails] = useState<JobDetails | undefined>(
+    undefined
+  );
+
+  const [mapAnimated, setMapAnimated] = useState(false);
+
   const [activeTab, setActiveTab] = useState<TabIndex>(TabIndex.INFO);
+
   useEffect(() => {
     const fetchData = async () => {
       if (id) {
-        const data = await fetchJobById(id);
+        const data = await fetchJobByIdForClient(id);
         setJobDetails(data);
       }
     };
@@ -72,9 +56,14 @@ const PostedJobDashboard = () => {
   }, [id]);
 
   const imageUrls =
-    jobDetails?.JobAssets?.filter(
-      (file) => file.fileType === "image" && file.fileName
-    ).map((file) => getImageUrl(file.fileName, "jobAssets")) || [];
+    jobDetails?.assets
+      ?.filter(
+        (file) =>
+          file.fileType === "image" &&
+          file.filePosition !== "thumbnail" &&
+          file.fileName
+      )
+      .map((file) => getImageUrl(file.fileName, "jobAssets")) || [];
 
   const isActive = (tab: TabIndex) =>
     activeTab === tab ? "bg-white text-black" : "bg-transparent text-white";
@@ -87,7 +76,7 @@ const PostedJobDashboard = () => {
       </div>
       {/* Banner Swiper */}
       <div className="h-60 rounded-b-4xl overflow-hidden">
-        {imageUrls.length > 0 ? (
+        {imageUrls.length > 1 ? (
           <Swiper
             modules={[Autoplay, Pagination]}
             autoplay={{ delay: 3000, disableOnInteraction: false }}
@@ -105,6 +94,15 @@ const PostedJobDashboard = () => {
               </SwiperSlide>
             ))}
           </Swiper>
+        ) : imageUrls.length == 1 ? (
+          imageUrls.map((src, index) => (
+            <img
+              key={index}
+              src={src}
+              alt={`Job Image`}
+              className="w-full h-full object-contain"
+            />
+          ))
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
             No images available
@@ -135,7 +133,11 @@ const PostedJobDashboard = () => {
       {/* Dynamic  */}
       <div className="shrink w-full h-full">
         {activeTab === TabIndex.INFO && jobDetails && (
-          <InfoSection {...jobDetails} />
+          <InfoSection
+            {...jobDetails}
+            mapAnimated={mapAnimated}
+            setMapAnimated={setMapAnimated}
+          />
         )}
         {activeTab === TabIndex.APPLICANTS && id && (
           <ApplicantsSection id={id} />

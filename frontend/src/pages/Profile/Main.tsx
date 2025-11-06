@@ -5,13 +5,9 @@ import Secondary from "../../components/profile/Secondary";
 
 const Main = () => {
   return (
-    <div className="w-full min-h-full  bg-white pt-4 pb-20">
-      <div className="h-full flex flex-col gap-10 mx-4">
-        {/* Heading */}
-        <h1 className="text-3xl  poppins-semibold ">Profile</h1>
-
-        {/* Cards */}
-        <div className="w-full max-h-[70%] flex flex-col gap-4 items-center">
+    <div className="w-full min-h-screen bg-white pt-4 pb-24 sm:pb-32">
+      <div className=" mt-10 sm:gap-10 px-4 sm:px-6 md:px-10">
+        <div className="flex flex-col gap-6 items-center w-full max-w-2xl mx-auto">
           <Info />
           <Primary />
           <Secondary />

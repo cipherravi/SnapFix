@@ -8,6 +8,14 @@ const ConversationController = require("./conversation-controller");
 const AddressController = require("./address-controller");
 const AssetsController = require("./assets-controller");
 const KycController = require("./kyc-controller");
+const StateController = require("./state-controller");
+const DistrictController = require("./district-controller");
+const AreaController = require("./area-controller");
+const PaymentController = require("./payment-controller");
+const ChargeMasterController = require("./chargeMaster-controller");
+const JobChargeController = require("./jobCharge-controller");
+const WalletController = require("./wallet-controller");
+const WalletPaymentController = require("./walletPayment-controller");
 
 module.exports = {
   UserController,
@@ -20,4 +28,12 @@ module.exports = {
   AddressController,
   AssetsController,
   KycController,
+  StateController,
+  DistrictController,
+  AreaController,
+  PaymentController,
+  ChargeMasterController,
+  JobChargeController,
+  WalletController,
+  WalletPaymentController,
 };

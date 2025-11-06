@@ -1,11 +1,27 @@
-const { JobRepository, JobApplicationRepository } = require("../repositories");
+const {
+  JobRepository,
+  JobApplicationRepository,
+  AddressRepository,
+  JobHistoryRepository,
+} = require("../repositories");
 const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/AppError");
 const { getLogger } = require("../config");
 const logger = getLogger(__filename);
 const { ENUM } = require("../utils/common");
-const { POSTED, ASSIGNED, APPROVED, COMPLETED, CANCELLED } = ENUM.JOB_STATUS;
-const { SELECTED } = ENUM.JOB_APPLICATION_STATUS;
+const { JOB_STATUS, JOB_APPLICATION_STATUS, USER_ROLE } = ENUM;
+const {
+  POSTED,
+  ASSIGNED,
+  STARTED,
+  IN_PROGRESS,
+  COMPLETED,
+  APPROVED,
+  CANCELLED,
+} = JOB_STATUS;
+
+const { SELECTED, REJECTED } = JOB_APPLICATION_STATUS;
+const { WORKER } = USER_ROLE;
 const { Op } = require("sequelize");
 const { sequelize, Address } = require("../models");
 const Conversation = require("../models/conversation");
@@ -13,18 +29,25 @@ const formatAddress = require("../utils/formatAddress");
 
 const jobRepository = new JobRepository();
 const jobApplicationRepository = new JobApplicationRepository();
+const addressRepository = new AddressRepository();
+const jobHistoryRepository = new JobHistoryRepository();
 
 async function createJob(data) {
   try {
-    const getUserAddress = await Address.findByPk(data.addressId);
+    const userAddress = await addressRepository.getById(data.addressId);
 
-    if (!getUserAddress) {
-      throw new AppError("Invalid addressId", StatusCodes.BAD_REQUEST);
+    if (!userAddress || Number(data.addressId) !== userAddress.id) {
+      throw new AppError("Invalid address", StatusCodes.BAD_REQUEST);
     }
 
-    const address = formatAddress(getUserAddress);
+    const initialAddress = formatAddress(userAddress);
+    const cityId = userAddress.cityId;
 
-    const response = await jobRepository.create({ ...data, address });
+    const response = await jobRepository.create({
+      ...data,
+      cityId,
+      initialAddress,
+    });
     if (!response) {
       throw new AppError("Failed to create job", StatusCodes.BAD_REQUEST);
     }
@@ -39,9 +62,64 @@ async function createJob(data) {
     );
   }
 }
-async function getJob(jobId) {
+
+async function getJobForClient(userId, jobId) {
   try {
     const response = await jobRepository.getByjobId(jobId);
+
+    if (!response) {
+      throw new AppError("Failed to fetch job", StatusCodes.BAD_REQUEST);
+    }
+
+    if (response.userId !== Number(userId)) {
+      throw new AppError(
+        "Job doesn't belong to you, cannot fetch details",
+        StatusCodes.UNAUTHORIZED
+      );
+    }
+
+    return response;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to fetch job",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
+async function getJobForWorker(userId, jobId) {
+  try {
+    const response = await jobRepository.getByjobIdForWorker(jobId);
+
+    if (!response) {
+      throw new AppError("Failed to fetch job", StatusCodes.BAD_REQUEST);
+    }
+
+    if (response.workerId !== Number(userId)) {
+      throw new AppError(
+        "Job doesn't belong to you, cannot fetch details",
+        StatusCodes.UNAUTHORIZED
+      );
+    }
+
+    return response;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to fetch job",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
+async function getJobForPublic(jobId) {
+  try {
+    const response = await jobRepository.getByjobIdForPublic(jobId);
     if (!response) {
       throw new AppError("Failed to fetch job", StatusCodes.BAD_REQUEST);
     }
@@ -87,9 +165,7 @@ async function getAllJobs({
     }
 
     const response = await jobRepository.getAllJobs(filter, sortBy);
-    if (!response) {
-      throw new AppError("Failed to fetch All jobs", StatusCodes.BAD_REQUEST);
-    }
+
     return response;
   } catch (error) {
     if (error instanceof AppError) {
@@ -103,10 +179,11 @@ async function getAllJobs({
 }
 async function updateJob(userId, jobId, data) {
   try {
+    console.log("first");
     const job = await jobRepository.getById(jobId);
 
     if (!job) {
-      throw new AppError("Job not found");
+      throw new AppError("Job not found", StatusCodes.NOT_FOUND);
     }
 
     if (userId !== job.userId) {
@@ -116,14 +193,27 @@ async function updateJob(userId, jobId, data) {
       );
     }
     if (job.status !== POSTED) {
-      throw new AppError("Job details cannot update now");
+      throw new AppError(
+        "Job details cannot change now",
+        StatusCodes.BAD_REQUEST
+      );
     }
+
+    const applicants = await jobApplicationRepository.findAllJobApplications(
+      jobId
+    );
+
+    if (applicants.length > 0) {
+      throw new Error("Failed to update Job details, Job contains applicants");
+    }
+
     const response = await jobRepository.update(jobId, data);
     if (!response) {
       throw new AppError("Failed to update job", StatusCodes.BAD_REQUEST);
     }
     return response;
   } catch (error) {
+    console.log(error);
     if (error instanceof AppError) {
       throw error;
     }
@@ -249,6 +339,169 @@ async function accept(userId, jobId, workerId) {
   }
 }
 
+async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
+  const transaction = await sequelize.transaction();
+  try {
+    if (!Object.values(JOB_STATUS).includes(newStatus)) {
+      throw new AppError("Invalid job status", StatusCodes.BAD_REQUEST);
+    }
+    const job = await jobRepository.findByJobId(jobId);
+    if (!job) {
+      throw new AppError("Job not found", StatusCodes.NOT_FOUND);
+    }
+
+    const isClient = job.userId === Number(userId);
+    const isWorker = job.workerId === Number(userId);
+
+    if (!isClient && !isWorker) {
+      throw new AppError(
+        "You are not authorized to change this job",
+        StatusCodes.FORBIDDEN
+      );
+    }
+
+    const validTransitions = {
+      [POSTED]: [ASSIGNED, CANCELLED],
+      [ASSIGNED]: [STARTED],
+      [STARTED]: [IN_PROGRESS],
+      [IN_PROGRESS]: [COMPLETED],
+      [COMPLETED]: [APPROVED],
+    };
+    const currentStatus = job.status;
+    const allowedNext = validTransitions[currentStatus] || [];
+    if (!allowedNext.includes(newStatus)) {
+      throw new AppError(
+        `Invalid transition: ${currentStatus} → ${newStatus}`,
+        StatusCodes.BAD_REQUEST
+      );
+    }
+    const clientOnly = [ASSIGNED, APPROVED, CANCELLED];
+    const workerOnly = [STARTED, IN_PROGRESS, COMPLETED];
+
+    if (clientOnly.includes(newStatus) && !isClient) {
+      throw new AppError(
+        "Only client can perform this action",
+        StatusCodes.FORBIDDEN
+      );
+    }
+    if (workerOnly.includes(newStatus) && !isWorker) {
+      throw new AppError(
+        "Only worker can perform this action",
+        StatusCodes.FORBIDDEN
+      );
+    }
+
+    // 4️⃣ Handle special transitions
+    if (newStatus === ASSIGNED) {
+      // worker gets assigned
+      if (job.workerId) {
+        throw new AppError(
+          "Worker already assigned to this job",
+          StatusCodes.BAD_REQUEST
+        );
+      }
+      if (!workerId) {
+        throw new AppError(
+          "Worker ID is required for assignment",
+          StatusCodes.BAD_REQUEST
+        );
+      }
+
+      // ensure valid job application exists
+      const jobApplication = await jobApplicationRepository.findJobApplication(
+        workerId,
+        jobId
+      );
+      if (!jobApplication) {
+        throw new AppError("Job application not found", StatusCodes.NOT_FOUND);
+      }
+      await jobRepository.update(
+        jobId,
+        { workerId, status: newStatus },
+        { transaction }
+      );
+      await jobApplicationRepository.update(
+        jobApplication.id,
+        { status: SELECTED },
+        { transaction }
+      );
+    }
+
+    if (newStatus === APPROVED) {
+      if (job.status !== COMPLETED) {
+        throw new AppError(
+          "Job must be completed before approval",
+          StatusCodes.BAD_REQUEST
+        );
+      }
+    }
+
+    if (newStatus === CANCELLED) {
+      if (job.workerId) {
+        throw new AppError(
+          "Cannot cancel job after worker assignment",
+          StatusCodes.BAD_REQUEST
+        );
+      }
+    }
+
+    // 5️⃣ Update job status
+    if (newStatus !== ASSIGNED) {
+      await jobRepository.update(jobId, { status: newStatus }, { transaction });
+    }
+
+    // 6️⃣ Record job history
+    await jobHistoryRepository.create(
+      {
+        jobId,
+        changedBy: userId,
+        oldStatus: currentStatus,
+        newStatus,
+      },
+      { transaction }
+    );
+
+    await transaction.commit();
+
+    // Create conversation (if not exists) after assigning job
+    if (newStatus === ASSIGNED) {
+      const conversationKey = `job_${jobId}_${[job.userId, workerId]
+        .sort((a, b) => a - b)
+        .join("_")}`;
+
+      const existingConversation = await Conversation.findOne({
+        conversationKey,
+      });
+      if (!existingConversation) {
+        await Conversation.create({
+          jobId,
+          participants: [job.userId, workerId].sort((a, b) => a - b),
+          conversationKey,
+        });
+      }
+    }
+
+    if (newStatus === APPROVED) {
+      await Conversation.updateMany({ jobId }, { active: false });
+    }
+
+    return { message: `Job status updated to ${newStatus}` };
+  } catch (error) {
+    await transaction.rollback();
+    logger.error(
+      `Job status update failed for jobId: ${jobId}, userId: ${userId}`,
+      error
+    );
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to update job status, try again",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
 async function markApproved(userId, jobId) {
   try {
     const job = await jobRepository.findByJobId(jobId);
@@ -358,12 +611,15 @@ async function getMyJobs(userId) {
 
 module.exports = {
   createJob,
-  getJob,
+  getJobForClient,
+  getJobForPublic,
+  getJobForWorker,
   getAllJobs,
   updateJob,
   destroyJob,
   accept,
   markApproved,
+  updateJobStatus,
   cancelJob,
   getMyTasks,
   getMyJobs,

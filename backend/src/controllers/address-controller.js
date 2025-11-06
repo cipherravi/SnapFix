@@ -11,8 +11,9 @@ async function createAddress(req, res) {
       throw new AppError("Empty fields", StatusCodes.BAD_REQUEST);
     }
     const userId = req.user.id;
-    const { building, street, area, state, district, city } = req.body;
-    if (!building || !area || !state || !district || !city) {
+    const { building, street, areaId, cityId, isPrimary, latitude, longitude } =
+      req.body;
+    if (!building || !areaId || !cityId) {
       throw new AppError(
         "Missing fields please fill all necessary details",
         StatusCodes.BAD_REQUEST
@@ -22,10 +23,11 @@ async function createAddress(req, res) {
       userId,
       building,
       street,
-      area,
-      state,
-      district,
-      city,
+      areaId: parseInt(areaId),
+      cityId: parseInt(cityId),
+      isPrimary: isPrimary === "true",
+      latitude,
+      longitude,
     });
 
     SuccessResponse.data = response;
@@ -46,6 +48,7 @@ async function createAddress(req, res) {
     return res.status(statusCode).json(ErrorResponse);
   }
 }
+
 async function getAllAddresses(req, res) {
   try {
     const userId = req.user.id;
@@ -96,14 +99,15 @@ async function getAddress(req, res) {
 async function updateAddress(req, res) {
   try {
     const userId = req.user.id;
-    const AddressId = req.body.id;
-    const { building, street, area } = req.body;
+    const addressId = req.body.id;
+    const { building, street, latitude, longitude } = req.body;
 
-    const response = await AddressService.updateAddress(AddressId, {
+    const response = await AddressService.updateAddress(addressId, {
       userId,
       building,
       street,
-      area,
+      latitude,
+      longitude,
     });
 
     SuccessResponse.data = response;
@@ -126,7 +130,28 @@ async function updateAddress(req, res) {
 }
 async function removeAddress(req, res) {
   try {
-  } catch (error) {}
+    const userId = req.user.id;
+    const { addressId } = req.params;
+
+    const response = await AddressService.removeAddress(userId, addressId);
+
+    SuccessResponse.data = response;
+    SuccessResponse.message = "Successfully removed address";
+    res.status(StatusCodes.OK).json(SuccessResponse);
+  } catch (error) {
+    logger.error(error.stack || error.message);
+    const statusCode =
+      error instanceof AppError
+        ? error.statusCode
+        : StatusCodes.INTERNAL_SERVER_ERROR;
+    const message =
+      error instanceof AppError
+        ? error.message
+        : "Something went wrong while remvoing address";
+    ErrorResponse.error = error;
+    ErrorResponse.message = message;
+    return res.status(statusCode).json(ErrorResponse);
+  }
 }
 
 module.exports = {

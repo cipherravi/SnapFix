@@ -4,25 +4,22 @@ const logger = getLogger(__filename);
 const { SuccessResponse, ErrorResponse } = require("../utils/common");
 const AppError = require("../utils/AppError");
 const { JobApplicationService } = require("../services");
-const { USER_ROLE } = require("../utils/common/ENUM");
-const { WORKER } = USER_ROLE;
 
 async function createJobApplication(req, res) {
   try {
     let { jobId } = req.params;
+    let message;
+    if (req.body !== undefined) {
+      const userMessage = req.body.message;
+      message = userMessage;
+    }
     const userId = req.user.id;
     jobId = parseInt(jobId);
-
-    if (req.user.role !== WORKER) {
-      throw new AppError(
-        "Only worker can apply for jobs, try doing KYC first",
-        StatusCodes.BAD_REQUEST
-      );
-    }
 
     const response = await JobApplicationService.createJobApplication({
       jobId,
       userId,
+      message,
     });
 
     SuccessResponse.data = response;

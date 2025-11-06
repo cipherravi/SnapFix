@@ -1,22 +1,52 @@
 "use strict";
 const { Model } = require("sequelize");
 const { ENUM } = require("../utils/common");
-const { POSTED, ASSIGNED, STARTED, COMPLETED, APPROVED, CANCELLED } =
-  ENUM.JOB_STATUS;
+const { JOB_STATUS, ATTEMPT_STATUS } = ENUM;
+const {
+  INITIATED,
+  POSTED,
+  ASSIGNED,
+  STARTED,
+  IN_PROGRESS,
+  COMPLETED,
+  APPROVED,
+  CANCELLED,
+} = JOB_STATUS;
+const { ACTIVE } = ATTEMPT_STATUS;
+
 module.exports = (sequelize, DataTypes) => {
   class Job extends Model {
     static associate(models) {
       Job.belongsTo(models.User, { foreignKey: "userId", as: "client" });
       Job.belongsTo(models.User, { foreignKey: "workerId", as: "worker" });
-      Job.belongsTo(models.City, { foreignKey: "cityId" });
-      Job.belongsTo(models.Category, { foreignKey: "categoryId" });
+      Job.belongsTo(models.City, { foreignKey: "cityId", as: "city" });
+      Job.belongsTo(models.Category, {
+        foreignKey: "categoryId",
+        as: "category",
+      });
 
-      Job.hasMany(models.JobApplication, { foreignKey: "jobId" });
-      Job.hasMany(models.Review, { foreignKey: "jobId" });
-      Job.belongsTo(models.Address, { foreignKey: "addressId" });
-      Job.hasMany(models.JobAsset, { foreignKey: "jobId" });
+      Job.hasMany(models.JobApplication, {
+        foreignKey: "jobId",
+        as: "applications",
+      });
+      Job.hasMany(models.Review, { foreignKey: "jobId", as: "reviews" });
+      Job.belongsTo(models.Address, { foreignKey: "addressId", as: "address" });
+      Job.hasMany(models.JobAsset, { foreignKey: "jobId", as: "assets" });
+
+      Job.hasMany(models.JobCharge, {
+        foreignKey: "jobId",
+        as: "job_charges",
+      });
+      Job.hasMany(models.Payment, { foreignKey: "jobId", as: "payments" });
+      Job.hasOne(models.Payment, {
+        foreignKey: "jobId",
+        as: "activePayment",
+        scope: { attempt_status: ACTIVE },
+      });
+      Job.hasMany(models.JobHistory, { foreignKey: "jobId", as: "joblogs" });
     }
   }
+
   Job.init(
     {
       title: {
@@ -42,15 +72,17 @@ module.exports = (sequelize, DataTypes) => {
       },
       status: {
         type: DataTypes.ENUM(
+          INITIATED,
           POSTED,
           ASSIGNED,
           STARTED,
+          IN_PROGRESS,
           COMPLETED,
           APPROVED,
           CANCELLED
         ),
         allowNull: false,
-        defaultValue: POSTED,
+        defaultValue: INITIATED,
       },
       budget: {
         type: DataTypes.INTEGER,
@@ -58,6 +90,7 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isInt: true,
           max: 9999,
+          min: 1,
         },
       },
       userId: {
@@ -80,17 +113,19 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      address: {
+      initialAddress: {
         type: DataTypes.STRING,
         allowNull: false,
+        comment:
+          "Static address string for this job; not tied to user's current address",
       },
-      lat: {
-        type: DataTypes.DECIMAL(10, 6),
-        allowNull: true,
+      latitude: {
+        type: DataTypes.DECIMAL(10, 7),
+        allowNull: false,
       },
-      lng: {
-        type: DataTypes.DECIMAL(10, 6),
-        allowNull: true,
+      longitude: {
+        type: DataTypes.DECIMAL(10, 7),
+        allowNull: false,
       },
     },
     {

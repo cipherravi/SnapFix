@@ -4,6 +4,7 @@ import Splash from "./components/Splash";
 import { Outlet, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Tabs from "./components/Tabs";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 function App() {
   const [showSplash, setShowSplash] = useState(false);
@@ -53,6 +54,7 @@ function App() {
     <Splash fadeOut={fadeSplash} />
   ) : (
     <div className="h-dvh w-full">
+      <ScrollToTop />
       <Outlet />
 
       {shouldShowTabs && <Tabs />}

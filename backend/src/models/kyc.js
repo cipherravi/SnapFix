@@ -6,8 +6,11 @@ const { PENDING, REJECTED, VERIFIED } = KYC_STATUS;
 module.exports = (sequelize, DataTypes) => {
   class Kyc extends Model {
     static associate(models) {
-      Kyc.hasMany(models.KycDocument, { foreignKey: "kycId" });
-      Kyc.belongsTo(models.User, { foreignKey: "userId" });
+      Kyc.hasMany(models.KycDocument, {
+        foreignKey: "kycId",
+        as: "documents",
+      });
+      Kyc.belongsTo(models.User, { foreignKey: "userId", as: "user" });
       Kyc.belongsTo(models.User, {
         foreignKey: "verifiedBy",
         as: "verifier",
@@ -32,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "Kyc",
       tableName: "kycs",
+      timestamps: true,
     }
   );
   return Kyc;

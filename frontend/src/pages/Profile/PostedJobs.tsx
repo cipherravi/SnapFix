@@ -61,7 +61,7 @@ const PostedJobs = () => {
         <BackButton navigateTo="/profile" />
         <h1 className="text-3xl poppins-bold">Jobs</h1>
 
-        <div className="w-full flex justify-around gap-2">
+        <div className="w-full flex justify-start gap-2  overflow-x-auto hide-scrollbar">
           <button className={buttonStyleClass}>All</button>
           <button className={buttonStyleClass}>Active</button>
           <button className={buttonStyleClass}>Completed</button>
@@ -70,25 +70,27 @@ const PostedJobs = () => {
       </div>
 
       {/* Cards */}
-      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 pt-10">
-        {myJobs.length > 0 ? (
-          myJobs.map((job) => {
-            const worker = workerMap[job.workerId];
-            return (
-              <JobCard
-                key={job.id}
-                id={job.id}
-                title={job.title}
-                description={job.description}
-                status={job.status}
-                budget={job.budget}
-                worker={worker}
-              />
-            );
-          })
-        ) : (
-          <p className="text-center text-gray-500 mt-24">No Jobs found.</p>
-        )}
+      <div className="flex-1 overflow-y-auto px-3 py-2 pt-10">
+        <div className="w-full max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg mx-auto space-y-4">
+          {myJobs.length > 0 ? (
+            myJobs.map((job) => {
+              const worker = workerMap[job.workerId];
+              return (
+                <JobCard
+                  key={job.id}
+                  id={job.id}
+                  title={job.title}
+                  description={job.description}
+                  status={job.status}
+                  budget={job.budget}
+                  worker={worker}
+                />
+              );
+            })
+          ) : (
+            <p className="text-center text-gray-500 mt-24">No Jobs found.</p>
+          )}
+        </div>
       </div>
     </div>
   );

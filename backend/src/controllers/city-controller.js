@@ -10,20 +10,18 @@ async function createCity(req, res) {
     if (req.body == undefined) {
       throw new AppError("Empty fields", StatusCodes.BAD_REQUEST);
     }
-    const { name, state, pincode, latitute, longitude } = req.body;
+    const { name, districtId, pincode } = req.body;
 
-    if (!name || !state) {
+    if (!name || !districtId || !pincode) {
       throw new AppError(
-        "Provide Name and state of city",
+        "Provide valid name, districtId and pincode of city",
         StatusCodes.BAD_REQUEST
       );
     }
     const response = await CityService.createCity({
       name,
-      state,
+      districtId,
       pincode,
-      latitute,
-      longitude,
     });
 
     SuccessResponse.data = response;
@@ -91,19 +89,40 @@ async function getAllCity(req, res) {
   }
 }
 
+async function getAllAreasOfCity(req, res) {
+  try {
+    const { cityId } = req.params;
+    const response = await CityService.getAllAreasOfCity(cityId);
+    SuccessResponse.data = response;
+    SuccessResponse.message = "Successfully fetched Areas for city";
+    res.status(StatusCodes.OK).json(SuccessResponse);
+  } catch (error) {
+    logger.error(error.stack || error.message);
+    const statusCode =
+      error instanceof AppError
+        ? error.statusCode
+        : StatusCodes.INTERNAL_SERVER_ERROR;
+    const message =
+      error instanceof AppError
+        ? error.message
+        : "Something went wrong while fetching Areas for city";
+    ErrorResponse.error = error;
+    ErrorResponse.message = message;
+    return res.status(statusCode).json(ErrorResponse);
+  }
+}
+
 async function updateCity(req, res) {
   try {
     if (req.body === undefined) {
       throw new AppError("Empty fields", StatusCodes.BAD_REQUEST);
     }
     const cityId = req.body.id;
-    const { name, state, pincode, latitude, longitude } = req.body;
+    const { name, districtId, pincode } = req.body;
     const response = await CityService.updateCity(cityId, {
       name,
-      state,
+      districtId,
       pincode,
-      latitude,
-      longitude,
     });
 
     SuccessResponse.data = response;
@@ -149,4 +168,11 @@ async function destroyCity(req, res) {
   }
 }
 
-module.exports = { createCity, getCity, getAllCity, updateCity, destroyCity };
+module.exports = {
+  createCity,
+  getCity,
+  getAllCity,
+  getAllAreasOfCity,
+  updateCity,
+  destroyCity,
+};

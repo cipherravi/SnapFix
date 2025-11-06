@@ -4,9 +4,15 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class City extends Model {
     static associate(models) {
-      // One city has many users and jobs
-      City.hasMany(models.User, { foreignKey: "cityId", as: "city" });
-      City.hasMany(models.Job, { foreignKey: "cityId" });
+      City.belongsTo(models.District, {
+        foreignKey: "districtId",
+        as: "district",
+      });
+      City.hasMany(models.Area, { foreignKey: "cityId", as: "areas" });
+      City.hasMany(models.Address, {
+        foreignKey: "cityId",
+        as: "addresses",
+      });
     }
   }
 
@@ -15,25 +21,14 @@ module.exports = (sequelize, DataTypes) => {
       name: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: { len: [1, 30] },
+        unique: true,
+        validate: { notEmpty: true, len: [1, 30] },
       },
-      state: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: { len: [1, 20] },
-      },
+      districtId: { type: DataTypes.INTEGER, allowNull: false },
       pincode: {
         type: DataTypes.STRING,
-        allowNull: true,
-        validate: { isInt: true, len: [1, 20] },
-      },
-      latitude: {
-        type: DataTypes.DECIMAL(10, 7),
-        allowNull: true,
-      },
-      longitude: {
-        type: DataTypes.DECIMAL(10, 7),
-        allowNull: true,
+        allowNull: false,
+        validate: { notEmpty: true, len: [1, 20], isNumeric: true },
       },
     },
     {

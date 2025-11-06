@@ -4,6 +4,7 @@ import UserInfoProvider from "./UserInfoContext";
 import SocketProvider from "./SocketContext";
 import ConversationProvider from "./CoversationContext";
 import { ExploreProvider } from "./ExploreContext";
+import AddressProvider from "./AddressContext";
 // import { Provider } from "react-redux";
 
 interface ProvidersProps {
@@ -15,11 +16,13 @@ function Providers({ children }: ProvidersProps) {
     // <Provider store={AppStore}>
     <AuthProvider>
       <UserInfoProvider>
-        <ExploreProvider>
-          <ConversationProvider>
-            <SocketProvider>{children}</SocketProvider>
-          </ConversationProvider>
-        </ExploreProvider>
+        <AddressProvider>
+          <ExploreProvider>
+            <ConversationProvider>
+              <SocketProvider>{children}</SocketProvider>
+            </ConversationProvider>
+          </ExploreProvider>
+        </AddressProvider>
       </UserInfoProvider>
     </AuthProvider>
     // </Provider>

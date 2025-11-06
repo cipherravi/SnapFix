@@ -42,7 +42,7 @@ const Message = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-10 bg-white pt-4 px-3  ">
+    <div className="w-full h-full flex flex-col gap-10 bg-white pt-4 px-3 ">
       {/* Heading */}
       <div className="w-full flex flex-col gap-4">
         <h1 className="text-3xl pl-2  poppins-semibold ">Chats</h1>
@@ -64,7 +64,7 @@ const Message = () => {
       </div>
 
       {/* Chats */}
-      <div className="w-full h-full relative">
+      <div className="w-full h-full relative ">
         {firstLoad && loading ? (
           <div className="w-full h-full flex flex-col gap-3">
             {Array.from({ length: 4 }).map((_, idx) => (
@@ -90,6 +90,7 @@ const Message = () => {
             No conversations yet
           </p>
         )}
+        <div className="h-32"></div> {/* Spacer equal to navbar height */}
       </div>
     </div>
   );

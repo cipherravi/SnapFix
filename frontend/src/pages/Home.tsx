@@ -72,8 +72,8 @@ function Home() {
           ) : jobs.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
               {jobs.map((job) => {
-                const mainAsset = job.JobAssets.find(
-                  (file) => file.filePosition === "main"
+                const mainAsset = job.assets.find(
+                  (file) => file.filePosition === "thumbnail"
                 );
                 const mainUrl = mainAsset?.fileName || "";
 

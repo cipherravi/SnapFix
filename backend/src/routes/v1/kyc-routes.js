@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { KycController } = require("../../controllers");
-const { verifyUser } = require("../../middlewares");
+const { verifyUser, verifyAdmin } = require("../../middlewares");
 const multer = require("multer");
 
 // Create multer instance first
@@ -17,6 +17,13 @@ router.post(
     { name: "selfie", maxCount: 1 },
   ]),
   KycController.handleKycSubmit
-);
+); // Done
+
+router.get("/applicants", verifyAdmin); // P
+router.get("/applicants/:id", verifyAdmin); // P
+router.get("/verified", verifyAdmin); // P
+router.get("/verified/me", verifyAdmin); // P
+router.post("/verify/:id", verifyAdmin); // P
+router.post("/reject", verifyAdmin); // P
 
 module.exports = router;

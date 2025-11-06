@@ -6,6 +6,8 @@ const AppError = require("../utils/AppError");
 const { getLogger } = require("../config");
 const logger = getLogger(__filename);
 
+const { createWallet } = require("./wallet-service");
+
 const {
   SALT_ROUNDS,
   SECRET_KEY,
@@ -26,15 +28,24 @@ const {
 
 const userRepository = new UserRepository();
 
-async function signup(name, phone, password) {
+async function signup(name, phone, email, password) {
   const passwordHash = await bcrypt.hash(password, +SALT_ROUNDS);
-
   try {
     const response = await userRepository.create({
       name,
       phone,
+      email,
       password: passwordHash,
     });
+
+    if (!response) {
+      throw new AppError(
+        "Failed to signup, try again",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
+    await createWallet(response.id);
 
     delete response.dataValues.password;
     return response;
@@ -96,6 +107,25 @@ async function login(phone, email, password) {
   }
 }
 
+async function getMyProfile(userId) {
+  try {
+    const user = await userRepository.getByUserId(userId);
+
+    if (!user) {
+      throw new AppError(USER_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+
+    return user;
+  } catch (error) {
+    logger.error(error.stack || error.message);
+
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw error;
+  }
+}
+
 async function getProfile(id) {
   try {
     const user = await userRepository.getByUserId(id);
@@ -114,6 +144,7 @@ async function getProfile(id) {
     throw error;
   }
 }
+
 async function getProfiles(ids) {
   try {
     const users = await userRepository.fetchUsers(ids);
@@ -166,6 +197,7 @@ module.exports = {
   signup,
   login,
   getProfile,
+  getMyProfile,
   getProfiles,
   updateUser,
 };

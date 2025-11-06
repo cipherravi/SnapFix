@@ -1,6 +1,8 @@
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { useConversation } from "@/utils/context/CoversationContext";
 
 interface Application {
   id: number;
@@ -8,27 +10,32 @@ interface Application {
   userId: number;
   jobId: number;
   createdAt: string;
+  message: string;
   worker: {
     name: string;
     gender: string;
     profilePicUrl: string;
-    city: {
-      name: string;
-      pincode: string;
-      state: string;
-    };
   };
 }
 
 interface ApplicantCardProps {
   applicant: Application;
   onReject: (id: number) => void;
+  onAssign: React.Dispatch<React.SetStateAction<Application[] | undefined>>;
 }
 
-const ApplicantCard = ({ applicant, onReject }: ApplicantCardProps) => {
+const ApplicantCard = ({
+  applicant,
+  onReject,
+  onAssign,
+}: ApplicantCardProps) => {
   const navigate = useNavigate();
+  const { fetchConversations } = useConversation();
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const assignHandler = async () => {
+    setIsAssigning(true);
     try {
       if (applicant?.id) {
         const response = await fetch(
@@ -45,12 +52,23 @@ const ApplicantCard = ({ applicant, onReject }: ApplicantCardProps) => {
         const data = await response.json();
         if (response.ok) {
           toast.success(data?.message);
+          onAssign((prev) =>
+            prev
+              ? prev.map((a) =>
+                  a.id === applicant.id ? { ...a, status: "selected" } : a
+                )
+              : prev
+          );
+          // refresh conversations
+          fetchConversations();
         } else {
           toast.error(data?.message);
         }
       }
     } catch (error) {
       console.error("Failed to assign", error);
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -114,11 +132,20 @@ const ApplicantCard = ({ applicant, onReject }: ApplicantCardProps) => {
         <p className="text-sm text-gray-600 capitalize">
           {applicant.worker.gender}
         </p>
-        <p className="text-sm text-gray-500">
-          {applicant.worker.city.name}, {applicant.worker.city.state} -{" "}
-          {applicant.worker.city.pincode}
-        </p>
-        <p className="inter-light text-sm">Status: {applicant.status}</p>
+        <p className="inter-medium text-sm">Status: {applicant.status}</p>
+        {applicant.message && (
+          <div
+            className={`inter-light text-sm max-w-[90%] cursor-pointer transition-all duration-300 ${
+              isExpanded ? "" : "line-clamp-2"
+            }`}
+            onClick={() => setIsExpanded((prev) => !prev)}
+          >
+            <strong>Message:</strong> {applicant.message}
+            <span className="block text-xs text-blue-600">
+              {isExpanded ? "Show less" : "Show more"}
+            </span>
+          </div>
+        )}
       </div>
       {/* Buttons */}
       {applicant.status == "selected" ? (
@@ -139,7 +166,7 @@ const ApplicantCard = ({ applicant, onReject }: ApplicantCardProps) => {
             className="bg-[#0385C2] text-white px-3 py-2 rounded-lg inter-regular"
             onClick={assignHandler}
           >
-            Assign
+            {isAssigning ? "Assigning" : "Assign"}
           </button>
           <button
             className="bg-[#da2424] text-white px-3 py-2 rounded-lg inter-regular"

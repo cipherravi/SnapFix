@@ -46,11 +46,10 @@ class UserRepository extends CrudRepository {
         where: { id },
         attributes: { exclude: ["password"] },
         include: [
-          { model: Kyc, attributes: { exclude: ["userId", "verifiedBy"] } },
           {
-            model: City,
-            as: "city",
-            attributes: { exclude: ["createdAt", "updatedAt"] },
+            model: Kyc,
+            as: "kyc",
+            attributes: { exclude: ["userId", "verifiedBy"] },
           },
         ],
       });

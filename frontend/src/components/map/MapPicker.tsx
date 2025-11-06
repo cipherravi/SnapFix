@@ -1,6 +1,11 @@
-// components/MapPicker.tsx
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import { useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+  useMap,
+} from "react-leaflet";
+import { useEffect, useState } from "react";
 import L from "leaflet";
 import type { LatLngExpression, LeafletMouseEvent } from "leaflet";
 
@@ -46,23 +51,57 @@ function LocationMarker({ onChange }: LocationMarkerProps) {
   ) : null;
 }
 
+interface SetViewOnChangeProps {
+  location: [number, number];
+  zoom: number;
+  animateOnLoad?: boolean;
+}
+// 🧠 This will update the map's view when props change
+function SetViewOnChange({
+  location,
+  zoom,
+  animateOnLoad = false,
+}: SetViewOnChangeProps) {
+  const map = useMap();
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (animateOnLoad && !hasAnimated) {
+      map.setView(location, 3); // Start at low zoom
+      setTimeout(() => {
+        map.flyTo(location, zoom, { duration: 1.5 });
+        setHasAnimated(true);
+      }, 200); // short delay
+    } else {
+      map.setView(location, zoom);
+    }
+  }, [location[0], location[1], zoom]);
+
+  return null;
+}
+
 interface MapPickerProps {
-  location?: [number, number]; // initial [lat, lng]
+  location: [number, number]; // initial [lat, lng]
   onLocationSelect: (pos: [number, number]) => void;
+  zoom?: number;
+  type?: "create" | "edit";
+  editable?: boolean;
+  animateOnLoad?: boolean;
 }
 
 export default function MapPicker({
   onLocationSelect,
   location,
+  zoom = 3,
+  type = "create",
+  editable = true,
+  animateOnLoad = false,
 }: MapPickerProps) {
   return (
     <div className="w-full h-52 rounded-xl overflow-hidden">
       <MapContainer
-        center={
-          location ||
-          ([25.545229354169017, 84.65927124023439] as LatLngExpression)
-        }
-        zoom={13}
+        center={location}
+        zoom={zoom}
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={true}
         doubleClickZoom={true}
@@ -73,7 +112,20 @@ export default function MapPicker({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
-        <LocationMarker onChange={onLocationSelect} />
+
+        {/* Show ONE marker at current location always */}
+        {type == "edit" && <Marker position={location} />}
+
+        {/* Only allow new pin when editable */}
+        {editable && <LocationMarker onChange={onLocationSelect} />}
+
+        {type == "create" && (
+          <SetViewOnChange
+            location={location}
+            zoom={zoom}
+            animateOnLoad={animateOnLoad}
+          />
+        )}
       </MapContainer>
     </div>
   );

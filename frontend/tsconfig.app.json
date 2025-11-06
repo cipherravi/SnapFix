@@ -6,6 +6,14 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths":{
+        "@/*":["src/*"],  
+        "@types": ["types/index.ts"],
+        "@types/*":["types/*"],
+        // "@components/*":["src/components/*"]
+    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -23,5 +31,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src","types"]
 }

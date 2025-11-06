@@ -19,7 +19,8 @@ module.exports = {
       },
       email: {
         type: Sequelize.STRING,
-        allowNull: true,
+        unique: true,
+        allowNull: false,
       },
       phone: {
         type: Sequelize.STRING,
@@ -34,9 +35,6 @@ module.exports = {
       profilePicUrl: {
         type: Sequelize.STRING,
         allowNull: true,
-        validate: {
-          isUrl: true,
-        },
       },
       password: {
         type: Sequelize.STRING,
@@ -47,10 +45,7 @@ module.exports = {
         allowNull: false,
         defaultValue: CLIENT,
       },
-      cityId: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-      },
+
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -60,18 +55,15 @@ module.exports = {
         type: Sequelize.DATE,
       },
     });
-
-    // ✅ Partial unique index for email (PostgreSQL)
-    await queryInterface.sequelize.query(`
-      CREATE UNIQUE INDEX unique_users_email ON "users"(email) WHERE email IS NOT NULL;
-    `);
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.sequelize.query(`
-    DROP INDEX IF EXISTS unique_users_email;
-  `);
-
     await queryInterface.dropTable("users");
+    await queryInterface.sequelize.query(`
+        DROP TYPE IF EXISTS "enum_users_role";
+    `);
+    await queryInterface.sequelize.query(`
+      DROP TYPE IF EXISTS "enum_users_gender";
+  `);
   },
 };

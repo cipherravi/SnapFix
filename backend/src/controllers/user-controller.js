@@ -24,9 +24,9 @@ const {
 } = USER;
 
 async function signup(req, res) {
-  const { name, phone, password } = req.body;
+  const { name, phone, email, password } = req.body;
   try {
-    const response = await UserService.signup(name, phone, password);
+    const response = await UserService.signup(name, phone, email, password);
 
     if (!response) {
       throw new AppError(SIGNUP_FAILED, StatusCodes.BAD_REQUEST);
@@ -110,6 +110,30 @@ async function logout(req, res) {
   }
 }
 
+async function getMyProfile(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const response = await UserService.getMyProfile(userId);
+    if (!response) {
+      throw new AppError(PROFILE_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+
+    SuccessResponse.data = response;
+    SuccessResponse.message = PROFILE_SUCCESS;
+    return res.status(StatusCodes.OK).json(SuccessResponse);
+  } catch (error) {
+    logger.error(error.stack || error.message);
+    const statusCode =
+      error instanceof AppError
+        ? error.statusCode
+        : StatusCodes.INTERNAL_SERVER_ERROR;
+    const message = error instanceof AppError ? error.message : PROFILE_FAILED;
+    ErrorResponse.error = error;
+    ErrorResponse.message = message;
+    return res.status(statusCode).json(ErrorResponse);
+  }
+}
 async function getProfile(req, res) {
   try {
     let id = Number(req.params.id) ? req.params.id : req.user.id;
@@ -219,6 +243,7 @@ module.exports = {
   login,
   logout,
   getProfile,
+  getMyProfile,
   getProfiles,
   updateUser,
 };

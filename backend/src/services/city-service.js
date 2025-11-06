@@ -59,6 +59,21 @@ async function getAllCity() {
   }
 }
 
+async function getAllAreasOfCity(cityId) {
+  try {
+    const response = await cityRepository.getAllAreas(cityId);
+    return response;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to get all Areas",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
 async function updateCity(cityId, data) {
   try {
     const response = await cityRepository.update(cityId, data);
@@ -93,4 +108,11 @@ async function destroyCity(cityId) {
     );
   }
 }
-module.exports = { createCity, getCity, getAllCity, updateCity, destroyCity };
+module.exports = {
+  createCity,
+  getCity,
+  getAllCity,
+  getAllAreasOfCity,
+  updateCity,
+  destroyCity,
+};

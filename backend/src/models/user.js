@@ -6,19 +6,28 @@ const { MALE, FEMALE } = ENUM.USER_GENDER;
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      User.belongsTo(models.City, { foreignKey: "cityId", as: "city" });
-      User.hasOne(models.Kyc, { foreignKey: "userId" });
+      User.hasOne(models.Kyc, { foreignKey: "userId", as: "kyc" });
+      User.hasMany(models.Address, {
+        foreignKey: "userId",
+        as: "addresses",
+      });
     }
   }
   User.init(
     {
-      name: { type: DataTypes.STRING, allowNull: false },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: { len: [5, 30] },
+      },
 
       email: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
+        unique: true,
         validate: {
           isEmail: true,
+          len: [5, 40],
         },
       },
 
@@ -39,16 +48,17 @@ module.exports = (sequelize, DataTypes) => {
       profilePicUrl: {
         type: DataTypes.STRING,
         allowNull: true,
+        validate: { len: [10, 100] },
       },
-      password: { type: DataTypes.STRING, allowNull: false },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: { len: [10, 100] },
+      },
       role: {
         type: DataTypes.ENUM(CLIENT, WORKER, MODERATOR, ADMIN, AGENT),
         allowNull: false,
         defaultValue: CLIENT,
-      },
-      cityId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
       },
     },
     {

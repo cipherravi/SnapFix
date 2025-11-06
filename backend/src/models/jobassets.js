@@ -3,12 +3,12 @@ const { Model } = require("sequelize");
 
 const { JOB_ASSET_TYPE, JOB_ASSET_POSITION } = require("../utils/common/ENUM");
 const { IMAGE, VIDEO } = JOB_ASSET_TYPE;
-const { MAIN, SECONDARY, THIRD } = JOB_ASSET_POSITION;
+const { MAIN, SECONDARY, THIRD, THUMBNAIL } = JOB_ASSET_POSITION;
 
 module.exports = (sequelize, DataTypes) => {
   class JobAsset extends Model {
     static associate(models) {
-      JobAsset.belongsTo(models.Job, { foreignKey: "jobId" });
+      JobAsset.belongsTo(models.Job, { foreignKey: "jobId", as: "job" });
     }
   }
   JobAsset.init(
@@ -24,9 +24,11 @@ module.exports = (sequelize, DataTypes) => {
       fileName: {
         type: DataTypes.STRING,
         allowNull: false,
+        validate: { len: [1, 100] },
       },
       filePosition: {
-        type: DataTypes.ENUM(MAIN, SECONDARY, THIRD),
+        type: DataTypes.ENUM(MAIN, SECONDARY, THIRD, THUMBNAIL),
+        defaultValue: MAIN,
         allowNull: false,
       },
     },

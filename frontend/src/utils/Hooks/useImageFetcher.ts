@@ -21,7 +21,7 @@ const useImageFetcher = () => {
 
 function getImageUrl(fileName?: string , folder?:string): string {
   if (!fileName) {
-    return "/svg/profile.svg"; // fallback default
+    return ""; // fallback default
   }
   return `${VITE_SUPABASE_PUBLIC_BASE_URL}${folder}/${fileName}`;
 }

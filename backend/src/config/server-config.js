@@ -9,4 +9,6 @@ module.exports = {
   SALT_ROUNDS: process.env.SALT_ROUNDS,
   EXPIRES_IN: process.env.EXPIRES_IN,
   supabaseServiceKey: process.env.supabaseServiceKey,
+  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
+  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
 };

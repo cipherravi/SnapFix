@@ -6,40 +6,65 @@ class CrudRepository {
     this.model = model;
   }
 
-  async create(data) {
-    const response = await this.model.create(data);
-    logger.info("Successfully accessed create");
+  async create(data, options = {}) {
+    try {
+      const response = await this.model.create(data, { ...options });
+      logger.info("Successfully accessed create");
 
-    return response;
+      return response;
+    } catch (error) {
+      logger.error("Error in (crud) create:", error);
+      throw error;
+    }
   }
 
   async getById(id) {
-    const response = await this.model.findByPk(id);
-    logger.info("Successfully accessed getById");
-    delete response.dataValues.password;
-    return response;
+    try {
+      const response = await this.model.findByPk(id);
+      logger.info("Successfully accessed getById");
+      delete response.dataValues.password;
+      return response;
+    } catch (error) {
+      logger.error("Error in (crud) getById:", error);
+      throw error;
+    }
   }
 
   async getAll() {
-    const response = await this.model.findAll();
-    logger.info("Successfully accessed getAll");
+    try {
+      const response = await this.model.findAll();
+      logger.info("Successfully accessed getAll");
 
-    return response;
+      return response;
+    } catch (error) {
+      logger.error("Error in (crud) getAll:", error);
+      throw error;
+    }
   }
   async update(id, data, options = {}) {
-    const updateRecord = await this.model.update(data, {
-      where: { id },
-      ...options,
-    });
+    try {
+      const updateRecord = await this.model.update(data, {
+        where: { id },
+        ...options,
+      });
 
-    logger.info(`Successfully updated record with id: ${id}`);
-    return updateRecord;
+      logger.info(`Successfully updated record with id: ${id}`);
+      return updateRecord;
+    } catch (error) {
+      logger.error("Error in (crud) update:", error);
+      throw error;
+    }
   }
   async destroy(id) {
-    const response = await this.model.destroy({ where: { id: id } });
-    logger.info("Successfully accessed destroy");
+    try {
+      const response = await this.model.destroy({ where: { id: id } });
+      logger.info("Successfully accessed destroy");
 
-    return response;
+      return response;
+    } catch (error) {
+      logger.error("Error in (crud) destroy:", error);
+      throw error;
+    }
   }
 }
 

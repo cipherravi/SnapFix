@@ -215,17 +215,11 @@ const Account = () => {
                 </span>
               )}
             </div>
-            {!canEdit && (
-              <p className="text-lg">
-                <strong>City: </strong>
-                {userData?.city?.name} {userData?.city?.state}
-              </p>
-            )}
 
-            {!canEdit && userData?.Kyc !== null && (
+            {!canEdit && userData?.kyc !== null && (
               <p className="text-lg">
                 <strong>KYC: </strong>
-                {userData?.Kyc?.status}
+                {userData?.kyc?.status}
               </p>
             )}
           </div>

@@ -1,34 +1,44 @@
-import App from "../App";
-// import { lazy } from "react";
+import App from "@/App";
+import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
-import Intro from "../pages/intro";
-import Register from "../components/auth/Register";
-import Login from "../components/auth/Login";
-import ForgotPassword from "../components/auth/ForgotPassword";
-import Home from "../pages/Home";
-import Message from "../pages/Chats";
-import Chat from "../pages/Chat";
-import Profile from "../pages/Profile";
+import PublicRoute from "@/utils/common/PublicRoute";
+import ProtectedRoute from "@/utils/common/ProtectedRoute";
+const Intro = lazy(() => import("@/pages/intro"));
 
-import PublicRoute from "../utils/common/PublicRoute";
-import ProtectedRoute from "../utils/common/ProtectedRoute";
-import Search from "../pages/Search";
-import Create from "../pages/Create";
-import PostedJobs from "../pages/Profile/PostedJobs";
-import ProfileMain from "../pages/Profile/Main";
-import JobPoster from "../pages/JobPoster";
-import PostedJobDashboard from "../pages/Profile/PostedJobDashboard";
-import AssignedTasks from "../pages/Profile/AssignedTasks";
-import AssignedTaskDashboard from "../pages/Profile/AssignedTaskDashboard";
-import Addresses from "../pages/Profile/Addresses";
-import CreateAddress from "../pages/Addresses/CreateAddress";
-import Account from "../pages/Profile/Account";
-import Kyc from "../pages/Profile/Kyc";
-import AddressMain from "../pages/Addresses/Main";
-import EditAddress from "../pages/Addresses/EditAddress";
-import Admin from "../pages/Admin";
-import Dashboard from "../pages/Admin/Dashboard";
-import Main from "../pages/Admin/Main";
+const Register = lazy(() => import("@/components/auth/Register"));
+const Login = lazy(() => import("@/components/auth/Login"));
+const ForgotPassword = lazy(() => import("@/components/auth/ForgotPassword"));
+
+const Home = lazy(() => import("@/pages/Home"));
+const Message = lazy(() => import("@/pages/Chats"));
+const Chat = lazy(() => import("@/pages/Chat"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const Search = lazy(() => import("@/pages/Search"));
+const Create = lazy(() => import("@/pages/Create"));
+
+const PostedJobs = lazy(() => import("@/pages/Profile/PostedJobs"));
+const ProfileMain = lazy(() => import("@/pages/Profile/Main"));
+
+const JobPoster = lazy(() => import("@/pages/JobPoster"));
+const PostedJobDashboard = lazy(
+  () => import("@/pages/Profile/PostedJobDashboard")
+);
+const AssignedTasks = lazy(() => import("@/pages/Profile/AssignedTasks"));
+const AssignedTaskDashboard = lazy(
+  () => import("@/pages/Profile/AssignedTaskDashboard")
+);
+const Addresses = lazy(() => import("@/pages/Profile/Addresses"));
+const CreateAddress = lazy(() => import("@/pages/Addresses/CreateAddress"));
+const Account = lazy(() => import("@/pages/Profile/Account"));
+const Kyc = lazy(() => import("@/pages/Profile/Kyc"));
+const AddressMain = lazy(() => import("@/pages/Addresses/Main"));
+const EditAddress = lazy(() => import("@/pages/Addresses/EditAddress"));
+const Admin = lazy(() => import("@/pages/Admin"));
+const Dashboard = lazy(() => import("@/pages/Admin/Dashboard"));
+const Main = lazy(() => import("@/pages/Admin/Main"));
+const Payment = lazy(() => import("@/pages/Payment"));
+const CODSuccess = lazy(() => import("@/pages/success/CODSuccess"));
+const Wallet = lazy(() => import("@/pages/Profile/Wallet"));
 
 const router = createBrowserRouter([
   {
@@ -85,6 +95,14 @@ const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <ProfileMain /> },
+          {
+            path: "wallet",
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <Wallet />
+              </Suspense>
+            ),
+          },
           { path: "jobs", element: <PostedJobs /> },
           { path: "jobs/:id", element: <PostedJobDashboard /> },
           {
@@ -130,7 +148,7 @@ const router = createBrowserRouter([
         element: <Create />,
       },
       {
-        path: `job/:id/:title`,
+        path: `jobs/:id/:title`,
         element: <JobPoster />,
       },
       {
@@ -140,6 +158,14 @@ const router = createBrowserRouter([
           { index: true, element: <Main /> },
           { path: "dashboard", element: <Dashboard /> },
         ],
+      },
+      {
+        path: "payments/:id",
+        element: <Payment />,
+      },
+      {
+        path: "cod-success",
+        element: <CODSuccess />,
       },
     ],
   },

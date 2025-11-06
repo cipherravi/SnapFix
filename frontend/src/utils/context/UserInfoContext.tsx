@@ -7,41 +7,8 @@ import {
 } from "react";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-interface Kyc {
-  id: number;
-  userId: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-interface City {
-  id: number;
-  name: string;
-  state: string;
-  pincode: string;
-  latitude: string;
-  longitude: string;
-}
+import type { User } from "@types";
 
-// ✅ 1. Define the shape of your user data
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  gender: string;
-  dateOfBirth: string;
-  profilePicUrl: string;
-  role: string;
-  cityId: number;
-  createdAt: string;
-  updatedAt: string;
-  Kyc: Kyc;
-  city: City;
-  // Add more fields as per your backend response
-}
-
-// ✅ 2. Define the context type
 interface UserInfoContextType {
   fetchProfile: () => Promise<void>;
   userData: User | null;
@@ -49,12 +16,10 @@ interface UserInfoContextType {
   isLoading: boolean;
 }
 
-// ✅ 3. Create the context with correct type (undefined initially)
 const UserInfoContext = createContext<UserInfoContextType | undefined>(
   undefined
 );
 
-// ✅ 4. Props for the provider
 interface UserInfoProviderProps {
   children: ReactNode;
 }
@@ -132,7 +97,6 @@ const UserInfoProvider = ({ children }: UserInfoProviderProps) => {
 
 export default UserInfoProvider;
 
-// ✅ 5. Safe custom hook
 export const useUserInfo = () => {
   const context = useContext(UserInfoContext);
   if (!context) {

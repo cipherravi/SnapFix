@@ -1,12 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const { CityController } = require("../../controllers");
-const { verifyUser } = require("../../middlewares");
+const {
+  createCity,
+  getCity,
+  getAllCity,
+  getAllAreasOfCity,
+  updateCity,
+  destroyCity,
+} = CityController;
+const { verifyUser, verifyAdmin } = require("../../middlewares");
 
-router.post("/", verifyUser, CityController.createCity);
-router.get("/:cityId", verifyUser, CityController.getCity);
-router.get("/", verifyUser, CityController.getAllCity);
-router.patch("/", verifyUser, CityController.updateCity);
-router.delete("/:cityId", verifyUser, CityController.destroyCity);
+router.post("/", verifyAdmin, createCity);
+router.get("/:cityId", verifyUser, getCity);
+router.get("/", verifyUser, getAllCity);
+router.patch("/", verifyAdmin, updateCity);
+router.delete("/:cityId", verifyAdmin, destroyCity);
+router.get("/:cityId/areas", verifyUser, getAllAreasOfCity);
 
 module.exports = router;
