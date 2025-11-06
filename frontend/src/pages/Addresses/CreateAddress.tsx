@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import MapPicker from "@/components/map/MapPicker";
+import MapPicker from "../../components/map/MapPicker";
 
 import BackButton from "../../components/Buttons/BackButton";
-import DropDownOptions from "@/components/modals/DropDownOptions";
+import DropDownOptions from "../../components/modals/DropDownOptions";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-import useStateFetcher from "@/utils/Hooks/useStateFetcher";
-import useDistrictFetcher from "@/utils/Hooks/useDistrictFetcher";
-import userCityFetcher from "@/utils/Hooks/useCityFetcher";
-import useAreaFetcher from "@/utils/Hooks/useAreaFetcher";
-import { useAddressContext } from "@/utils/context/AddressContext";
+import useStateFetcher from "../../utils/Hooks/useStateFetcher";
+import useDistrictFetcher from "../../utils/Hooks/useDistrictFetcher";
+import userCityFetcher from "../../utils/Hooks/useCityFetcher";
+import useAreaFetcher from "../../utils/Hooks/useAreaFetcher";
+import { useAddressContext } from "../../utils/context/AddressContext";
 
-import type { State, Area, City, District } from "@types";
+import type { State, Area, City, District } from "../../../types";
 
 const CreateAddress = () => {
   const navigate = useNavigate();

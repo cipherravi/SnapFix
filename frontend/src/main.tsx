@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import "./index.css";
 import "leaflet/dist/leaflet.css";
-import router from "./router/index.tsx";
-import Providers from "./utils/context/Providers.tsx";
+import router from "./router/index";
+import Providers from "./utils/context/Providers";
 
 createRoot(document.getElementById("root")!).render(
   // <StrictMode>

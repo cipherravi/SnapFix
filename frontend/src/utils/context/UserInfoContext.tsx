@@ -7,7 +7,7 @@ import {
 } from "react";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-import type { User } from "@types";
+import type { User } from "../../../types";
 
 interface UserInfoContextType {
   fetchProfile: () => Promise<void>;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Address } from "@types";
+import type { Address } from "../../../types";
 interface BaseOption {
   id: number;
   name: string;

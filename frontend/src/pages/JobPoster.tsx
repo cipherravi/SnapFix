@@ -14,8 +14,8 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-import type { Job } from "@types";
-import ApplyJobModal from "@/components/modals/ApplyJobModal";
+import type { Job } from "../../types";
+import ApplyJobModal from "../components/modals/ApplyJobModal";
 
 const JobPoster = () => {
   const { id } = useParams();

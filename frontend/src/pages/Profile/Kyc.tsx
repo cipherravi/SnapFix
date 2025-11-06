@@ -6,10 +6,10 @@ import BackButton from "../../components/Buttons/BackButton";
 import DropDownOptions from "../../components/modals/DropDownOptions";
 import ImageCapturer from "../../components/ImageCapturer";
 
-import { useAddressContext } from "@/utils/context/AddressContext";
+import { useAddressContext } from "../../utils/context/AddressContext";
 import useKycUpload from "../../utils/Hooks/useKycUpload";
 import { useUserInfo } from "../../utils/context/UserInfoContext";
-import type { Address } from "@types";
+import type { Address } from "../../../types";
 
 const Kyc = () => {
   const navigate = useNavigate();

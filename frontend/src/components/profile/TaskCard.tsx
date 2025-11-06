@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import UpdateStatusModal from "../modals/UpdateStatusModal";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useUserInfo } from "@/utils/context/UserInfoContext";
+import { useUserInfo } from "../../utils/context/UserInfoContext";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 

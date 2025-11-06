@@ -1,5 +1,3 @@
-// utils/inputSanitizers.ts
-
 /**
  * Ensures only digits are allowed, no leading 0, and within max range
  * @param value Input string from user

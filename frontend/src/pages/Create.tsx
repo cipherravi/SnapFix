@@ -8,9 +8,9 @@ import MapPicker from "../components/map/MapPicker";
 import sortByName from "../utils/sortByName";
 import { useNavigate } from "react-router-dom";
 import ImageCapturer from "../components/ImageCapturer";
-import type { Address } from "@types";
-import { useAddressContext } from "@/utils/context/AddressContext";
-import compressImage from "@/utils/compressImage";
+import type { Address } from "../../types";
+import { useAddressContext } from "../utils/context/AddressContext";
+import compressImage from "../utils/compressImage";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 

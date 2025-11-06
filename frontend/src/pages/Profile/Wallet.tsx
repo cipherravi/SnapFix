@@ -1,8 +1,8 @@
-import BackButton from "@/components/Buttons/BackButton";
-import ManageFundsModal from "@/components/modals/ManageFundsModal";
+import BackButton from "../../components/Buttons/BackButton";
+import ManageFundsModal from "../../components/modals/ManageFundsModal";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import useWalletFetcher from "@/utils/Hooks/useWalletFetcher";
+import useWalletFetcher from "../../utils/Hooks/useWalletFetcher";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 declare global {

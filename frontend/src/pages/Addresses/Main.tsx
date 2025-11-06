@@ -1,9 +1,9 @@
 import BackButton from "../../components/Buttons/BackButton";
-import { useAddressContext } from "@/utils/context/AddressContext";
+import { useAddressContext } from "../../utils/context/AddressContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-import ConfirmModal from "@/components/modals/ConfirmModal";
+import ConfirmModal from "../../components/modals/ConfirmModal";
 import { useState } from "react";
 
 const Main = () => {

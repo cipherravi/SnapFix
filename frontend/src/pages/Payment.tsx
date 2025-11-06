@@ -1,7 +1,7 @@
-import BackButton from "@/components/Buttons/BackButton";
+import BackButton from "../components/Buttons/BackButton";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import useJobBillsFetcher from "@/utils/Hooks/useJobBillsFetcher";
+import useJobBillsFetcher from "../utils/Hooks/useJobBillsFetcher";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 

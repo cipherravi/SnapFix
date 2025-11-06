@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type { Address, State, District, City, Area } from "@types";
+import type { Address, State, District, City, Area } from "../../../types";
 import useStateFetcher from "../Hooks/useStateFetcher";
 import useDistrictFetcher from "../Hooks/useDistrictFetcher";
 import useCityFetcher from "../Hooks/useCityFetcher";

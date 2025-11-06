@@ -2,7 +2,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-import { useConversation } from "@/utils/context/CoversationContext";
+import { useConversation } from "../../utils/context/CoversationContext";
 
 interface Application {
   id: number;

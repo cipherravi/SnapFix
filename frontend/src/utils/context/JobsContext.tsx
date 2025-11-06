@@ -9,7 +9,7 @@ const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import useTaskFetcher from "../Hooks/useTaskFetcher";
 import useJobFetcher from "../Hooks/useJobFetcher";
 
-import { type Job } from "@types";
+import { type Job } from "../../../types";
 interface JobsContextType {
   tasks: Job[];
   jobs: Job[];

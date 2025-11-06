@@ -6,7 +6,7 @@ import InfoSection from "../../components/postedJobDashboard/InfoSection";
 import ApplicantsSection from "../../components/postedJobDashboard/ApplicantsSection";
 import EditSection from "../../components/postedJobDashboard/EditSection";
 import useImageFetcher from "../../utils/Hooks/useImageFetcher";
-import type { Job } from "@types";
+import type { Job } from "../../../types";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";

@@ -3,14 +3,14 @@ import BackButton from "../../components/Buttons/BackButton";
 import InfoSection from "../../components/assignedTaskDashboard/InfoSection";
 import useJobFetcher from "../../utils/Hooks/useJobFetcher";
 import { useEffect, useState } from "react";
-import type { Job } from "@types";
+import type { Job } from "../../../types";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/pagination";
-import useImageFetcher from "@/utils/Hooks/useImageFetcher";
+import useImageFetcher from "../../utils/Hooks/useImageFetcher";
 
 const AssignedTaskDashboard = () => {
   const { id } = useParams();

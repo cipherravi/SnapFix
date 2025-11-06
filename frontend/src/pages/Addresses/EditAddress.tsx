@@ -3,9 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import BackButton from "../../components/Buttons/BackButton";
-import MapPicker from "@/components/map/MapPicker";
-import { useAddressContext } from "@/utils/context/AddressContext";
-import type { Address } from "@types";
+import MapPicker from "../../components/map/MapPicker";
+import { useAddressContext } from "../..//utils/context/AddressContext";
+import type { Address } from "../../../types";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
