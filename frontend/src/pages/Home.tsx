@@ -1,11 +1,33 @@
 import { useNavigate } from "react-router-dom";
 import { useExploreContext } from "../utils/context/ExploreContext";
 import JobCard from "../components/home/JobCard";
+import { useEffect, useState } from "react";
+import { useInView } from "react-intersection-observer";
 
 function Home() {
   const navigate = useNavigate();
-  const { jobs, jobsLoading, categoriesLoading, categories } =
-    useExploreContext();
+  const {
+    jobs,
+    jobsLoading,
+    categoriesLoading,
+    categories,
+    fetchMoreJobs,
+    hasMore,
+  } = useExploreContext();
+
+  const [offset, setOffset] = useState(0);
+  const { ref, inView } = useInView({
+    threshold: 0.1, // Trigger when the element is halfway visible
+  });
+
+  // When the observer sees the "load more" div
+  useEffect(() => {
+    if (inView && !jobsLoading && hasMore) {
+      const newOffset = offset + 10;
+      setOffset(newOffset);
+      fetchMoreJobs(newOffset);
+    }
+  }, [inView]);
 
   const categoryButtonStyle =
     "bg-[#F4F4F4] inter-medium px-2 py-1 text-nowrap rounded-xl";
@@ -60,17 +82,8 @@ function Home() {
             <button className={categoryButtonStyle}>Filter</button>
           </div>
           {/* Cards */}
-          {jobsLoading ? (
-            <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
-              {Array.from({ length: 8 }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className="min-h-56 w-full rounded-2xl shimmer"
-                ></div>
-              ))}
-            </div>
-          ) : jobs.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
+          {jobs.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2 rounded-2xl pb-4">
               {jobs.map((job) => {
                 const mainAsset = job.assets.find(
                   (file) => file.filePosition === "thumbnail"
@@ -95,6 +108,17 @@ function Home() {
               <p className="text-gray-500">No Jobs found !!</p>
             </div>
           )}
+          {jobsLoading && (
+            <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="min-h-56 w-full rounded-2xl shimmer"
+                ></div>
+              ))}
+            </div>
+          )}
+          <div ref={ref} style={{ height: "50px" }}></div>
         </div>
       </div>
     </div>

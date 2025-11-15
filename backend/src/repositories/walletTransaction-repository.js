@@ -21,6 +21,23 @@ class WalletTransactionRepository extends CrudRepository {
       throw error;
     }
   }
+
+  async getByReferenceWithFilters(reference, filters = {}) {
+    try {
+      return await WalletTransaction.findOne({
+        where: {
+          reference,
+          ...filters,
+        },
+      });
+    } catch (error) {
+      logger.error(
+        "Error occurred in getSuccessfulCreditByReference of walletTransaction-repository:",
+        error
+      );
+      throw error;
+    }
+  }
 }
 
 module.exports = WalletTransactionRepository;

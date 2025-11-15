@@ -15,12 +15,11 @@ class PaymentRepository extends CrudRepository {
   constructor() {
     super(Payment);
   }
-  async findPayment(jobId, userId) {
+  async findPayment(jobId) {
     try {
       const payment = await Payment.findOne({
         where: {
           jobId,
-          userId,
           attempt_status: ACTIVE,
         },
       });

@@ -12,7 +12,7 @@ async function userVerification(req, res, next) {
     if (!token) {
       throw new AppError("Token not found", StatusCodes.BAD_REQUEST);
     }
-    const isAuthenticated = await jwt.verify(token, SECRET_KEY);
+    const isAuthenticated = jwt.verify(token, SECRET_KEY);
     if (!isAuthenticated) {
       throw new AppError("Unauthorised user", StatusCodes.UNAUTHORIZED);
     }

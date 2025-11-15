@@ -69,7 +69,8 @@ const JobCard = ({
       <div className="flex justify-between items-center gap-2 px-4">
         <p className="inter-medium truncate w-[60%]">{title}</p>
         <p className="text-nowrap">
-          Status : <b className={getStatusColor(status)}>{status}</b>
+          Status :{" "}
+          <b className={getStatusColor(currentStatus)}>{currentStatus}</b>
         </p>
       </div>
       {/* Second */}
@@ -93,7 +94,7 @@ const JobCard = ({
         <p className="inter-medium">
           Budget : <b className="inter-medium text-green-500">₹{budget}</b>
         </p>
-        {status === "initiated" ? (
+        {currentStatus === "initiated" ? (
           <button
             className="bg-[#0385C2] px-8 py-1 rounded-xl text-white"
             onClick={(e) => {
@@ -104,7 +105,7 @@ const JobCard = ({
             Pay
           </button>
         ) : (
-          status === "completed" && (
+          currentStatus === "completed" && (
             <button
               className="px-4 py-2 bg-[#0385C2] rounded-md text-white text-sm font-semibold hover:bg-[#0271a4] transition"
               onClick={(e) => {

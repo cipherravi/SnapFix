@@ -52,7 +52,6 @@ async function verifyPayment(req, res) {
       id,
       amount,
     } = req.body;
-    console.log(req.body);
     if (
       !razorpay_order_id ||
       !razorpay_payment_id ||
@@ -95,4 +94,30 @@ async function verifyPayment(req, res) {
   }
 }
 
-module.exports = { createOrder, verifyPayment };
+async function payDebt(req, res) {
+  try {
+    const userId = req.user.id;
+
+    if (req.body == undefined) {
+      throw new AppError("Empty fields", StatusCodes.BAD_REQUEST);
+    }
+    const { purpose } = req.body;
+    const response = await WalletPaymentService.payDebt(userId, purpose);
+    SuccessResponse.data = response;
+    SuccessResponse.message = "Successfully paid debt amount";
+    return res.status(StatusCodes.CREATED).json(SuccessResponse);
+  } catch (error) {
+    const statusCode =
+      error instanceof AppError
+        ? error.statusCode
+        : StatusCodes.INTERNAL_SERVER_ERROR;
+    const message =
+      error instanceof AppError ? error.message : "Failed to pay debt amount";
+
+    ErrorResponse.message = message;
+    ErrorResponse.error = error;
+    return res.status(statusCode).json(ErrorResponse);
+  }
+}
+
+module.exports = { createOrder, verifyPayment, payDebt };

@@ -6,7 +6,7 @@ const AppError = require("../utils/AppError");
 const { JobChargeService } = require("../services");
 const { CHARGES_APPLICABLE } = require("../utils/common/ENUM");
 
-const { ONLINE, COD } = CHARGES_APPLICABLE;
+const { ONLINE, COD, WALLET } = CHARGES_APPLICABLE;
 
 async function createJobCharges(req, res) {
   try {
@@ -16,7 +16,7 @@ async function createJobCharges(req, res) {
       req.body = {};
       req.body.paymentMethod = ONLINE;
     }
-    console.log(req);
+
     const { paymentMethod } = req.body;
 
     if (![ONLINE, COD].includes(paymentMethod)) {
@@ -62,7 +62,7 @@ async function getChargesForJob(req, res) {
     const { jobId } = req.params;
     const { paymentMethod } = req.query;
 
-    if (![ONLINE, COD].includes(paymentMethod)) {
+    if (![ONLINE, COD, WALLET].includes(paymentMethod)) {
       throw new AppError(
         "Payment Method doesn't exist",
         StatusCodes.BAD_REQUEST

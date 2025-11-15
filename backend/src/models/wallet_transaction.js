@@ -15,6 +15,7 @@ const {
   PENALTY,
   REFUND,
   WITHDRAWAL,
+  COMMISION,
 } = WALLET_TRANSACTION_PURPOSE;
 const { CREDIT, DEBIT } = TRANSACTION_TYPE;
 
@@ -48,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       previous_balance: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
       new_balance: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-      reference: { type: DataTypes.STRING(100), allowNull: true },
+      reference: { type: DataTypes.STRING(100), allowNull: true, unique: true },
       purpose: {
         type: DataTypes.ENUM(
           JOB_PAYMENT,
@@ -57,7 +58,8 @@ module.exports = (sequelize, DataTypes) => {
           REPAYMENT,
           PENALTY,
           REFUND,
-          WITHDRAWAL
+          WITHDRAWAL,
+          COMMISION
         ),
         allowNull: true,
       },

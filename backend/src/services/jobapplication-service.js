@@ -2,6 +2,7 @@ const {
   JobApplicationRepository,
   JobRepository,
   UserRepository,
+  WalletRepository,
 } = require("../repositories");
 const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/AppError");
@@ -15,6 +16,7 @@ const { sequelize } = require("../models");
 const jobApplicationRepository = new JobApplicationRepository();
 const jobRepository = new JobRepository();
 const userRepository = new UserRepository();
+const walletRepository = new WalletRepository();
 
 const { USER_ROLE } = require("../utils/common/ENUM");
 const { WORKER } = USER_ROLE;
@@ -53,6 +55,23 @@ async function createJobApplication(data) {
       throw new AppError(
         "You have already applied to this job",
         StatusCodes.BAD_REQUEST
+      );
+    }
+
+    //check if wallet is negative then you cannot apply
+    const wallet = await walletRepository.findWallet(data.userId);
+
+    if (!wallet) {
+      throw new AppError(
+        "Something went wrong,try again",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    if (wallet.balance < 0) {
+      throw new AppError(
+        `We've noticed an outstanding balance of ₹${wallet.balance}. Kindly settle this amount before submitting a new job application.`,
+        StatusCodes.FORBIDDEN
       );
     }
 

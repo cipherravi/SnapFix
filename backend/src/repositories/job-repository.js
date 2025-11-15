@@ -1,5 +1,8 @@
 const CrudRepository = require("./crud-repository");
 const { Job, User, JobAsset, Payment } = require("../models");
+const { Op } = require("sequelize");
+const { JOB_STATUS } = require("../utils/common/ENUM");
+const { APPROVED, CANCELLED } = JOB_STATUS;
 class JobRepository extends CrudRepository {
   constructor() {
     super(Job);
@@ -124,6 +127,13 @@ class JobRepository extends CrudRepository {
       const tasks = await Job.findAll({
         where: { workerId: userId },
         order: [["updatedAt", "DESC"]],
+        include: [
+          {
+            model: Payment,
+            as: "activePayment",
+            attributes: ["id", "amount", "currency", "method", "status"],
+          },
+        ],
       });
       return tasks;
     } catch (error) {
@@ -137,6 +147,24 @@ class JobRepository extends CrudRepository {
         order: [["updatedAt", "DESC"]],
       });
       return jobs;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async countMyCODActiveJobs(userId) {
+    try {
+      return await Job.count({
+        where: { userId, status: { [Op.notIn]: [APPROVED, CANCELLED] } },
+        include: [
+          {
+            model: Payment,
+            as: "activePayment",
+            where: { method: "cod" },
+            required: true,
+          },
+        ],
+      });
     } catch (error) {
       throw error;
     }

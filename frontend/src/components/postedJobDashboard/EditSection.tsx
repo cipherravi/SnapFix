@@ -46,7 +46,6 @@ const EditSection = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: jobTitle,
-          budget: jobBudget,
           description: jobDescription,
           latitude: coords[0],
           longitude: coords[1],
@@ -90,24 +89,9 @@ const EditSection = ({
       <input
         type="tel"
         value={jobBudget}
-        onChange={(e) => {
-          const inputValue = e.target.value;
-          const sanitized = sanitizeBudgetInput(inputValue);
-          if (inputValue === "" || sanitized === inputValue) {
-            setJobBudget(inputValue);
-          }
-        }}
-        onPaste={(e) => {
-          const paste = e.clipboardData.getData("text");
-          if (sanitizeBudgetInput(paste) === "") {
-            e.preventDefault();
-          }
-        }}
+        readOnly
         placeholder="Budget"
-        className={`bg-[#F4F4F4] rounded-lg h-12 w-11/12 text-xl border shadow px-4 ${
-          !canEdit ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        disabled={!canEdit}
+        className="bg-[#F4F4F4] rounded-lg h-12 w-11/12 text-xl border shadow px-4 opacity-50 cursor-not-allowed"
       />
       <textarea
         placeholder="Tell us more about your work"

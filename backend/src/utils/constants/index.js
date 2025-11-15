@@ -1,7 +1,9 @@
-const user = require("./userMessages");
-const review = require("./reviewMessages");
+const USER = require("./userMessages");
+const REVIEW = require("./reviewMessages");
+const RATES = require("./rates");
 
 module.exports = {
-  USER: user,
-  REVIEW: review,
+  USER,
+  REVIEW,
+  RATES,
 };

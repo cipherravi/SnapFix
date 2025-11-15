@@ -15,6 +15,7 @@ const {
   PENALTY,
   REFUND,
   WITHDRAWAL,
+  COMMISION,
 } = WALLET_TRANSACTION_PURPOSE;
 const { CREDIT, DEBIT } = TRANSACTION_TYPE;
 module.exports = {
@@ -56,7 +57,7 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
       },
-      reference: { type: Sequelize.STRING(100), allowNull: true },
+      reference: { type: Sequelize.STRING(100), allowNull: true, unique: true },
       purpose: {
         type: Sequelize.ENUM(
           JOB_PAYMENT,
@@ -65,7 +66,8 @@ module.exports = {
           ADJUSTMENT,
           PENALTY,
           REFUND,
-          WITHDRAWAL
+          WITHDRAWAL,
+          COMMISION
         ),
         allowNull: true,
       },
@@ -80,6 +82,11 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
+    });
+    await queryInterface.addConstraint("wallet_transactions", {
+      fields: ["reference"],
+      type: "unique",
+      name: "unique_wallet_transaction_reference",
     });
   },
   async down(queryInterface, Sequelize) {

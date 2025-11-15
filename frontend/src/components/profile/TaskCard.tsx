@@ -8,6 +8,14 @@ import { useUserInfo } from "../../utils/context/UserInfoContext";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+type PaymentMethod = "cod" | "online";
+interface Payment {
+  id: number;
+  amount: number;
+  currency: string;
+  method: PaymentMethod;
+  status: string;
+}
 interface TaskCardProps {
   id: number;
   title: string;
@@ -16,6 +24,7 @@ interface TaskCardProps {
   budget: number;
   workerId: number;
   createdAt: string;
+  payment: Payment;
 }
 
 const TaskCard = ({
@@ -26,6 +35,7 @@ const TaskCard = ({
   budget,
   workerId,
   createdAt,
+  payment,
 }: TaskCardProps) => {
   const navigate = useNavigate();
   const { userData } = useUserInfo();
@@ -116,12 +126,14 @@ const TaskCard = ({
         )}
         {
           <UpdateStatusModal
+            jobId={id}
             isOpen={showModal}
             isSubmitting={submitting}
             currentStatus={currentStatus}
             onCancel={() => setShowModal(false)}
             onConfirm={handleStatusUpdate}
             isWorker={isWorker}
+            payment={payment}
           />
         }
       </div>

@@ -18,6 +18,7 @@ const JOB_STATUS = {
   COMPLETED: "completed",
   APPROVED: "approved",
   CANCELLED: "cancelled",
+  EXPIRED: "expired",
 };
 const JOB_APPLICATION_STATUS = {
   APPLIED: "applied",
@@ -100,6 +101,7 @@ const WALLET_TRANSACTION_PURPOSE = {
   ADJUSTMENT: "adjustment",
   REFUND: "refund",
   PENALTY: "penalty",
+  COMMISION: "commision",
 };
 const WALLET_TRANSACTION_STATUS = {
   INITIATED: "initiated",

@@ -22,11 +22,11 @@ class WalletRepository extends CrudRepository {
     }
   }
 
-  async incrementBalance(walletId, amount) {
+  async incrementBalance(walletId, amount, options = {}) {
     try {
       const response = await Wallet.increment(
         { balance: amount },
-        { where: { id: walletId }, returning: true }
+        { where: { id: walletId }, returning: true, ...options }
       );
       return response;
     } catch (error) {
@@ -37,11 +37,11 @@ class WalletRepository extends CrudRepository {
       throw error;
     }
   }
-  async decrementBalance(walletId, amount) {
+  async decrementBalance(walletId, amount, options = {}) {
     try {
       const response = await Wallet.decrement(
         { balance: amount },
-        { where: { id: walletId }, returning: true }
+        { where: { id: walletId }, returning: true, ...options }
       );
       return response;
     } catch (error) {

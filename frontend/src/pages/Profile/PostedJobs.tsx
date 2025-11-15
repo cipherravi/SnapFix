@@ -71,7 +71,7 @@ const PostedJobs = () => {
 
       {/* Cards */}
       <div className="flex-1 overflow-y-auto px-3 py-2 pt-10">
-        <div className="w-full max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg mx-auto space-y-4">
+        <div className="w-full max-w-screen-sm md:max-w-3xl lg:max-w-5xl mx-auto space-y-4">
           {myJobs.length > 0 ? (
             myJobs.map((job) => {
               const worker = workerMap[job.workerId];

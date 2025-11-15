@@ -6,6 +6,7 @@ const { createOrder, verifyPayment } = PaymentController;
 
 router.post("/initiate", verifyUser, createOrder);
 router.post("/verify", verifyUser, verifyPayment);
+// router.post("/cod/settle", verifyUser, settleCODPayment);
 // router.post("webhook")
 
 module.exports = router;

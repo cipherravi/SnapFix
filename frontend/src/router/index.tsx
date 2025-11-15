@@ -38,6 +38,7 @@ const Dashboard = lazy(() => import("../pages/Admin/Dashboard"));
 const Main = lazy(() => import("../pages/Admin/Main"));
 const Payment = lazy(() => import("../pages/Payment"));
 const CODSuccess = lazy(() => import("../pages/success/CODSuccess"));
+const WalletSuccess = lazy(() => import("../pages/success/WalletSuccess"));
 const Wallet = lazy(() => import("../pages/Profile/Wallet"));
 
 const router = createBrowserRouter([
@@ -166,6 +167,10 @@ const router = createBrowserRouter([
       {
         path: "cod-success",
         element: <CODSuccess />,
+      },
+      {
+        path: "wallet-success",
+        element: <WalletSuccess />,
       },
     ],
   },

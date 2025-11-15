@@ -259,11 +259,10 @@ async function updateJob(req, res) {
     }
     const userId = req.user.id;
     const { jobId } = req.params;
-    const { title, description, budget, latitude, longitude } = req.body;
+    const { title, description, latitude, longitude } = req.body;
     const response = await JobService.updateJob(userId, jobId, {
       title,
       description,
-      budget,
       latitude,
       longitude,
     });
@@ -371,7 +370,6 @@ async function markApproved(req, res) {
 async function updateJobStatus(req, res) {
   try {
     const userId = req.user.id;
-    console.log(req.body);
     const { status, workerId } = req.body;
     const { jobId } = req.params;
 

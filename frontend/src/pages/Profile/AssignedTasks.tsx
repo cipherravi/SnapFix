@@ -3,6 +3,14 @@ import BackButton from "../../components/Buttons/BackButton";
 import useTaskFetcher from "../../utils/Hooks/useTaskFetcher";
 import TaskCard from "../../components/profile/TaskCard";
 
+type PaymentMethod = "cod" | "online";
+interface Payment {
+  id: number;
+  amount: number;
+  currency: string;
+  method: PaymentMethod;
+  status: string;
+}
 interface Task {
   id: number;
   title: string;
@@ -19,6 +27,7 @@ interface Task {
   longitude: string;
   createdAt: string;
   updatedAt: string;
+  activePayment: Payment;
 }
 
 const AssignedTasks = () => {
@@ -56,7 +65,7 @@ const AssignedTasks = () => {
 
       {/* Task Cards List */}
       <div className="flex-1 overflow-y-auto px-3 py-2 pt-10">
-        <div className="w-full max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg mx-auto space-y-4">
+        <div className="w-full max-w-screen-sm md:max-w-3xl lg:max-w-5xl mx-auto space-y-4">
           {tasks.length > 0 ? (
             tasks.map((task) => (
               <TaskCard
@@ -68,6 +77,7 @@ const AssignedTasks = () => {
                 status={task.status}
                 createdAt={task.createdAt}
                 workerId={task.workerId}
+                payment={task.activePayment}
               />
             ))
           ) : (

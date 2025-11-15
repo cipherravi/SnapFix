@@ -2,6 +2,7 @@ import BackButton from "../components/Buttons/BackButton";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useJobBillsFetcher from "../utils/Hooks/useJobBillsFetcher";
+import { useExploreContext } from "../utils/context/ExploreContext";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -30,8 +31,9 @@ const Payment = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { fetchJobBills, fetching } = useJobBillsFetcher();
+  const { fetchMyUploadedJob } = useExploreContext();
   const [jobBills, setJobBills] = useState<jobBills | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState("online");
+  const [paymentMethod, setPaymentMethod] = useState("wallet");
   const [handling, setHandling] = useState(false);
 
   useEffect(() => {
@@ -63,16 +65,22 @@ const Payment = () => {
       if (res.ok && data?.data) {
         const order = data?.data;
 
-        if (order.method == "online") {
+        if (order.method === "online") {
           handlePayment(
             Number(order.amount),
             order.razorpay_order_id,
             order.id,
             order.jobId
           );
-        } else if (order.method == "cod") {
+        } else if (order.method === "wallet") {
+          navigate("/wallet-success");
+          fetchMyUploadedJob(order.jobId);
+        } else if (order.method === "cod") {
           navigate("/cod-success");
+          fetchMyUploadedJob(order.jobId);
         }
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
       console.error(error);
@@ -85,7 +93,7 @@ const Payment = () => {
     amount: number,
     order_id: string,
     paymentId: number,
-    jobId: number
+    jobId: string
   ) {
     try {
       const options = {
@@ -129,6 +137,7 @@ const Payment = () => {
             const data = await verifyRes.json();
 
             if (verifyRes.ok) {
+              fetchMyUploadedJob(jobId);
               toast.success("Payment verified! Job Posted 🎉");
               navigate("/explore");
             } else {
@@ -152,7 +161,7 @@ const Payment = () => {
     }
   }
 
-  const [expanded, setExpanded] = useState<string | null>("online");
+  const [expanded, setExpanded] = useState<string | null>("wallet");
 
   const toggleAccordion = (method: string) => {
     setExpanded((prev) => (prev === method ? null : method));
@@ -203,6 +212,51 @@ const Payment = () => {
 
         {/* Payment Methods */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl flex flex-col gap-3 shadow-sm">
+          {/* Wallet Payment Option */}
+          <div
+            className="flex items-center justify-between cursor-pointer"
+            onClick={() => toggleAccordion("wallet")}
+          >
+            <div className="flex items-center gap-3 sm:gap-5">
+              <img src="/svg/wallet.svg" alt="Online" className="w-5 sm:w-6" />
+              <p className="text-sm sm:text-base flex items-center gap-1">
+                Wallet
+                <span className="text-[10px] text-green-600 bg-green-100 px-2 py-0.5 rounded-md">
+                  Recommended
+                </span>
+              </p>
+            </div>
+            <img
+              src="/svg/dropdown-arrow.svg"
+              alt=""
+              className={`w-5 sm:w-6 transform transition-transform duration-300 ${
+                expanded === "wallet" ? "rotate-180" : "rotate-0"
+              }`}
+            />
+          </div>
+
+          {/* Expandable content */}
+
+          <div
+            className={`transition-all duration-300 overflow-hidden ${
+              expanded === "wallet" ? "max-h-40 mt-4" : "max-h-0"
+            }`}
+          >
+            <div className="flex flex-col justify-center items-center">
+              <button
+                onClick={handleOrder}
+                disabled={handling}
+                className="bg-[#0385C2] text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
+              >
+                Pay Instantly
+              </button>
+              <span className="text-green-700 text-[10px] mt-2">
+                ⚡ Instant payment, exclusive discounts & reward cashback
+              </span>
+            </div>
+          </div>
+
+          <span className="bg-gray-300 h-px w-full" />
           {/* Online Payment Option */}
           <div
             className="flex items-center justify-between cursor-pointer"
@@ -222,6 +276,7 @@ const Payment = () => {
           </div>
 
           {/* Expandable content */}
+
           <div
             className={`transition-all duration-300 overflow-hidden ${
               expanded === "online" ? "max-h-40 mt-4" : "max-h-0"
@@ -231,12 +286,12 @@ const Payment = () => {
               <button
                 onClick={handleOrder}
                 disabled={handling}
-                className="bg-[#0385C2] text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
+                className="bg-[#565b56] text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
               >
                 Proceed to Pay
               </button>
-              <span className="text-green-700 text-[10px] mt-2">
-                Fast & secure payments, no hidden charges
+              <span className="text-gray-600 text-[10px] mt-2">
+                Pay via UPI, Card, or Netbanking.
               </span>
             </div>
           </div>
@@ -289,7 +344,7 @@ const Payment = () => {
         {/* Disclaimer */}
         <p className="text-[10px] sm:text-xs text-center leading-relaxed text-gray-600 px-2">
           By continuing, you confirm that you are above 18 years of age, and you
-          agree to SnapFix’s{" "}
+          agree to SnapFix's{" "}
           <span className="text-blue-500 underline">Terms of Use</span> and{" "}
           <span className="text-blue-500 underline">Privacy Policy</span>.
         </p>

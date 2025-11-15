@@ -3,14 +3,26 @@ const {
   JobApplicationRepository,
   AddressRepository,
   JobHistoryRepository,
+  WalletTransactionRepository,
+  PaymentRepository,
+  WalletRepository,
 } = require("../repositories");
 const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/AppError");
 const { getLogger } = require("../config");
 const logger = getLogger(__filename);
 const { ENUM } = require("../utils/common");
-const { JOB_STATUS, JOB_APPLICATION_STATUS, USER_ROLE } = ENUM;
 const {
+  JOB_STATUS,
+  JOB_APPLICATION_STATUS,
+  USER_ROLE,
+  PAYMENT_METHOD,
+  PAYMENT_STATUS,
+  TRANSACTION_TYPE,
+  WALLET_TRANSACTION_PURPOSE,
+} = ENUM;
+const {
+  INITIATED,
   POSTED,
   ASSIGNED,
   STARTED,
@@ -22,15 +34,24 @@ const {
 
 const { SELECTED, REJECTED } = JOB_APPLICATION_STATUS;
 const { WORKER } = USER_ROLE;
+const { COD, ONLINE, WALLET } = PAYMENT_METHOD;
+const { PENDING, SUCCESS } = PAYMENT_STATUS;
+const { DEBIT, CREDIT } = TRANSACTION_TYPE;
+const { COMMISION, JOB_PAYMENT } = WALLET_TRANSACTION_PURPOSE;
 const { Op } = require("sequelize");
 const { sequelize, Address } = require("../models");
 const Conversation = require("../models/conversation");
 const formatAddress = require("../utils/formatAddress");
+const { RATES } = require("../utils/constants");
+const { JOB_COMMISSION_ON_COD, JOB_COMMISSION_ON_PAID } = RATES;
 
 const jobRepository = new JobRepository();
 const jobApplicationRepository = new JobApplicationRepository();
 const addressRepository = new AddressRepository();
 const jobHistoryRepository = new JobHistoryRepository();
+const walletTransactionRepository = new WalletTransactionRepository();
+const paymentRepository = new PaymentRepository();
+const walletRepository = new WalletRepository();
 
 async function createJob(data) {
   try {
@@ -142,6 +163,8 @@ async function getAllJobs({
   workerId = null,
   postedWithin,
   sort,
+  offset = 0,
+  limit = 10,
 }) {
   try {
     const filter = {};
@@ -164,7 +187,10 @@ async function getAllJobs({
       filter.createdAt = { [Op.gte]: cutoffDate };
     }
 
-    const response = await jobRepository.getAllJobs(filter, sortBy);
+    const response = await jobRepository.getAllJobs(filter, sortBy, {
+      offset,
+      limit,
+    });
 
     return response;
   } catch (error) {
@@ -179,7 +205,6 @@ async function getAllJobs({
 }
 async function updateJob(userId, jobId, data) {
   try {
-    console.log("first");
     const job = await jobRepository.getById(jobId);
 
     if (!job) {
@@ -192,7 +217,7 @@ async function updateJob(userId, jobId, data) {
         StatusCodes.BAD_REQUEST
       );
     }
-    if (job.status !== POSTED) {
+    if (![POSTED, INITIATED].includes(job.status)) {
       throw new AppError(
         "Job details cannot change now",
         StatusCodes.BAD_REQUEST
@@ -275,19 +300,6 @@ async function accept(userId, jobId, workerId) {
       );
     }
 
-    const assignToWorker = await jobRepository.update(
-      job.id,
-      { workerId, status: ASSIGNED },
-      { transaction }
-    );
-
-    if (assignToWorker[0] === 0) {
-      throw new AppError(
-        "Failed to assign Job to worker, try again",
-        StatusCodes.BAD_REQUEST
-      );
-    }
-
     const jobApplication = await jobApplicationRepository.findJobApplication(
       workerId,
       jobId
@@ -301,9 +313,22 @@ async function accept(userId, jobId, workerId) {
 
     await jobApplicationRepository.update(
       jobApplication.id,
-      { status: SELECTED },
+      { status: SELECTED, selectedAt: new Date() },
       { transaction }
     );
+
+    const assignToWorker = await jobRepository.update(
+      job.id,
+      { workerId, status: ASSIGNED },
+      { transaction }
+    );
+
+    if (assignToWorker[0] === 0) {
+      throw new AppError(
+        "Failed to assign Job to worker, try again",
+        StatusCodes.BAD_REQUEST
+      );
+    }
 
     await transaction.commit();
 
@@ -427,13 +452,106 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
       );
     }
 
-    if (newStatus === APPROVED) {
-      if (job.status !== COMPLETED) {
-        throw new AppError(
-          "Job must be completed before approval",
-          StatusCodes.BAD_REQUEST
+    if (newStatus === COMPLETED) {
+      const payment = await paymentRepository.findPayment(jobId);
+
+      if (payment.method === COD && payment.status === PENDING) {
+        const wallet = await walletRepository.findWallet(userId);
+        if (!wallet) {
+          throw new AppError(
+            "Couldn't find your wallet, try again",
+            StatusCodes.NOT_FOUND
+          );
+        }
+        await paymentRepository.update(
+          payment.id,
+          { status: SUCCESS },
+          { transaction }
+        );
+        const debitAmount = payment.amount - JOB_COMMISSION_ON_COD * job.budget;
+        const currentBalance = Number(wallet.balance);
+        const newBalance = currentBalance - debitAmount;
+        await walletRepository.decrementBalance(wallet.id, debitAmount, {
+          transaction,
+        });
+        await walletTransactionRepository.create(
+          {
+            walletId: wallet.id,
+            transaction_type: DEBIT,
+            amount: debitAmount,
+            status: SUCCESS,
+            previous_balance: currentBalance,
+            new_balance: newBalance,
+            purpose: COMMISION,
+            reference: `SnapFix commision for job - ${jobId}`,
+          },
+          { transaction }
         );
       }
+
+      // mark jobapplicaton to be completed
+      const application = await jobApplicationRepository.findJobApplication(
+        job.workerId,
+        jobId
+      );
+      await jobApplicationRepository.update(
+        application.id,
+        { completedAt: new Date(), status: COMPLETED },
+        { transaction }
+      );
+    }
+
+    if (newStatus === APPROVED) {
+      const payment = await paymentRepository.findPayment(jobId);
+      if (
+        (payment.method === ONLINE || payment.method === WALLET) &&
+        payment.status === SUCCESS
+      ) {
+        const reference = `JOB-${jobId}-WORKER-CREDIT`;
+
+        // 🧩 Idempotency check
+        const existingTxn =
+          await walletTransactionRepository.getByReferenceWithFilters(
+            `Payment for job - ${jobId}`,
+            { status: SUCCESS, transaction_type: CREDIT }
+          );
+
+        if (existingTxn) {
+          // 💡 Already paid, skip double-crediting
+          logger.warn(`Job ${jobId} already credited to wallet, skipping.`);
+        } else {
+          const wallet = await walletRepository.findWallet(job.workerId);
+          if (!wallet) {
+            throw new AppError(
+              "Couldn't find worker wallet, try again or raise help on customer support",
+              StatusCodes.NOT_FOUND
+            );
+          }
+
+          const creditAmount = job.budget * (1 - JOB_COMMISSION_ON_PAID);
+          const currentBalance = Number(wallet.balance);
+          const newBalance = currentBalance + creditAmount;
+          await walletRepository.incrementBalance(wallet.id, creditAmount, {
+            transaction,
+          });
+
+          await walletTransactionRepository.create(
+            {
+              walletId: wallet.id,
+              transaction_type: CREDIT,
+              amount: creditAmount,
+              status: SUCCESS,
+              previous_balance: currentBalance,
+              new_balance: newBalance,
+              purpose: JOB_PAYMENT,
+              reference,
+            },
+            { transaction }
+          );
+        }
+      }
+
+      await Conversation.updateMany({ jobId }, { active: false });
     }
 
     if (newStatus === CANCELLED) {
@@ -481,17 +599,15 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
       }
     }
 
-    if (newStatus === APPROVED) {
-      await Conversation.updateMany({ jobId }, { active: false });
-    }
-
     return { message: `Job status updated to ${newStatus}` };
   } catch (error) {
     await transaction.rollback();
-    logger.error(
-      `Job status update failed for jobId: ${jobId}, userId: ${userId}`,
-      error
-    );
+    logger.error(`Job status update failed`, {
+      jobId,
+      userId,
+      message: error.message,
+      stack: error.stack,
+    });
     if (error instanceof AppError) {
       throw error;
     }
@@ -502,6 +618,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
   }
 }
 
+// NOT IN USE
 async function markApproved(userId, jobId) {
   try {
     const job = await jobRepository.findByJobId(jobId);

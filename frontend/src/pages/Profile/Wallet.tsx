@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import useWalletFetcher from "../../utils/Hooks/useWalletFetcher";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+import { useUserInfo } from "../../utils/context/UserInfoContext";
 declare global {
   interface Window {
     Razorpay: any;
@@ -12,6 +12,7 @@ declare global {
 }
 
 const Wallet = () => {
+  const { userData } = useUserInfo();
   const { data, error, loading, refetch } = useWalletFetcher();
 
   const [balance, setBalance] = useState<number>(0);
@@ -107,6 +108,36 @@ const Wallet = () => {
       setHandling(false);
       setAmount(0);
       setIsWithdrawalModalOpen(false);
+    }
+  }
+
+  async function confirmPay() {
+    setHandling(true);
+    try {
+      const res = await fetch(`${VITE_API_BASE_URL}/api/v1/wallet/pay-debt`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount,
+          purpose: "repayment",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data?.data) {
+        const order = data?.data;
+
+        handlePayment(
+          order.walletId,
+          Number(order.amount),
+          order.razorpay_order_id,
+          order.id
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setHandling(false);
     }
   }
 
@@ -218,7 +249,7 @@ const Wallet = () => {
             <button className=" text-xl inter-semibold">Add</button>
           </div>
 
-          {balance > 0 ? (
+          {balance > 0 && userData?.role === "Worker" ? (
             <div
               className="bg-white px-7 py-2 rounded-3xl flex gap-2"
               onClick={() => setIsWithdrawalModalOpen(true)}
@@ -228,8 +259,14 @@ const Wallet = () => {
             </div>
           ) : (
             <div
-              className="bg-green-400 px-7 py-2 rounded-3xl flex gap-2"
-              onClick={() => console.log("paying debt amount")}
+              className={` px-7 py-2 rounded-3xl flex gap-2 ${
+                balance >= 0 ? "bg-gray-300 " : "bg-green-400"
+              }`}
+              onClick={() => {
+                if (balance >= 0) return;
+                if (handling) return;
+                confirmPay();
+              }}
             >
               <img src="/svg/cash-payment.svg" alt="" className="w-8" />
               <button className=" text-xl inter-semibold">Pay</button>

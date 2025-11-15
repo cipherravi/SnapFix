@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 
@@ -19,6 +19,7 @@ import ApplyJobModal from "../components/modals/ApplyJobModal";
 
 const JobPoster = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { fetchJobByIdForPublic } = useJobFetcher();
   const { getImageUrl } = useImageFetcher();
 
@@ -63,10 +64,18 @@ const JobPoster = () => {
       );
 
       const data = await response.json();
+      if (response.status === 403) {
+        navigate("/profile/wallet");
+      }
       if (response.ok) {
         toast.success(data.message);
       } else {
-        toast.error(data.message);
+        if (data.message == "Token not found") {
+          toast.error("Login your account for applying job");
+          navigate("/profile");
+        } else {
+          toast.error(data.message);
+        }
       }
     } catch (error) {
       toast.error("An error occurred while applying.");

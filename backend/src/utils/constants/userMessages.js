@@ -14,8 +14,8 @@ const USER = {
   EMPTY_UPDATE_BODY: "No data provided to update.",
   SIGNUP_DUPLICATE: "A user with this phone or email already exists.",
   LOGIN_MISSING_CREDENTIALS: "Phone or email is required to login.",
-  LOGIN_USER_NOT_FOUND: "Invalid credentials. User not found.",
-  LOGIN_INCORRECT_PASSWORD: "Invalid credentials. Incorrect password.",
+  LOGIN_USER_NOT_FOUND: "Invalid email or password.",
+  LOGIN_INCORRECT_PASSWORD: "Invalid email or password.",
   USER_NOT_FOUND: "User not found.",
   FIELD_IMMUTABLE: (field) =>
     `${field} can only be set once. Please contact customer support to change it.`,

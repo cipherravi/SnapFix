@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import L from "leaflet";
 import type { LatLngExpression } from "leaflet";
+import L from "leaflet";
+import { useEffect, useState } from "react";
 
 import "leaflet/dist/leaflet.css";
 
@@ -8,7 +9,6 @@ import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { useEffect, useState } from "react";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 

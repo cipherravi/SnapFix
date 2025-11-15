@@ -7,7 +7,7 @@ const {
 } = require("../../controllers");
 
 const { getBalance, withdrawMoney } = WalletController;
-const { createOrder, verifyPayment } = WalletPaymentController;
+const { createOrder, verifyPayment, payDebt } = WalletPaymentController;
 
 const { verifyUser } = require("../../middlewares");
 
@@ -16,5 +16,6 @@ router.get("/balance", verifyUser, getBalance);
 router.post("/add-money", verifyUser, createOrder);
 router.post("/verify", verifyUser, verifyPayment);
 router.post("/withdraw-money", verifyUser, withdrawMoney);
+router.post("/pay-debt", verifyUser, payDebt);
 
 module.exports = router;
