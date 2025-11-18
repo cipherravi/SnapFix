@@ -22,7 +22,8 @@ class CrudRepository {
     try {
       const response = await this.model.findByPk(id);
       logger.info("Successfully accessed getById");
-      delete response.dataValues.password;
+
+      delete response.dataValues.password; // change this and shift to another method in user repository
       return response;
     } catch (error) {
       logger.error("Error in (crud) getById:", error);

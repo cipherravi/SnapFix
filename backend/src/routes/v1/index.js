@@ -45,8 +45,8 @@ router.use("/districts", districtRoutes);
 router.use("/areas", areaRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/charges", chargeRoutes);
-router.use("/client", clientRoutes);
-router.use("/worker", workerRoutes);
+router.use("/clients", clientRoutes);
+router.use("/workers", workerRoutes);
 router.use("/wallet", walletRoutes);
 
 module.exports = router;

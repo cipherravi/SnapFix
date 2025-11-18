@@ -16,6 +16,8 @@ const JobChargeService = require("./jobCharge-service");
 const PaymentService = require("./payment-service");
 const WalletService = require("./wallet-service");
 const WalletPaymentService = require("./walletPayment-service");
+const WorkerBankDetailService = require("./workerBankDetail-service");
+const WithdrawRequestService = require("./withdrawRequest-service");
 
 module.exports = {
   UserService,
@@ -36,4 +38,6 @@ module.exports = {
   PaymentService,
   WalletService,
   WalletPaymentService,
+  WorkerBankDetailService,
+  WithdrawRequestService,
 };

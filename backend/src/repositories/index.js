@@ -19,6 +19,8 @@ const JobHistoryRepository = require("./jobHistory-repository");
 const WalletRepository = require("./wallet-repository");
 const WalletPaymentRepository = require("./walletPayment-repository");
 const WalletTransactionRepository = require("./walletTransaction-repository");
+const WithdrawRequestRepository = require("./withdrawRequest-repository");
+const WorkerBankDetailRepository = require("./workerBankDetail-repository");
 
 module.exports = {
   UserRepository,
@@ -42,4 +44,6 @@ module.exports = {
   WalletRepository,
   WalletPaymentRepository,
   WalletTransactionRepository,
+  WithdrawRequestRepository,
+  WorkerBankDetailRepository,
 };

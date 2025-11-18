@@ -16,6 +16,8 @@ const ChargeMasterController = require("./chargeMaster-controller");
 const JobChargeController = require("./jobCharge-controller");
 const WalletController = require("./wallet-controller");
 const WalletPaymentController = require("./walletPayment-controller");
+const WorkerBankDetailController = require("./workerBankDetail-controller");
+const WithdrawRequestController = require("./withdrawRequest-controller");
 
 module.exports = {
   UserController,
@@ -36,4 +38,6 @@ module.exports = {
   JobChargeController,
   WalletController,
   WalletPaymentController,
+  WorkerBankDetailController,
+  WithdrawRequestController,
 };

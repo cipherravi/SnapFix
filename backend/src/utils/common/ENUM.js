@@ -110,6 +110,12 @@ const WALLET_TRANSACTION_STATUS = {
   FAILED: "failed",
   REFUNDED: "refunded",
 };
+const WITHDRAW_REQUEST_STATUS = {
+  PENDING: "pending",
+  PROCESSING: "processing",
+  PAID: "paid",
+  REJECTED: "rejected",
+};
 
 module.exports = {
   USER_ROLE,
@@ -131,4 +137,5 @@ module.exports = {
   WALLET_PAYMENT_PURPOSE,
   WALLET_TRANSACTION_STATUS,
   WALLET_TRANSACTION_PURPOSE,
+  WITHDRAW_REQUEST_STATUS,
 };
