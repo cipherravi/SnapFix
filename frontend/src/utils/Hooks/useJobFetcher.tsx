@@ -17,7 +17,7 @@ const useJobFetcher = () => {
     return data?.data || [];
   };
   const fetchJobByIdForClient = async (id: string) => {
-    const res = await fetch(`${VITE_API_BASE_URL}/api/v1/client/jobs/${id}`, {
+    const res = await fetch(`${VITE_API_BASE_URL}/api/v1/clients/jobs/${id}`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -25,7 +25,7 @@ const useJobFetcher = () => {
     return data?.data || [];
   };
   const fetchJobByIdForWorker = async (id: string) => {
-    const res = await fetch(`${VITE_API_BASE_URL}/api/v1/worker/jobs/${id}`, {
+    const res = await fetch(`${VITE_API_BASE_URL}/api/v1/workers/jobs/${id}`, {
       credentials: "include",
     });
     const data = await res.json();
