@@ -1,7 +1,8 @@
 "use strict";
 /** @type {import('sequelize-cli').Migration} */
 const { WITHDRAW_REQUEST_STATUS } = require("../utils/common/ENUM");
-const { PENDING, PROCESSING, PAID, REJECTED } = WITHDRAW_REQUEST_STATUS;
+const { PENDING, PROCESSING, PAID, REJECTED, CANCELLED } =
+  WITHDRAW_REQUEST_STATUS;
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("withdraw_requests", {
@@ -28,7 +29,7 @@ module.exports = {
         allowNull: false,
       },
       status: {
-        type: Sequelize.ENUM(PENDING, PROCESSING, PAID, REJECTED),
+        type: Sequelize.ENUM(PENDING, PROCESSING, PAID, REJECTED, CANCELLED),
         defaultValue: PENDING,
         allowNull: false,
       },
@@ -61,5 +62,8 @@ module.exports = {
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("withdraw_requests");
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_withdraw_requests_status";'
+    );
   },
 };

@@ -4,66 +4,133 @@ const logger = getLogger(__filename);
 class CrudRepository {
   constructor(model) {
     this.model = model;
+    this.modelName = model.name || "UnknownModel";
   }
 
   async create(data, options = {}) {
+    logger.info(`[${this.modelName}] create - START`, { data });
+
     try {
       const response = await this.model.create(data, { ...options });
-      logger.info("Successfully accessed create");
+
+      logger.info(`[${this.modelName}] create - SUCCESS`, {
+        id: response.id,
+      });
 
       return response;
     } catch (error) {
-      logger.error("Error in (crud) create:", error);
+      logger.error(`[${this.modelName}] create - ERROR`, {
+        data,
+        error: error.message,
+        stack: error.stack,
+      });
       throw error;
     }
   }
 
   async getById(id) {
+    logger.info(`[${this.modelName}] getById - START`, { id });
+
     try {
       const response = await this.model.findByPk(id);
-      logger.info("Successfully accessed getById");
 
-      delete response.dataValues.password; // change this and shift to another method in user repository
+      if (!response) {
+        logger.warn(`[${this.modelName}] getById - NOT FOUND`, {
+          id,
+        });
+      } else {
+        logger.info(`[${this.modelName}] getById - SUCCESS`, {
+          id: response.id,
+        });
+      }
+
       return response;
     } catch (error) {
-      logger.error("Error in (crud) getById:", error);
+      logger.error(`[${this.modelName}] getById - ERROR`, {
+        id,
+        error: error.message,
+        stack: error.stack,
+      });
       throw error;
     }
   }
 
   async getAll() {
+    logger.info(`[${this.modelName}] getAll - START`);
+
     try {
       const response = await this.model.findAll();
-      logger.info("Successfully accessed getAll");
-
+      logger.info(
+        `[${this.modelName}] getAll - SUCCESS, records fetched: ${response.length}`
+      );
       return response;
     } catch (error) {
-      logger.error("Error in (crud) getAll:", error);
+      logger.error(`[${this.modelName}] getAll - ERROR`, {
+        error: error.message,
+        stack: error.stack,
+      });
       throw error;
     }
   }
+
   async update(id, data, options = {}) {
+    logger.info(`[${this.modelName}] update - START`, {
+      id,
+      data,
+    });
+
     try {
-      const updateRecord = await this.model.update(data, {
+      const [updatedCount] = await this.model.update(data, {
         where: { id },
         ...options,
       });
 
-      logger.info(`Successfully updated record with id: ${id}`);
-      return updateRecord;
+      if (updatedCount === 0) {
+        logger.warn(`[${this.modelName}] update - NO RECORD UPDATED`, {
+          id,
+          data,
+        });
+      } else {
+        logger.info(`[${this.modelName}] update - SUCCESS`, {
+          id,
+        });
+      }
+
+      return updatedCount;
     } catch (error) {
-      logger.error("Error in (crud) update:", error);
+      logger.error(`[${this.modelName}] update - ERROR`, {
+        id,
+        data,
+        error: error.message,
+        stack: error.stack,
+      });
       throw error;
     }
   }
-  async destroy(id) {
-    try {
-      const response = await this.model.destroy({ where: { id: id } });
-      logger.info("Successfully accessed destroy");
 
-      return response;
+  async destroy(id) {
+    logger.info(`[${this.modelName}] destroy - START`, { id });
+
+    try {
+      const deletedCount = await this.model.destroy({ where: { id } });
+
+      if (deletedCount === 0) {
+        logger.warn(`[${this.modelName}] destroy - NO RECORD DELETED`, {
+          id,
+        });
+      } else {
+        logger.info(`[${this.modelName}] destroy - SUCCESS`, {
+          id,
+        });
+      }
+
+      return deletedCount;
     } catch (error) {
-      logger.error("Error in (crud) destroy:", error);
+      logger.error(`[${this.modelName}] destroy - ERROR`, {
+        id,
+        error: error.message,
+        stack: error.stack,
+      });
       throw error;
     }
   }

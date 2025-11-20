@@ -1,7 +1,8 @@
 "use strict";
 const { Model } = require("sequelize");
 const { WITHDRAW_REQUEST_STATUS } = require("../utils/common/ENUM");
-const { PENDING, PROCESSING, PAID, REJECTED } = WITHDRAW_REQUEST_STATUS;
+const { PENDING, PROCESSING, PAID, REJECTED, CANCELLED } =
+  WITHDRAW_REQUEST_STATUS;
 module.exports = (sequelize, DataTypes) => {
   class WithdrawRequest extends Model {
     static associate(models) {
@@ -38,7 +39,7 @@ module.exports = (sequelize, DataTypes) => {
         field: "amount",
       },
       status: {
-        type: DataTypes.ENUM(PENDING, PROCESSING, PAID, REJECTED),
+        type: DataTypes.ENUM(PENDING, PROCESSING, PAID, REJECTED, CANCELLED),
         defaultValue: PENDING,
         allowNull: false,
         field: "status",

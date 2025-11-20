@@ -115,6 +115,7 @@ const WITHDRAW_REQUEST_STATUS = {
   PROCESSING: "processing",
   PAID: "paid",
   REJECTED: "rejected",
+  CANCELLED: "cancelled",
 };
 
 module.exports = {

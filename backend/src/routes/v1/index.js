@@ -20,6 +20,7 @@ const chargeRoutes = require("./charge-routes");
 const clientRoutes = require("./client-routes");
 const workerRoutes = require("./worker-routes");
 const walletRoutes = require("./wallet-routes");
+const withdrawalRoutes = require("./withdrawal-routes");
 const { verifyUser } = require("../../middlewares");
 
 router.get("/health", (req, res) => {
@@ -48,5 +49,6 @@ router.use("/charges", chargeRoutes);
 router.use("/clients", clientRoutes);
 router.use("/workers", workerRoutes);
 router.use("/wallet", walletRoutes);
+router.use("/withdrawals", withdrawalRoutes);
 
 module.exports = router;

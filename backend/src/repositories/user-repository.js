@@ -5,6 +5,19 @@ class UserRepository extends CrudRepository {
   constructor() {
     super(User);
   }
+  async getById(id) {
+    try {
+      const response = await this.model.findByPk(id);
+      logger.info("Successfully accessed getById");
+
+      delete response.dataValues.password;
+      return response;
+    } catch (error) {
+      logger.error("Error in user-repository - getById:", error);
+      throw error;
+    }
+  }
+
   async findUser(data) {
     try {
       let condition = {};
