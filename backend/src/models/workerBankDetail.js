@@ -8,6 +8,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "userId",
         as: "bankDetail",
       });
+      WorkerBankDetail.hasMany(models.WithdrawRequest, {
+        foreignKey: "bankDetailId",
+        as: "withdrawRequests",
+      });
     }
   }
 

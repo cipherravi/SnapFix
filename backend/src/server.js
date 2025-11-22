@@ -138,34 +138,6 @@ io.on("connection", (socket) => {
 
 app.use("/api", apiRoutes);
 
-// async function getImageUrl(fileName) {
-//   const { data } = supabase.storage.from("SnapFix").getPublicUrl(fileName);
-
-//   return data.publicUrl;
-// }
-//
-// async function getSignedUrl(fileName) {
-//   const { data, error } = await supabase.storage
-//     .from("SnapFix-private")
-//     .createSignedUrl(fileName, 10); // expires in 60 sec
-
-//   if (error) {
-//     console.error("Signed URL error:", error);
-//     return null;
-//   }
-
-//   return data.signedUrl;
-// }
-
-// // Run inside an async function
-// (async () => {
-//   const url = await getImageUrl("IMG_1220.JPG");
-//   console.log("Public URL:", url);
-
-//   const signedUrl = await getSignedUrl("IMG_1220.JPG");
-//   console.log("Signed URL:", signedUrl);
-// })();
-
 connectDB()
   .then(() => {
     server.listen(PORT, "0.0.0.0", () => {

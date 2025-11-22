@@ -3,34 +3,54 @@ const AppError = require("../utils/AppError");
 const { getLogger } = require("../config");
 const logger = getLogger(__filename);
 
+// CONSTANTS
 const { LIMITS } = require("../utils/constants/");
 const { MIN_WITHDRAW_AMOUNT } = LIMITS;
-const { USER_ROLE, WITHDRAW_REQUEST_STATUS } = require("../utils/common/ENUM");
+
+const {
+  USER_ROLE,
+  WITHDRAW_REQUEST_STATUS,
+  TRANSACTION_TYPE,
+  WALLET_TRANSACTION_STATUS,
+  WALLET_PAYMENT_PURPOSE,
+} = require("../utils/common/ENUM");
+
 const { ADMIN, MODERATOR } = USER_ROLE;
 const { PENDING, PROCESSING, PAID, REJECTED, CANCELLED } =
   WITHDRAW_REQUEST_STATUS;
 
+const { CREDIT, DEBIT } = TRANSACTION_TYPE;
+const { WITHDRAWAL } = WALLET_PAYMENT_PURPOSE;
+
+const { INITIATED, SUCCESS, FAILED } = WALLET_TRANSACTION_STATUS;
+
+// REPOSITORIES
 const {
   WithdrawRequestRepository,
   WalletRepository,
   WorkerBankDetailRepository,
   UserRepository,
+  WalletTransactionRepository,
 } = require("../repositories");
+
 const { sequelize } = require("../models");
 
 const withdrawRequestRepository = new WithdrawRequestRepository();
 const walletRepository = new WalletRepository();
+const walletTransactionRepository = new WalletTransactionRepository();
 const workerBankDetailRepository = new WorkerBankDetailRepository();
 const userRepository = new UserRepository();
 
-// CREATE WITHDRAW REQUEST
+/* ============================================================
+   CREATE WITHDRAWAL
+============================================================ */
 async function createWithdrawal(data) {
   logger.info("Service: Create Withdrawal - START", { data });
 
   const transaction = await sequelize.transaction();
 
   try {
-    // 1️⃣ Fetch Wallet
+    /** 1️⃣ Fetch Wallet */
     logger.info("Fetching wallet for withdrawal", { userId: data.userId });
 
     const wallet = await walletRepository.findWallet(data.userId);
@@ -43,7 +63,7 @@ async function createWithdrawal(data) {
       );
     }
 
-    // 2️⃣ Check balance
+    /** 2️⃣ Check wallet balance */
     if (wallet.balance < data.amount) {
       logger.warn("Insufficient wallet balance", {
         userId: data.userId,
@@ -56,19 +76,21 @@ async function createWithdrawal(data) {
         StatusCodes.BAD_REQUEST
       );
     }
+
     if (data.amount < MIN_WITHDRAW_AMOUNT) {
       logger.warn("Attempt to withdraw less than limit", {
         userId: data.userId,
         WITHDRAWAL_AMOUNT: data.amount,
         MIN_LIMIT: MIN_WITHDRAW_AMOUNT,
       });
+
       throw new AppError(
         `Cannot withdraw less than minimum limit ${MIN_WITHDRAW_AMOUNT}`,
         StatusCodes.BAD_REQUEST
       );
     }
 
-    // 3️⃣ Fetch bank details
+    /** 3️⃣ Fetch bank details */
     logger.info("Fetching bank details for withdrawal", {
       bankDetailId: data.bankDetailId,
     });
@@ -89,7 +111,7 @@ async function createWithdrawal(data) {
       );
     }
 
-    // Ownership Check
+    // Ownership check
     if (bankdetails.userId !== data.userId) {
       logger.warn("Unauthorized bank detail usage attempt", {
         requestUser: data.userId,
@@ -102,7 +124,7 @@ async function createWithdrawal(data) {
       );
     }
 
-    // 4️⃣ Deduct wallet amount (WITH TRANSACTION)
+    /** 4️⃣ Deduct wallet balance */
     logger.info("Deducting wallet balance", {
       walletId: wallet.id,
       amount: data.amount,
@@ -112,14 +134,31 @@ async function createWithdrawal(data) {
       transaction,
     });
 
-    // 5️⃣ Create Withdrawal
+    /** 5️⃣ Create withdrawal */
     logger.info("Creating withdrawal record", { data });
 
     const withdrawal = await withdrawRequestRepository.create(data, {
       transaction,
     });
 
-    // 6️⃣ COMMIT TRANSACTION
+    /** 6️⃣ Create wallet transaction log */
+    await walletTransactionRepository.create(
+      {
+        walletId: wallet.id,
+        transaction_type: DEBIT,
+        amount: data.amount,
+        status: INITIATED,
+        previous_balance: wallet.balance,
+        new_balance: wallet.balance - data.amount,
+        purpose: WITHDRAWAL,
+        reference: `Withdrawal to bank Account - ****${bankdetails.accountNumber.slice(
+          -4
+        )} - Request ${withdrawal.id}`,
+      },
+      { transaction }
+    );
+
+    /** 7️⃣ Commit */
     await transaction.commit();
 
     logger.info("Withdrawal successfully created", {
@@ -146,7 +185,9 @@ async function createWithdrawal(data) {
   }
 }
 
-// FETCH ALL WITHDRAWALS
+/* ============================================================
+   GET ALL WITHDRAWALS
+============================================================ */
 async function getWithdrawals(userId) {
   logger.info("Service: Get Withdrawals - START", { userId });
 
@@ -176,7 +217,9 @@ async function getWithdrawals(userId) {
   }
 }
 
-// FETCH ONE WITHDRAWAL
+/* ============================================================
+   GET ONE WITHDRAWAL
+============================================================ */
 async function getWithdrawal(userId, id) {
   logger.info("Service: Get Withdrawal - START", {
     userId,
@@ -187,16 +230,12 @@ async function getWithdrawal(userId, id) {
     const response = await withdrawRequestRepository.getById(id);
 
     if (!response) {
-      logger.warn("Service: Withdrawal not found", {
-        userId,
-        withdrawalId: id,
-      });
-
+      logger.warn("Withdrawal not found", { userId, withdrawalId: id });
       throw new AppError("Withdrawal not found", StatusCodes.NOT_FOUND);
     }
 
     if (response.userId !== userId) {
-      logger.warn("Service: Unauthorized withdrawal access attempt", {
+      logger.warn("Unauthorized withdrawal access attempt", {
         requestUser: userId,
         owner: response.userId,
         withdrawalId: id,
@@ -228,7 +267,9 @@ async function getWithdrawal(userId, id) {
   }
 }
 
-// update
+/* ============================================================
+   UPDATE WITHDRAWAL STATUS (ADMIN/MODERATOR)
+============================================================ */
 async function updateWithdrawalstatus(userId, id, status) {
   logger.info("Service: Update Withdrawal Status - START", {
     userId,
@@ -239,13 +280,13 @@ async function updateWithdrawalstatus(userId, id, status) {
   const transaction = await sequelize.transaction();
 
   try {
-    // 1️⃣ Validate user role
+    /** 1️⃣ Validate user role */
     logger.info("Fetching admin/moderator user", { userId });
 
     const user = await userRepository.getByUserId(userId);
 
     if (user.role !== ADMIN && user.role !== MODERATOR) {
-      logger.warn("Unauthorized withdrawal status update attempt", {
+      logger.warn("Unauthorized status update attempt", {
         userId,
         role: user.role,
       });
@@ -253,10 +294,11 @@ async function updateWithdrawalstatus(userId, id, status) {
       throw new AppError("Unauthorized access", StatusCodes.UNAUTHORIZED);
     }
 
-    // 2️⃣ Fetch withdrawal
+    /** 2️⃣ Fetch withdrawal */
     logger.info("Fetching withdrawal for status update", { withdrawalId: id });
 
-    const withdrawal = await withdrawRequestRepository.getById(id);
+    const withdrawal =
+      await withdrawRequestRepository.fetchWithdrawalWithBankDetailById(id);
 
     if (!withdrawal) {
       logger.warn("Withdrawal not found", { withdrawalId: id });
@@ -269,27 +311,13 @@ async function updateWithdrawalstatus(userId, id, status) {
       currentStatus: withdrawal.status,
     });
 
-    // 3️⃣ Validate status transitions
-    let result;
-
+    /** 3️⃣ Validate status transitions */
     if (status === PENDING) {
-      logger.warn("Invalid status transition: cannot set status to PENDING", {
-        withdrawalId: id,
-      });
       throw new AppError("Invalid status transition", StatusCodes.BAD_REQUEST);
     }
 
-    if (status === PROCESSING) {
-      if (withdrawal.status !== PENDING) {
-        logger.warn("Invalid transition to PROCESSING", {
-          withdrawalId: id,
-          currentStatus: withdrawal.status,
-        });
-        throw new AppError(
-          "Invalid status transition",
-          StatusCodes.BAD_REQUEST
-        );
-      }
+    if (status === PROCESSING && withdrawal.status !== PENDING) {
+      throw new AppError("Invalid status transition", StatusCodes.BAD_REQUEST);
     }
 
     if (status === PAID) {
@@ -298,48 +326,80 @@ async function updateWithdrawalstatus(userId, id, status) {
         !withdrawal.utrId ||
         !withdrawal.paidAt
       ) {
-        logger.warn(
-          "Invalid transition to PAID: either not PROCESSING or missing paid details",
-          {
-            withdrawalId: id,
-            currentStatus: withdrawal.status,
-            utrId: withdrawal.utrId,
-            paidAt: withdrawal.paidAt,
-          }
-        );
-
         throw new AppError(
-          "Cannot mark as PAID. Withdrawal must be in PROCESSING state and have paid details.",
+          "Cannot mark as PAID — must be PROCESSING + have paid details",
           StatusCodes.BAD_REQUEST
         );
       }
     }
 
-    if (status === REJECTED) {
-      if (withdrawal.status === PAID) {
-        logger.warn("Invalid transition to REJECTED (already PAID)", {
-          withdrawalId: id,
-        });
-        throw new AppError(
-          "Invalid status transition",
-          StatusCodes.BAD_REQUEST
-        );
-      }
+    if (status === REJECTED && withdrawal.status === PAID) {
+      throw new AppError("Invalid status transition", StatusCodes.BAD_REQUEST);
     }
 
-    // 4️⃣ Update status
+    /** 4️⃣ Update status */
     logger.info("Updating withdrawal status", {
       withdrawalId: id,
       newStatus: status,
     });
 
-    result = await withdrawRequestRepository.update(
+    const result = await withdrawRequestRepository.update(
       id,
       { status },
       { transaction }
     );
 
-    // 5️⃣ Commit transaction
+    const reference = `Withdrawal to bank Account - ****${withdrawal.bankDetail.accountNumber.slice(
+      -4
+    )} - Request ${withdrawal.id}`;
+
+    const walletTransaction = await walletTransactionRepository.getByReference(
+      reference
+    );
+
+    // Update wallet transaction log
+    if (status === PROCESSING) {
+      await walletTransactionRepository.update(
+        walletTransaction.id,
+        { status: PENDING },
+        { transaction }
+      );
+    }
+
+    if (status === PAID) {
+      await walletTransactionRepository.update(
+        walletTransaction.id,
+        { status: SUCCESS },
+        { transaction }
+      );
+    }
+
+    if (status === REJECTED) {
+      logger.info(`Withdrawal failed and amount refunding - START `, {
+        userId: withdrawal.userId,
+        withdrawalId: withdrawal.id,
+        rejectedBy: userId,
+      });
+      await walletTransactionRepository.update(
+        walletTransaction.id,
+        { status: FAILED },
+        { transaction }
+      );
+
+      // Refund wallet
+      await walletRepository.incrementBalance(
+        walletTransaction.walletId,
+        walletTransaction.amount,
+        { transaction }
+      );
+      logger.info(`Withdrawal failed and amount refunding - SUCCESS `, {
+        userId: withdrawal.userId,
+        withdrawalId: withdrawal.id,
+        rejectedBy: userId,
+      });
+    }
+
+    /** 5️⃣ Commit */
     await transaction.commit();
 
     logger.info("Service: Update Withdrawal Status - SUCCESS", {
@@ -367,6 +427,9 @@ async function updateWithdrawalstatus(userId, id, status) {
   }
 }
 
+/* ============================================================
+   PAY FOR WITHDRAWAL (ADMIN/MODERATOR)
+============================================================ */
 async function payForWithdrawal(userId, id, utrId, remark) {
   logger.info("Service: Pay For Withdrawal - START", {
     requestedBy: userId,
@@ -376,64 +439,34 @@ async function payForWithdrawal(userId, id, utrId, remark) {
   const transaction = await sequelize.transaction();
 
   try {
-    // 1️⃣ Validate user role
-    logger.info("Validating user role", { userId });
-
+    /** 1️⃣ Validate role */
     const user = await userRepository.getByUserId(userId);
-    logger.info("User fetched", { userId, role: user.role });
 
     if (user.role !== ADMIN && user.role !== MODERATOR) {
-      logger.warn("Unauthorized withdrawal payment attempt", {
-        userId,
-        role: user.role,
-        withdrawalId: id,
-      });
-
       throw new AppError("Unauthorized access", StatusCodes.UNAUTHORIZED);
     }
 
-    // 2️⃣ Fetch withdrawal request
-    logger.info("Fetching withdrawal record", { withdrawalId: id });
-
-    const withdrawal = await withdrawRequestRepository.getById(id);
+    /** 2️⃣ Fetch withdrawal */
+    const withdrawal =
+      await withdrawRequestRepository.fetchWithdrawalWithBankDetailById(id);
 
     if (!withdrawal) {
-      logger.warn("Withdrawal record not found", { withdrawalId: id });
       throw new AppError("Withdrawal not found", StatusCodes.NOT_FOUND);
     }
 
-    logger.info("Withdrawal record fetched", {
-      withdrawalId: id,
-      currentStatus: withdrawal.status,
-    });
-
-    // 3️⃣ Validate status transitions before payment
+    /** 3️⃣ Validate transition */
     if (withdrawal.status === PAID) {
-      logger.warn("Attempt to mark already PAID withdrawal again", {
-        withdrawalId: id,
-      });
       throw new AppError("Withdrawal already paid", StatusCodes.BAD_REQUEST);
     }
 
     if (withdrawal.status !== PROCESSING) {
-      logger.warn("Payment attempted without PROCESSING status", {
-        withdrawalId: id,
-        currentStatus: withdrawal.status,
-      });
-
       throw new AppError(
         "Cannot proceed — withdrawal is not in processing",
         StatusCodes.BAD_REQUEST
       );
     }
 
-    // 4️⃣ Update payment info
-    logger.info("Updating withdrawal with payment details", {
-      withdrawalId: id,
-      utrId,
-      paidBy: userId,
-    });
-
+    /** 4️⃣ Update */
     const response = await withdrawRequestRepository.update(
       id,
       {
@@ -446,7 +479,22 @@ async function payForWithdrawal(userId, id, utrId, remark) {
       { transaction }
     );
 
-    // 5️⃣ Commit
+    // Wallet transaction update
+    const reference = `Withdrawal to bank Account - ****${withdrawal.bankDetail.accountNumber.slice(
+      -4
+    )} - Request ${withdrawal.id}`;
+
+    const walletTransaction = await walletTransactionRepository.getByReference(
+      reference
+    );
+
+    await walletTransactionRepository.update(
+      walletTransaction.id,
+      { status: SUCCESS },
+      { transaction }
+    );
+
+    /** 5️⃣ Commit */
     await transaction.commit();
 
     logger.info("Service: Withdrawal payment completed successfully", {
@@ -456,14 +504,15 @@ async function payForWithdrawal(userId, id, utrId, remark) {
 
     return response;
   } catch (error) {
-    await transaction.rollback();
-
     logger.error("Service Error: Withdrawal payment failed", {
       requestedBy: userId,
       withdrawalId: id,
       error: error.message,
       stack: error.stack,
     });
+
+    await transaction.rollback();
+
     if (error.name === "SequelizeUniqueConstraintError") {
       throw new AppError(
         "Invalid data provided, UTR already exists",
@@ -480,64 +529,82 @@ async function payForWithdrawal(userId, id, utrId, remark) {
   }
 }
 
-// delete
-
+/* ============================================================
+   CANCEL WITHDRAWAL (USER)
+============================================================ */
 async function cancelWithdrawal(userId, id) {
   logger.info("Service: Cancel Withdrawal - START", {
     requestedBy: userId,
     withdrawalId: id,
   });
 
-  try {
-    // 1️⃣ Fetch the withdrawal request
-    logger.info("Fetching withdrawal request", { withdrawalId: id });
+  const transaction = await sequelize.transaction();
 
-    const withdrawal = await withdrawRequestRepository.getById(id);
+  try {
+    /** 1️⃣ Fetch withdrawal */
+    const withdrawal =
+      await withdrawRequestRepository.fetchWithdrawalWithBankDetailById(id);
 
     if (!withdrawal) {
-      logger.warn("Withdrawal request not found", { withdrawalId: id });
       throw new AppError("Withdrawal request not found", StatusCodes.NOT_FOUND);
     }
 
-    logger.info("Withdrawal fetched", {
-      withdrawalId: id,
-      currentStatus: withdrawal.status,
-      owner: withdrawal.userId,
-    });
-
-    // 2️⃣ Validate user ownership
+    /** 2️⃣ Ownership validation */
     if (withdrawal.userId !== userId) {
-      logger.warn("Unauthorized cancellation attempt", {
-        requestedBy: userId,
-        owner: withdrawal.userId,
-        withdrawalId: id,
-      });
       throw new AppError(
         "Unauthorized for the withdrawal request",
         StatusCodes.UNAUTHORIZED
       );
     }
 
-    // 3️⃣ Validate status
+    /** 3️⃣ Only PENDING withdrawals can be canceled */
     if (withdrawal.status !== PENDING) {
-      logger.warn("Cancellation attempt for non-pending withdrawal", {
-        withdrawalId: id,
-        currentStatus: withdrawal.status,
-      });
       throw new AppError(
         "Withdrawal in processing cannot be cancelled",
         StatusCodes.BAD_REQUEST
       );
     }
 
-    // 4️⃣ Update withdrawal status to CANCELLED
-    logger.info("Updating withdrawal status to CANCELLED", {
-      withdrawalId: id,
-    });
+    /** 4️⃣ Cancel withdrawal */
+    const response = await withdrawRequestRepository.update(
+      id,
+      { status: CANCELLED },
+      { transaction }
+    );
 
-    const response = await withdrawRequestRepository.update(id, {
-      status: CANCELLED,
+    /** 5️⃣ Update wallet transaction */
+    const reference = `Withdrawal to bank Account - ****${withdrawal.bankDetail.accountNumber.slice(
+      -4
+    )} - Request ${withdrawal.id}`;
+
+    const walletTransaction = await walletTransactionRepository.getByReference(
+      reference
+    );
+    logger.info(`Withdrawal cancelled by user and amount refunding - START `, {
+      userId,
+      withdrawalId: withdrawal.id,
     });
+    await walletTransactionRepository.update(
+      walletTransaction.id,
+      { status: FAILED },
+      { transaction }
+    );
+
+    /** 6️⃣ Refund */
+    await walletRepository.incrementBalance(
+      walletTransaction.walletId,
+      walletTransaction.amount,
+      { transaction }
+    );
+    logger.info(
+      `Withdrawal cancelled by user and amount refunding - SUCCESS `,
+      {
+        userId,
+        withdrawalId: withdrawal.id,
+      }
+    );
+
+    await transaction.commit();
 
     logger.info("Withdrawal cancelled successfully", {
       withdrawalId: id,
@@ -553,6 +620,8 @@ async function cancelWithdrawal(userId, id) {
       stack: error.stack,
     });
 
+    await transaction.rollback();
+
     if (error instanceof AppError) throw error;
 
     throw new AppError(
@@ -562,6 +631,9 @@ async function cancelWithdrawal(userId, id) {
   }
 }
 
+/* ============================================================
+   EXPORTS
+============================================================ */
 module.exports = {
   createWithdrawal,
   getWithdrawals,

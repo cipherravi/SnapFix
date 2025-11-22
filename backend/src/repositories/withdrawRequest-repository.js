@@ -1,5 +1,5 @@
 const CrudRepository = require("./crud-repository");
-const { WithdrawRequest } = require("../models");
+const { WithdrawRequest, WorkerBankDetail } = require("../models");
 const { getLogger } = require("../config");
 const logger = getLogger(__filename);
 class WithdrawRequestRepository extends CrudRepository {
@@ -27,6 +27,38 @@ class WithdrawRequestRepository extends CrudRepository {
         error: error.message,
         stack: error.stack,
       });
+
+      throw error;
+    }
+  }
+  async fetchWithdrawalWithBankDetailById(id) {
+    logger.info("Repository: Fetch Withdrawal With Bank details - START", {
+      id,
+    });
+
+    try {
+      const withdrawals = await WithdrawRequest.findOne({
+        where: { id },
+        include: [
+          {
+            model: WorkerBankDetail,
+            as: "bankDetail",
+            attributes: ["userId", "accountNumber"],
+          },
+        ],
+      });
+
+      logger.info("Repository: Fetch Withdrawal With Bank details - SUCCESS");
+
+      return withdrawals;
+    } catch (error) {
+      logger.error(
+        "Repository Error: Fetch Withdrawal With Bank details Failed",
+        {
+          error: error.message,
+          stack: error.stack,
+        }
+      );
 
       throw error;
     }
