@@ -16,18 +16,37 @@ function Home() {
   } = useExploreContext();
 
   const [offset, setOffset] = useState(0);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+
   const { ref, inView } = useInView({
     threshold: 0.1, // Trigger when the element is halfway visible
   });
 
   // When the observer sees the "load more" div
   useEffect(() => {
-    if (inView && !jobsLoading && hasMore) {
+    if (
+      jobs.length > 6 &&
+      inView &&
+      !jobsLoading &&
+      !isFetchingMore &&
+      hasMore
+    ) {
+      setIsFetchingMore(true);
       const newOffset = offset + 10;
       setOffset(newOffset);
-      fetchMoreJobs(newOffset);
+
+      fetchMoreJobs(newOffset).finally(() => {
+        setIsFetchingMore(false);
+      });
     }
-  }, [inView]);
+  }, [inView, jobsLoading, hasMore]);
+
+  useEffect(() => {
+    if (!jobsLoading) {
+      setHasLoadedOnce(true);
+    }
+  }, [jobsLoading]);
 
   const categoryButtonStyle =
     "bg-[#F4F4F4] inter-medium px-2 py-1 text-nowrap rounded-xl";
@@ -81,8 +100,21 @@ function Home() {
             <button className={categoryButtonStyle}>Sort By</button>
             <button className={categoryButtonStyle}>Filter</button>
           </div>
-          {/* Cards */}
-          {!jobsLoading && jobs.length > 0 ? (
+
+          {/* INITIAL SHIMMER — only before first load */}
+          {!hasLoadedOnce && jobsLoading && (
+            <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="min-h-56 w-full rounded-2xl shimmer"
+                ></div>
+              ))}
+            </div>
+          )}
+
+          {/* JOB LIST */}
+          {hasLoadedOnce && jobs.length > 0 && (
             <div className="grid grid-cols-2 gap-2 rounded-2xl pb-4">
               {jobs.map((job) => {
                 const mainAsset = job.assets.find(
@@ -103,12 +135,17 @@ function Home() {
                 );
               })}
             </div>
-          ) : (
-            <div className="w-full min-h-[300px] flex justify-center items-center">
+          )}
+
+          {/* NO JOBS — only after first load completes */}
+          {hasLoadedOnce && !jobsLoading && jobs.length === 0 && (
+            <div className="w-full  min-h-[calc(100vh-330px)] flex justify-center items-center">
               <p className="text-gray-500">No Jobs found !!</p>
             </div>
           )}
-          {jobsLoading && (
+
+          {/* PAGINATION SHIMMER — only after jobs exist */}
+          {jobsLoading && jobs.length > 0 && (
             <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
               {Array.from({ length: 8 }).map((_, idx) => (
                 <div
@@ -118,6 +155,7 @@ function Home() {
               ))}
             </div>
           )}
+
           <div ref={ref} style={{ height: "50px" }}></div>
         </div>
       </div>

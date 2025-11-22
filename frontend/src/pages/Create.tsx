@@ -4,7 +4,7 @@ import DropDownOptions from "../components/modals/DropDownOptions";
 import { sanitizeBudgetInput } from "../utils/inputSanitizers";
 import useCategoryFetcher from "../utils/Hooks/useCategoryFetcher";
 import useAddressFetcher from "../utils/Hooks/useAddressFetcher";
-import MapPicker from "../components/map/MapPicker";
+// import MapPicker from "../components/map/MapPicker";
 import sortByName from "../utils/sortByName";
 import { useNavigate } from "react-router-dom";
 import ImageCapturer from "../components/ImageCapturer";
