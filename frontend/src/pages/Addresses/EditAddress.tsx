@@ -183,7 +183,7 @@ const EditAddress = () => {
           <div className="w-full flex justify-center mt-5">
             <button
               type="submit"
-              className="py-2 px-5 bg-[#0385c2] rounded-2xl text-2xl text-white inter-medium cursor-pointer absolute bottom-10"
+              className="py-2 px-5 bg-[#0385c2] rounded-2xl text-2xl text-white inter-medium cursor-pointer mb-5"
             >
               Confirm Edit
             </button>
