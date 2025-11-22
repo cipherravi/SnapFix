@@ -10,8 +10,7 @@ const { allowedOrigins } = require("./utils/constants/allowedOrigins");
 const apiRoutes = require("./routes");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
-const supabase = require("./config/supabase-config");
-const path = require("path");
+const test = require("./utils/test");
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -137,6 +136,10 @@ io.on("connection", (socket) => {
 });
 
 app.use("/api", apiRoutes);
+app.get("/testdb", (req, res) => {
+  test();
+  res.status(200).json({ message: "connected" });
+});
 
 connectDB()
   .then(() => {
