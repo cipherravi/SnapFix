@@ -140,7 +140,7 @@ app.use("/api", apiRoutes);
 
 connectDB()
   .then(() => {
-    server.listen(PORT, "0.0.0.0", () => {
+    server.listen(PORT, () => {
       console.log("Server started running at PORT ::", PORT);
     });
   })
