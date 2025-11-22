@@ -136,10 +136,6 @@ io.on("connection", (socket) => {
 });
 
 app.use("/api", apiRoutes);
-app.get("/testdb", (req, res) => {
-  test();
-  res.status(200).json({ message: "connected" });
-});
 
 connectDB()
   .then(() => {
