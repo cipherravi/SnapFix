@@ -140,7 +140,6 @@ connectDB()
   .then(() => {
     server.listen(PORT, () => {
       console.log("Server started running at PORT ::", PORT);
-      console.log("DATABASE_URL:", process.env.DATABASE_URL);
     });
   })
   .catch((err) => {

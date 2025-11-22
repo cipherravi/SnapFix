@@ -1,5 +1,5 @@
 const allowedOrigins = [
-  "https://snapfix-tau.vercel.app",
+  "https://trysnapfix.in",
   "http://localhost:5173",
   "http://192.168.1.4:5173",
 ];
