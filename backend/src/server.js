@@ -29,7 +29,7 @@ const io = new Server(server, {
 });
 
 // Serve static files
-app.use(express.static(path.join(__dirname, "../public")));
+// app.use(express.static(path.join(__dirname, "../public")));
 
 app.use(cookieParser());
 app.use(express.json());
@@ -53,9 +53,9 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/html/index.html"));
-});
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, "../public/html/index.html"));
+// });
 
 // Socket.IO handler
 io.on("connection", (socket) => {
