@@ -25,7 +25,7 @@ const {
   TRANSACTION_TYPE,
   WALLET_TRANSACTION_PURPOSE,
 } = require("../utils/common/ENUM");
-const { WalletService } = require(".");
+
 const { sequelize } = require("../models");
 const { COD, ONLINE, WALLET } = PAYMENT_METHOD;
 const { ACTIVE, ABANDONED } = ATTEMPT_STATUS;
