@@ -82,7 +82,7 @@ function Home() {
             <button className={categoryButtonStyle}>Filter</button>
           </div>
           {/* Cards */}
-          {jobs.length > 0 ? (
+          {!jobsLoading && jobs.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 rounded-2xl pb-4">
               {jobs.map((job) => {
                 const mainAsset = job.assets.find(

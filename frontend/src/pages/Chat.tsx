@@ -195,7 +195,7 @@ const Chat = ({ verified = true }: ChatProps) => {
           return (
             <div
               key={msg._id ?? msg.localId ?? msg.createdAt?.toString() ?? index}
-              className={`max-w-[70%] px-4 py-2 rounded-lg shadow break-words whitespace-pre-wrap
+              className={`max-w-[70%] px-4 py-2 rounded-lg shadow wrap-break-word whitespace-pre-wrap
               ${
                 msg?.senderId === userData?.id
                   ? onlyEmoji
