@@ -88,10 +88,12 @@ async function logout(req, res) {
       throw new AppError(MISSING_TOKEN, StatusCodes.UNAUTHORIZED);
     }
 
+    const isProd = process.env.NODE_ENV === "production";
+
     res.clearCookie("token", {
       httpOnly: true,
-      secure: false,
-      sameSite: "Strict",
+      secure: isProd,
+      sameSite: isProd ? "None" : "Lax",
     });
 
     SuccessResponse.data = {};
