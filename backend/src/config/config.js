@@ -14,11 +14,5 @@ module.exports = {
     use_env_variable: "DATABASE_URL",
     dialect: process.env.DB_DIALECT || "postgres",
     dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
-    pool: {
-      max: 1, // IMPORTANT
-      min: 0,
-      idle: 10000,
-      acquire: 30000,
-    },
   },
 };
