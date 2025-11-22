@@ -10,7 +10,6 @@ const { allowedOrigins } = require("./utils/constants/allowedOrigins");
 const apiRoutes = require("./routes");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
-const test = require("./utils/test");
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
