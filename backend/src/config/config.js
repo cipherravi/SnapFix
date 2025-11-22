@@ -14,7 +14,7 @@ module.exports = {
     use_env_variable: "DATABASE_URL",
     dialect: process.env.DB_DIALECT || "postgres",
     pool: {
-      max: 2, // IMPORTANT
+      max: 1, // IMPORTANT
       min: 0,
       idle: 10000,
       acquire: 30000,
