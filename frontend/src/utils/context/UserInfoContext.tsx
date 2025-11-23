@@ -31,13 +31,11 @@ const UserInfoProvider = ({ children }: UserInfoProviderProps) => {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("token");
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/users/me`, {
         method: "GET",
         credentials: "include", // Send cookies
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 
