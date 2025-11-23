@@ -8,11 +8,18 @@ const { SECRET_KEY } = serverConfig;
 async function userVerification(req, res, next) {
   try {
     const token = req.headers["x-access-token"] || req.cookies.token;
+    const header = req.headers.authorization;
 
-    if (!token) {
+    if (!token || !header) {
       throw new AppError("Token not found", StatusCodes.BAD_REQUEST);
     }
-    const isAuthenticated = jwt.verify(token, SECRET_KEY);
+    const token1 = header.split(" ")[1];
+    let isAuthenticated;
+    if (token) {
+      isAuthenticated = jwt.verify(token, SECRET_KEY);
+    } else {
+      isAuthenticated = jwt.verify(token1, SECRET_KEY);
+    }
     if (!isAuthenticated) {
       throw new AppError("Unauthorised user", StatusCodes.UNAUTHORIZED);
     }

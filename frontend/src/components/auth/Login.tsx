@@ -56,8 +56,10 @@ const Login = () => {
         body: JSON.stringify(body),
       });
       const data = await response.json();
+
       if (response.ok) {
         toast.success(data.message || "Login successfully!");
+        localStorage.setItem("token", data.data);
         setPhoneNo("");
         setPassword("");
         navigate("/explore");
