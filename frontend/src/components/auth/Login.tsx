@@ -59,7 +59,6 @@ const Login = () => {
 
       if (response.ok) {
         toast.success(data.message || "Login successfully!");
-        localStorage.setItem("token", data.data);
         setPhoneNo("");
         setPassword("");
         navigate("/explore");
