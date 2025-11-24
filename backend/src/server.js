@@ -12,19 +12,21 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const http = require("http");
 const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server, {
-  cors: {
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST"],
-  },
-});
+const { setupSocket } = require("./socket");
+
+// const { Server } = require("socket.io");
+// const io = new Server(server, {
+//   cors: {
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     methods: ["GET", "POST"],
+//   },
+// });
 
 // Serve static files
 // app.use(express.static(path.join(__dirname, "../public")));
@@ -51,88 +53,106 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(__dirname, "../public/html/index.html"));
-// });
+const io = setupSocket(server, allowedOrigins);
 
+// -----------------------
 // Socket.IO handler
-io.on("connection", (socket) => {
-  console.log("🔌 New client connected", socket.id);
-  // set user online
+// // -----------------------
+// io.on("connection", (socket) => {
+//   console.log("🔌 New client connected:", socket.id);
 
-  socket.on("disconnect", () => {
-    console.log("❌ Client disconnected", socket.id);
-    //set user offline
-  });
+//   // ---------------------
+//   // Chat Events
+//   // ---------------------
+//   socket.on("joinRoom", (conversationId) => {
+//     if (!conversationId) return;
+//     socket.join(conversationId);
+//     console.log(`🟢 ${socket.id} joined room: ${conversationId}`);
+//   });
 
-  socket.on("joinRoom", (conversationId) => {
-    if (!conversationId) return;
-    socket.join(conversationId);
-    console.log(`🟢 ${socket.id} joined room: ${conversationId}`);
-  });
+//   socket.on("leaveRoom", (conversationId) => {
+//     socket.leave(conversationId);
+//     console.log(`🔚 ${socket.id} left room: ${conversationId}`);
+//   });
 
-  socket.on("markAsRead", async (conversationId, userId) => {
-    if (!userId) return;
+//   socket.on(
+//     "sendMessage",
+//     async ({ conversationId, senderId, text, localId }) => {
+//       if (!conversationId || !text) return;
 
-    // ✅ Update lastReadMap
-    try {
-      await Conversation.updateOne(
-        { _id: conversationId },
-        {
-          $set: { [`lastReadMap.${String(userId)}`]: new Date() },
-        }
-      );
-      console.log(`📬 Updated lastReadMap for user ${userId}`);
-    } catch (error) {
-      console.error("❌ Failed to update lastReadMap:", error);
-    }
-  });
+//       // Broadcast to room
+//       socket.to(conversationId).emit("receiveMessage", {
+//         text,
+//         senderId,
+//         createdAt: new Date().toISOString(),
+//         localId,
+//       });
 
-  socket.on(
-    "sendMessage",
-    async ({ conversationId, senderId, text, localId }) => {
-      if (!conversationId || !text) return;
+//       // Save message to DB
+//       try {
+//         await Message.create({ conversationId, senderId, text });
+//         await Conversation.updateOne(
+//           { _id: conversationId },
+//           {
+//             $set: {
+//               lastMessage: { text, sender: senderId, createdAt: new Date() },
+//             },
+//           }
+//         );
+//         socket.emit("messageSaved", { success: true });
+//       } catch (err) {
+//         console.error("❌ Failed to save message:", err);
+//       }
+//     }
+//   );
 
-      console.log(
-        `📩 Message in room ${conversationId} from ${socket.id}:`,
-        text
-      );
+//   socket.on("markAsRead", async (conversationId, userId) => {
+//     if (!userId) return;
 
-      socket.to(conversationId).emit("receiveMessage", {
-        text,
-        senderId,
-        createdAt: new Date().toISOString(),
-        localId,
-      });
-      socket.emit("messageSent", { success: true });
+//     // ✅ Update lastReadMap
+//     try {
+//       await Conversation.updateOne(
+//         { _id: conversationId },
+//         {
+//           $set: { [`lastReadMap.${String(userId)}`]: new Date() },
+//         }
+//       );
+//       console.log(`📬 Updated lastReadMap for user ${userId}`);
+//     } catch (error) {
+//       console.error("❌ Failed to update lastReadMap:", error);
+//     }
+//   });
 
-      try {
-        await Message.create({ conversationId, senderId, text });
-        socket.emit("messageSaved", { success: true });
-        await Conversation.updateOne(
-          { _id: conversationId },
-          {
-            $set: {
-              lastMessage: {
-                text: text,
-                sender: senderId,
-                createdAt: new Date(),
-              },
-            },
-          }
-        );
-        console.log("💾 Message saved to DB");
-      } catch (error) {
-        console.error("❌ Failed to save message:", error);
-      }
-    }
-  );
+//   // ---------------------
+//   // Voice Call Events
+//   // ---------------------
+//   socket.on("send-offer", ({ offer, toConversationId }) => {
+//     socket.to(toConversationId).emit("call-offer", { offer, from: socket.id });
+//   });
 
-  socket.on("leaveRoom", async (conversationId) => {
-    socket.leave(conversationId);
-    console.log(`🔚 ${socket.id} left room: ${conversationId}`);
-  });
-});
+//   socket.on("call-answer", ({ answer, to }) => {
+//     io.to(to).emit("call-answered", { answer });
+//   });
+
+//   socket.on("reject-call", ({ to }) => {
+//     io.to(to).emit("call-rejected");
+//   });
+
+//   socket.on("ice-candidate", ({ candidate, to }) => {
+//     io.to(to).emit("ice-candidate", candidate);
+//   });
+
+//   socket.on("end-call", ({ to }) => {
+//     io.to(to).emit("call-ended");
+//   });
+
+//   // ---------------------
+//   // Disconnect
+//   // ---------------------
+//   socket.on("disconnect", () => {
+//     console.log("❌ Client disconnected:", socket.id);
+//   });
+// });
 
 app.use("/api", apiRoutes);
 

@@ -28,6 +28,7 @@ const JobPoster = () => {
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -51,6 +52,9 @@ const JobPoster = () => {
 
   const applyHandler = async () => {
     try {
+      if (applying) return;
+      setApplying(true);
+
       const response = await fetch(
         `${VITE_API_BASE_URL}/api/v1/jobs/${id}/apply`,
         {
@@ -81,6 +85,7 @@ const JobPoster = () => {
       toast.error("An error occurred while applying.");
     } finally {
       setShowMessageModal(false);
+      setApplying(false);
     }
   };
 

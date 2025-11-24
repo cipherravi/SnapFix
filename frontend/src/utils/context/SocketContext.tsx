@@ -19,7 +19,10 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io(VITE_API_BASE_URL, { transports: ["websocket"] });
+    const newSocket = io(VITE_API_BASE_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
     setSocket(newSocket);
 
     return () => {
