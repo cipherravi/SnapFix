@@ -3,6 +3,7 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import PublicRoute from "../utils/common/PublicRoute";
 import ProtectedRoute from "../utils/common/ProtectedRoute";
+import Error from "../pages/Error";
 const Intro = lazy(() => import("../pages/intro"));
 
 const Register = lazy(() => import("../components/auth/Register"));
@@ -10,7 +11,7 @@ const Login = lazy(() => import("../components/auth/Login"));
 const ForgotPassword = lazy(() => import("../components/auth/ForgotPassword"));
 
 const Home = lazy(() => import("../pages/Home"));
-const Message = lazy(() => import("../pages/Chats"));
+const Conversations = lazy(() => import("../pages/Conversations"));
 const Chat = lazy(() => import("../pages/Chat"));
 const Profile = lazy(() => import("../pages/Profile"));
 const Search = lazy(() => import("../pages/Search"));
@@ -40,12 +41,16 @@ const Payment = lazy(() => import("../pages/Payment"));
 const CODSuccess = lazy(() => import("../pages/success/CODSuccess"));
 const WalletSuccess = lazy(() => import("../pages/success/WalletSuccess"));
 const Wallet = lazy(() => import("../pages/Profile/Wallet"));
+import WalletShimmer from "../components/shimmer/WalletShimmer";
+import JobsShimmer from "../components/shimmer/JobsShimmer";
+import AccountShimmer from "../components/shimmer/AccountShimmer";
+import ConversationsShimmer from "../components/shimmer/ConversationsShimmer";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-    // errorElement: <Error />,
+    errorElement: <Error />,
     children: [
       {
         index: true,
@@ -81,7 +86,19 @@ const router = createBrowserRouter([
       },
       {
         path: "conversations",
-        element: <Message />,
+        element: (
+          <ProtectedRoute>
+            <Suspense
+              fallback={
+                <div>
+                  <ConversationsShimmer />
+                </div>
+              }
+            >
+              <Conversations />
+            </Suspense>
+          </ProtectedRoute>
+        ),
       },
       {
         path: "conversation/:id",
@@ -99,16 +116,27 @@ const router = createBrowserRouter([
           {
             path: "wallet",
             element: (
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={<WalletShimmer />}>
                 <Wallet />
               </Suspense>
             ),
           },
-          { path: "jobs", element: <PostedJobs /> },
+          {
+            path: "jobs",
+            element: (
+              <Suspense fallback={<JobsShimmer />}>
+                <PostedJobs />
+              </Suspense>
+            ),
+          },
           { path: "jobs/:id", element: <PostedJobDashboard /> },
           {
             path: "tasks",
-            element: <AssignedTasks />,
+            element: (
+              <Suspense fallback={<JobsShimmer />}>
+                <AssignedTasks />
+              </Suspense>
+            ),
           },
           {
             path: "tasks/:id",
@@ -132,7 +160,11 @@ const router = createBrowserRouter([
 
           {
             path: "account",
-            element: <Account />,
+            element: (
+              <Suspense fallback={<AccountShimmer />}>
+                <Account />
+              </Suspense>
+            ),
           },
           {
             path: "kyc",

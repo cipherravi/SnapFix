@@ -29,14 +29,19 @@ const JobCard = ({
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer transition hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+      className="
+        bg-white rounded-2xl shadow-sm 
+        overflow-hidden cursor-pointer 
+        transition hover:shadow-md 
+        focus:outline-none focus:ring-2 focus:ring-blue-400
+      "
       role="button"
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={(e) => e.key === "Enter" && handleClick()}
     >
       {/* Banner Image */}
-      <div className="h-40 w-full bg-gray-200">
+      <div className="w-full aspect-4/3 bg-gray-200">
         {url ? (
           <img
             src={url}
@@ -44,23 +49,26 @@ const JobCard = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm bg-white">
+          <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs bg-white">
             No Image Available
           </div>
         )}
       </div>
 
       {/* Card Content */}
-      <div className="p-4 flex flex-col gap-2">
-        <h2 className="text-lg font-semibold text-gray-800 truncate">
+      <div className="p-3 flex flex-col gap-1.5">
+        <h2 className="text-base font-semibold text-gray-900 truncate">
           {title}
         </h2>
-        <p className="text-sm text-gray-600 truncate">
+
+        <p className="text-xs text-gray-600 truncate">
           {description || "No description provided."}
         </p>
-        <div className="flex justify-between items-center mt-2">
+
+        <div className="flex justify-between items-center pt-1">
           <span className="text-base font-bold text-green-700">₹ {budget}</span>
-          <span className="text-sm text-gray-500 whitespace-nowrap">
+
+          <span className="text-xs text-gray-500 whitespace-nowrap">
             {formatTime(createdAt)}
           </span>
         </div>

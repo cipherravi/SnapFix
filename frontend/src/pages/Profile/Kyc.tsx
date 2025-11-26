@@ -8,12 +8,18 @@ import ImageCapturer from "../../components/ImageCapturer";
 
 import { useAddressContext } from "../../utils/context/AddressContext";
 import useKycUpload from "../../utils/Hooks/useKycUpload";
-import { useUserInfo } from "../../utils/context/UserInfoContext";
+// import { useUserInfo } from "../../utils/context/UserInfoContext";
+
+import { useSelector } from "react-redux";
+
 import type { Address } from "../../../types";
 
 const Kyc = () => {
   const navigate = useNavigate();
-  const { userData, isLoading, fetchProfile } = useUserInfo();
+  // const { userData, isLoading, fetchProfile } = useUserInfo();
+
+  const userData = useSelector((store: any) => store.user.userData);
+
   const { addresses } = useAddressContext();
   const { uploadKyc, uploading } = useKycUpload();
 
@@ -32,9 +38,10 @@ const Kyc = () => {
       idPhotos,
       userPhoto,
       addressId: selectedAddress.id,
-      onSuccess: () => {
+      onSuccess: async () => {
+        // await refetch();
         navigate("/profile");
-        fetchProfile();
+        // fetchProfile();
       },
     });
   };
@@ -165,9 +172,7 @@ const Kyc = () => {
       </div>
 
       {/* Main Content */}
-      <div className="px-4 w-full h-full shrink">
-        {isLoading ? <p>Loading...</p> : renderStatusMessage()}
-      </div>
+      <div className="px-4 w-full h-full shrink">{renderStatusMessage()}</div>
     </div>
   );
 };

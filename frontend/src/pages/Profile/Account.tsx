@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import BackButton from "../../components/Buttons/BackButton";
-import { useUserInfo } from "../../utils/context/UserInfoContext";
+import { useSelector } from "react-redux";
 import useImageFetcher from "../../utils/Hooks/useImageFetcher";
 import toLocalISODate from "../../utils/toLocalISODate";
 import toast from "react-hot-toast";
@@ -8,65 +8,101 @@ import toast from "react-hot-toast";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Account = () => {
-  const { userData, fetchProfile } = useUserInfo();
+  const userData = useSelector((s: any) => s.user.userData);
+
   const { fetchPublicImage } = useImageFetcher();
 
   const [canEdit, setCanEdit] = useState(false);
-  const [profilePicUrl, setProfilePicUrl] = useState("/svg/profile.svg");
   const [uploading, setUploading] = useState(false);
 
-  // Editable fields
+  const [profilePicUrl, setProfilePicUrl] = useState("/svg/profile.svg");
+
+  // Actual form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
 
-  useEffect(() => {
-    if (userData) {
-      setName(userData.name || "");
-      setEmail(userData.email || "");
-      setPhone(userData.phone || "");
-      setGender(userData.gender || "");
+  // BACKUP to restore original data if update fails
+  const [backup, setBackup] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    gender: "",
+    dateOfBirth: "",
+  });
 
-      userData?.dateOfBirth !== null &&
-        setDateOfBirth(toLocalISODate(userData.dateOfBirth) || "");
-    }
+  // -----------------------------
+  // LOAD USER DATA → SET BACKUP
+  // -----------------------------
+  useEffect(() => {
+    if (!userData) return;
+
+    const formattedDOB = userData.dateOfBirth
+      ? toLocalISODate(userData.dateOfBirth)
+      : "";
+
+    setName(userData.name || "");
+    setEmail(userData.email || "");
+    setPhone(userData.phone || "");
+    setGender(userData.gender || "");
+    setDateOfBirth(formattedDOB);
+
+    // store backup
+    setBackup({
+      name: userData.name || "",
+      email: userData.email || "",
+      phone: userData.phone || "",
+      gender: userData.gender || "",
+      dateOfBirth: formattedDOB,
+    });
   }, [userData]);
 
+  // FETCH PROFILE PIC
   useEffect(() => {
     const fetchData = async () => {
       if (userData?.profilePicUrl) {
-        const url = await fetchPublicImage(userData?.profilePicUrl);
-
+        const url = await fetchPublicImage(userData.profilePicUrl);
         setProfilePicUrl(url);
       }
     };
     fetchData();
   }, [userData]);
 
+  // -----------------------------
+  // VALIDATOR
+  // -----------------------------
+  const validateFields = () => {
+    if (name.trim().length < 3) return "Name must be at least 3 characters.";
+
+    if (email && !email.includes("@")) return "Enter a valid email.";
+
+    return null;
+  };
+
+  // -----------------------------
+  // SUBMIT FORM
+  // -----------------------------
   async function handleSubmit() {
     try {
-      setUploading(false);
+      setUploading(true);
 
-      if (name.trim().length < 8) {
-        toast.error("Valid Name is required");
-        handleCancel();
+      // validation
+      const validationError = validateFields();
+      if (validationError) {
+        toast.error(validationError);
+        handleCancel(); // revert immediately
         return;
       }
+
+      // prepare payload
       const payload: Record<string, any> = {};
-
-      // Only include fields if they differ from original data
-      if (name !== userData?.name) payload.name = name;
-      if (email !== userData?.email && email !== "") payload.email = email;
-
-      // if (phone !== userData?.phone) payload.phone = phone;
-
-      // Only send gender if not already set
-      if (!userData?.gender && gender) payload.gender = gender;
-
-      // Only send DOB if not already set
-      if (!userData?.dateOfBirth && dateOfBirth)
+      if (name !== backup.name) payload.name = name;
+      if (email !== backup.email && email !== "") payload.email = email;
+      if (!userData?.gender && gender !== backup.gender)
+        payload.gender = gender;
+      if (!userData?.dateOfBirth && dateOfBirth !== backup.dateOfBirth)
         payload.dateOfBirth = dateOfBirth;
 
       if (Object.keys(payload).length === 0) {
@@ -78,175 +114,198 @@ const Account = () => {
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/users/me`, {
         method: "PATCH",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        toast.success(data.message || "Profile Updated successfully!");
-        fetchProfile();
-      } else {
-        toast.error(data.message || "Profile update failed.");
-        handleCancel();
+      if (!response.ok) {
+        // ❌ rollback fields
+        setName(backup.name);
+        setEmail(backup.email);
+        setPhone(backup.phone);
+        setGender(backup.gender);
+        setDateOfBirth(backup.dateOfBirth);
+
+        // meaningful server error
+        toast.error(data.message || "Update failed.");
+        return;
       }
+
+      // ✔ successful update
+      toast.success(data.message || "Profile updated!");
+
+      // refresh backup with latest values
+      setBackup({
+        name,
+        email,
+        phone,
+        gender,
+        dateOfBirth,
+      });
+
+      setCanEdit(false);
     } catch (err) {
-      toast.error("An error occurred during upload.");
-      console.error(err);
+      // rollback
+      setName(backup.name);
+      setEmail(backup.email);
+      setPhone(backup.phone);
+      setGender(backup.gender);
+      setDateOfBirth(backup.dateOfBirth);
+
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setUploading(false);
     }
   }
 
+  // -----------------------------
+  // CANCEL → RESTORE BACKUP
+  // -----------------------------
   function handleCancel() {
-    if (userData) {
-      setName(userData?.name || "");
-      setEmail(userData?.email || "");
-      setPhone(userData?.phone || "");
-      setGender(userData?.gender || "");
+    setName(backup.name);
+    setEmail(backup.email);
+    setPhone(backup.phone);
+    setGender(backup.gender);
+    setDateOfBirth(backup.dateOfBirth);
 
-      userData?.dateOfBirth !== null &&
-        setDateOfBirth(toLocalISODate(userData.dateOfBirth) || "");
-    }
     setCanEdit(false);
   }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-white">
-      {/* Header */}
-      <div className="shrink-0 pt-4 px-4 flex flex-col gap-4 ">
-        <BackButton navigateTo="/profile" />
-        <h1 className="text-3xl poppins-bold">Account</h1>
+    <div className="w-full min-h-screen flex flex-col bg-white px-4">
+      {/* Centered Content Wrapper */}
+      <div className="w-full max-w-3xl mx-auto flex flex-col pt-6 pb-20">
+        {/* Back Button */}
+        <div className="mb-4">
+          <BackButton navigateTo="/profile" />
+        </div>
 
-        {/* Dynamic */}
-        <div className="shrink w-full py-10  flex flex-col justify-start items-center gap-6">
-          <img
-            src={profilePicUrl}
-            alt="User Profile Pic"
-            className="w-28 h-28 object-cover rounded-full bg-gray-200"
-          />
+        {/* TITLE */}
+        <h1 className="text-3xl poppins-bold mb-6">Account</h1>
+        {/* PROFILE + INFO CARD */}
+        <div className="w-full flex flex-col items-center mt-4">
+          {/* Profile Image */}
+          <div className="flex flex-col items-center gap-3">
+            <img
+              src={profilePicUrl}
+              alt="profile"
+              className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
+            />
+            <h2 className="text-2xl inter-semibold mt-1">{name || "User"}</h2>
+          </div>
 
-          <div className="flex flex-col items-start gap-2">
-            <div
-              className={`text-lg w-full max-w-md ${!canEdit && "text-center"}`}
-            >
-              {canEdit ? (
-                <>
-                  <strong>Name: </strong>
+          {/* MAIN ACCOUNT CARD */}
+          <div
+            className="
+            w-full max-w-2xl mt-6
+            bg-white rounded-3xl shadow-[0_10px_35px_rgba(0,0,0,0.07)]
+            border border-gray-100
+            p-6 sm:p-8
+            flex flex-col gap-6"
+          >
+            {/* FIELD COMPONENT */}
+            {[
+              { label: "Name", value: name, setter: setName, type: "text" },
+              { label: "Email", value: email, setter: setEmail, type: "email" },
+              {
+                label: "Phone",
+                value: phone,
+                setter: setPhone,
+                type: "tel",
+                disabled: true,
+              },
+              {
+                label: "Gender",
+                value: gender,
+                setter: setGender,
+                type: "select",
+              },
+              {
+                label: "Date of Birth",
+                value: dateOfBirth,
+                setter: setDateOfBirth,
+                type: "date",
+              },
+            ].map((field, idx) => (
+              <div key={idx} className="flex flex-col gap-1">
+                <label className="text-gray-600 inter-medium">
+                  {field.label}:
+                </label>
 
-                  <input
-                    className="border px-2 py-1 rounded w-full"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    type="email"
-                  />
-                </>
-              ) : (
-                <span className="text-2xl inter-semibold">
-                  {name || "not set"}
-                </span>
-              )}
-            </div>
-            {/* Email */}
-            <div className="text-lg w-full max-w-md">
-              <strong>Email: </strong>
-              {canEdit ? (
-                <input
-                  className="border px-2 py-1 rounded w-full"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  type="email"
-                />
-              ) : (
-                <span>{email || "not set"}</span>
-              )}
-            </div>
-            {/* Phone */}
-            <div className="text-lg w-full max-w-md">
-              <strong>Phone: </strong>
-              {canEdit ? (
-                <input
-                  className="border px-2 py-1 rounded w-full"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  disabled={true}
-                  type="tel"
-                />
-              ) : (
-                <span>{phone || "not set"}</span>
-              )}
-            </div>
-            {/* Gender */}
-            <div className="text-lg w-full max-w-md">
-              <strong>Gender: </strong>
-              {canEdit ? (
-                <select
-                  className="border px-2 py-1 rounded w-full"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                >
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              ) : (
-                <span className="capitalize">{gender || "not set"}</span>
-              )}
-            </div>
-            {/* DOB */}
-            <div className="text-lg w-full max-w-md">
-              <strong>DOB: </strong>
-              {canEdit ? (
-                <input
-                  className="border px-2 py-1 rounded w-full"
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  type="date"
-                />
-              ) : (
-                <span>{dateOfBirth ? dateOfBirth : "not set"}</span>
-              )}
-              {canEdit && (
-                <span className="inter-regular text-sm text-red-800 ">
-                  ** DOB and Gender can only be set once **
-                </span>
-              )}
-            </div>
+                {/* VIEW MODE */}
+                {!canEdit ? (
+                  <p className="text-lg inter-regular ">
+                    {field.value || "Not set"}
+                  </p>
+                ) : (
+                  <>
+                    {/* INPUT MODE */}
+                    {field.type === "select" ? (
+                      <select
+                        className="border p-2 rounded-xl inter-regular"
+                        value={field.value}
+                        onChange={(e) => field.setter(e.target.value)}
+                      >
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                      </select>
+                    ) : (
+                      <input
+                        type={field.type}
+                        className="border p-2 rounded-xl inter-regular"
+                        value={field.value}
+                        disabled={field.disabled}
+                        onChange={(e) => field.setter(e.target.value)}
+                      />
+                    )}
 
+                    {field.label === "Gender" || field.label === "Date of Birth"
+                      ? canEdit && (
+                          <span className="text-sm text-red-700">
+                            ** Can only be set once **
+                          </span>
+                        )
+                      : null}
+                  </>
+                )}
+              </div>
+            ))}
+
+            {/* KYC */}
             {!canEdit && userData?.kyc !== null && (
-              <p className="text-lg">
-                <strong>KYC: </strong>
-                {userData?.kyc?.status}
-              </p>
+              <div className="mt-2">
+                <p className="text-gray-600 inter-medium">KYC:</p>
+                <p className="text-lg inter-regular capitalize">
+                  {userData.kyc.status}
+                </p>
+              </div>
             )}
           </div>
-          <div className="w-full flex justify-around absolute bottom-20">
+
+          {/* ACTION BUTTONS */}
+          <div className="w-full max-w-2xl flex justify-center gap-4 mt-10">
             {canEdit && (
               <button
-                className="w-2/5 h-12 bg-[#5b5b5b] text-white rounded-3xl text-2xl inter-medium"
-                onClick={() => handleCancel()}
+                className="w-2/5 h-12 bg-[#5b5b5b] text-white rounded-3xl text-xl"
+                onClick={handleCancel}
               >
                 Cancel
               </button>
             )}
 
             <button
-              className={`w-2/5 h-12 bg-[#0385C2] text-white rounded-3xl text-2xl inter-medium ${
-                uploading ?? "bg-gray-400"
-              }`}
+              className={`
+        w-2/5 h-12 bg-[#0385C2] text-white rounded-3xl text-xl
+        ${uploading ? "opacity-60" : ""}
+      `}
               disabled={uploading}
               onClick={(e) => {
                 e.preventDefault();
-                if (canEdit) {
-                  handleSubmit();
-
-                  setCanEdit(false);
-                } else {
-                  setCanEdit(true);
-                }
+                if (canEdit) handleSubmit();
+                setCanEdit((prev) => !prev);
               }}
             >
               {canEdit ? "Submit" : "Edit"}

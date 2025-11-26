@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useConversation } from "../utils/context/CoversationContext";
 import ChatCard from "../components/ChatCard";
 import { formatTime } from "../utils/formatTime";
-import ChatsLoading from "../components/shimmer/ChatsLoading";
 
-const Message = () => {
+const Conversations = () => {
   const [search, setSearch] = useState("");
   const [firstLoad, setFirstLoad] = useState(false);
 
@@ -42,58 +41,53 @@ const Message = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-10 bg-white pt-4 px-3 ">
+    <div className="w-full h-full flex flex-col gap-6 bg-white pt-4 px-4 sm:px-6 md:px-8">
       {/* Heading */}
-      <div className="w-full flex flex-col gap-4">
-        <h1 className="text-3xl pl-2  poppins-semibold ">Chats</h1>
+      <div className="w-full flex flex-col gap-3 max-w-3xl md:max-w-full">
+        <h1 className="text-2xl md:text-3xl poppins-semibold text-left">
+          Chats
+        </h1>
 
-        <div className="w-full flex justify-center relative">
+        {/* Search bar */}
+        <div className="relative w-full max-w-3xl md:max-w-full mx-auto">
           <img
             src="/svg/search.svg"
             alt="Search"
-            className="absolute left-7 top-1/2 transform -translate-y-1/2 h-6 w-6"
+            className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 h-5 w-5"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search"
-            className="bg-[#F4F4F4] rounded-xl h-10 w-11/12 pl-12 pr-4 text-xl focus:outline-none focus:ring"
+            className="w-full bg-[#F4F4F4] rounded-xl h-10 pl-10 pr-4 text-base md:text-lg focus:outline-none focus:ring"
           />
         </div>
       </div>
 
       {/* Chats */}
-      <div className="w-full h-full relative ">
-        {firstLoad && loading ? (
-          <div className="w-full h-full flex flex-col gap-3">
-            {Array.from({ length: 4 }).map((_, idx) => (
-              <ChatsLoading key={idx} />
-            ))}
-          </div>
-        ) : conversations.length > 0 ? (
-          conversations.map((conv) => {
-            return (
-              <ChatCard
-                id={conv.id}
-                lastMessage={conv.lastMessage.text ?? "Say Hello 👋"}
-                lastMessageTime={formatTime(conv.lastMessage.createdAt)}
-                name={conv.participant.name}
-                key={conv.id}
-                unreadCount={conv.unreadCount}
-                markAsRead={markAsRead}
-              />
-            );
-          })
+      <div className="w-full flex-1 relative">
+        {conversations.length > 0 ? (
+          conversations.map((conv) => (
+            <ChatCard
+              id={conv.id}
+              lastMessage={conv.lastMessage.text ?? "Say Hello 👋"}
+              lastMessageTime={formatTime(conv.lastMessage.createdAt)}
+              name={conv.participant.name}
+              key={conv.id}
+              unreadCount={conv.unreadCount}
+              markAsRead={markAsRead}
+            />
+          ))
         ) : (
-          <p className="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%]">
+          <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-500">
             No conversations yet
           </p>
         )}
-        <div className="h-32"></div> {/* Spacer equal to navbar height */}
+        <div className="h-32" /> {/* Spacer equal to navbar height */}
       </div>
     </div>
   );
 };
 
-export default Message;
+export default Conversations;

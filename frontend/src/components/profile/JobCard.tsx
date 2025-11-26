@@ -62,70 +62,99 @@ const JobCard = ({
 
   return (
     <div
-      className="w-full h-32 rounded-2xl py-3 bg-[#454545] text-white flex flex-col gap-2 "
       onClick={() => navigate(`${id}`)}
+      className="
+      relative w-full rounded-2xl p-5 
+      bg-white/80 backdrop-blur-xl 
+      border border-gray-200 shadow-[0_4px_20px_rgba(0,0,0,0.06)]
+      hover:shadow-[0_6px_26px_rgba(0,0,0,0.10)]
+      hover:scale-[1.01]
+      transition-all cursor-pointer
+      flex flex-col gap-4
+    "
     >
-      {/* First */}
-      <div className="flex justify-between items-center gap-2 px-4">
-        <p className="inter-medium truncate w-[60%]">{title}</p>
-        <p className="text-nowrap">
-          Status :{" "}
-          <b className={getStatusColor(currentStatus)}>{currentStatus}</b>
+      {/* STATUS BADGE */}
+      <span
+        className={`
+        absolute top-4 right-4 text-xs px-3 py-1.5 rounded-full
+        font-semibold tracking-wide shadow-sm backdrop-blur
+        ${getStatusColor(currentStatus)}
+      `}
+      >
+        {currentStatus}
+      </span>
+
+      {/* TITLE */}
+      <h2 className="text-lg font-semibold text-gray-900 pr-16 leading-snug">
+        {title}
+      </h2>
+
+      {/* DESCRIPTION */}
+      <p className="text-gray-600 text-sm line-clamp-2">
+        {description || "No description"}
+      </p>
+
+      {/* WORKER */}
+      <div className="flex items-center justify-between">
+        {worker?.name ? (
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+              {worker.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-xs text-gray-500">Assigned to</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {worker.name}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <span className="text-sm text-gray-500 italic">Not assigned</span>
+        )}
+
+        {/* BUDGET */}
+        <p className="font-semibold text-gray-900 text-sm">
+          <span className="text-gray-500 font-normal">Budget:</span>{" "}
+          <span className="text-green-600">₹{budget}</span>
         </p>
       </div>
-      {/* Second */}
-      <div className="flex justify-between items-center gap-2 px-4">
-        <p className="inter-light truncate w-[60%] text-sm">
-          {description || "No description"}
-        </p>
-        <p className="text-nowrap">
-          {worker?.name ? (
-            <b className="inter-light text-sm">
-              Assigned to:{" "}
-              <b className="inter-medium text-[#f6ff00]">{worker.name}</b>
-            </b>
-          ) : (
-            <b className="text-white text-sm inter-medium">Not assigned</b>
-          )}
-        </p>
-      </div>
-      {/* Third */}
-      <div className="flex justify-between items-center gap-2 px-4">
-        <p className="inter-medium">
-          Budget : <b className="inter-medium text-green-500">₹{budget}</b>
-        </p>
+
+      {/* ACTION BUTTONS */}
+      <div className="flex justify-end mt-2">
         {currentStatus === "initiated" ? (
           <button
-            className="bg-[#0385C2] px-8 py-1 rounded-xl text-white"
+            className="px-6 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold
+                     hover:bg-blue-700 active:scale-95 transition"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/payments/${id}`);
             }}
           >
-            Pay
+            Pay Now
           </button>
         ) : (
           currentStatus === "completed" && (
             <button
-              className="px-4 py-2 bg-[#0385C2] rounded-md text-white text-sm font-semibold hover:bg-[#0271a4] transition"
+              className="px-6 py-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-500 
+                       text-white text-sm font-bold shadow-sm
+                       hover:opacity-90 active:scale-95 transition"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowModal(true);
               }}
             >
-              Approve
+              Approve Work
             </button>
           )
         )}
-        {
-          <UpdateStatusModal
-            isOpen={showModal}
-            isSubmitting={submitting}
-            currentStatus={currentStatus}
-            onCancel={() => setShowModal(false)}
-            onConfirm={handleStatusUpdate}
-          />
-        }
+
+        <UpdateStatusModal
+          isOpen={showModal}
+          isSubmitting={submitting}
+          currentStatus={currentStatus}
+          onCancel={() => setShowModal(false)}
+          onConfirm={handleStatusUpdate}
+        />
       </div>
     </div>
   );

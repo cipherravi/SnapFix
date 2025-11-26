@@ -1,19 +1,20 @@
 import { type ReactNode } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isLoggedIn } = useAuth();
+  const isAuthenticated = useSelector((s: any) => s.auth.isAuthenticated);
 
-  if (isLoggedIn === null) {
+  if (isAuthenticated === null) {
     return <></>; // Optional: loading spinner
   }
 
-  return isLoggedIn ? children : <Navigate to="/login" replace />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

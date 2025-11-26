@@ -1,9 +1,11 @@
-import { useUserInfo } from "../../utils/context/UserInfoContext";
+// import { useUserInfo } from "../../utils/context/UserInfoContext";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 const Primary = () => {
   const navigate = useNavigate();
-  const { userData } = useUserInfo();
+  // const { userData } = useUserInfo();
+  const userData = useSelector((store: any) => store.user.userData);
 
   return (
     <div className="w-full  flex flex-col items-center ">
@@ -17,7 +19,7 @@ const Primary = () => {
             className="w-7 filter invert"
           />
           <div
-            className="w-full border-b border-white/30 py-2 flex justify-between items-center"
+            className="w-full border-b border-white/30 py-2 flex justify-between items-center cursor-pointer"
             onClick={() => navigate("wallet")}
           >
             <p className="text-white text-sm inter-regular">Wallet</p>
@@ -39,7 +41,7 @@ const Primary = () => {
             className="w-8 filter invert"
           />
           <div
-            className="w-full border-b border-white/30 py-2 flex justify-between items-center"
+            className="w-full border-b border-white/30 py-2 flex justify-between items-center cursor-pointer"
             onClick={() => navigate("jobs")}
           >
             <p className="text-white text-sm inter-regular">Posted Jobs</p>
@@ -60,7 +62,7 @@ const Primary = () => {
               className="w-8 filter invert"
             />
             <div
-              className="w-full border-b border-white/30 py-2 flex justify-between items-center"
+              className="w-full border-b border-white/30 py-2 flex justify-between items-center cursor-pointer"
               onClick={() => navigate("tasks")}
             >
               <p className="text-white text-sm inter-regular">Assigned Tasks</p>
@@ -81,7 +83,10 @@ const Primary = () => {
             alt="wallet icon"
             className="w-7 filter invert"
           />
-          <div className="w-full py-2 flex justify-between items-center">
+          <div
+            className="w-full py-2 flex justify-between items-center cursor-pointer"
+            onClick={() => navigate("transactions")}
+          >
             <p className="text-white text-sm inter-regular">Transactions</p>
 
             <img

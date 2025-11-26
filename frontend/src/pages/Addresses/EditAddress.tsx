@@ -105,73 +105,80 @@ const EditAddress = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-white">
-      <div className="shrink-0 pt-4 px-4 flex flex-col gap-4">
+    <div className="w-full min-h-screen flex flex-col bg-white items-center px-4 sm:px-6 md:px-10 py-6">
+      {/* Header */}
+      <div className="w-full max-w-3xl flex flex-col gap-2">
         <BackButton navigateTo="/profile/addresses" />
-        <h1 className="text-3xl poppins-bold">Edit Address</h1>
+        <h1 className="text-2xl sm:text-3xl poppins-bold">Edit Address</h1>
+        <p className="text-gray-600 text-sm sm:text-base">
+          Update your address details below. Map shows the current location.
+        </p>
+      </div>
 
-        {/* Edit Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="w-full py-4 flex flex-col gap-3"
-        >
-          <input
-            {...inputProps}
-            type="text"
-            name="building"
-            placeholder="Building Name"
-            value={building}
-            onChange={(e) => setBuilding(e.target.value)}
-            required
-            autoComplete="off"
-          />
-          <input
-            {...inputProps}
-            type="text"
-            name="street"
-            placeholder="Street"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-          />
+      {/* Edit Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-3xl flex flex-col gap-3 mt-6"
+      >
+        <input
+          {...inputProps}
+          type="text"
+          name="building"
+          placeholder="Building Name"
+          value={building}
+          onChange={(e) => setBuilding(e.target.value)}
+          required
+          autoComplete="off"
+        />
+        <input
+          {...inputProps}
+          type="text"
+          name="street"
+          placeholder="Street"
+          value={street}
+          onChange={(e) => setStreet(e.target.value)}
+        />
 
-          {/* Read-only Address Hierarchy */}
-          <input
-            className={readOnlyStyle}
-            type="text"
-            name="area"
-            placeholder="Area"
-            value={address?.area?.name || ""}
-            readOnly
-            disabled
-          />
-          <input
-            className={readOnlyStyle}
-            type="text"
-            name="city"
-            placeholder="City"
-            value={address?.area?.city?.name || ""}
-            readOnly
-            disabled
-          />
-          <input
-            className={readOnlyStyle}
-            type="text"
-            name="district"
-            placeholder="District"
-            value={address?.area?.city?.district?.name || ""}
-            readOnly
-            disabled
-          />
-          <input
-            className={readOnlyStyle}
-            type="text"
-            name="state"
-            placeholder="State"
-            value={address?.area?.city?.district?.state?.name || ""}
-            readOnly
-            disabled
-          />
+        {/* Read-only Address Hierarchy */}
+        <input
+          className={readOnlyStyle}
+          type="text"
+          name="area"
+          placeholder="Area"
+          value={address?.area?.name || ""}
+          readOnly
+          disabled
+        />
+        <input
+          className={readOnlyStyle}
+          type="text"
+          name="city"
+          placeholder="City"
+          value={address?.area?.city?.name || ""}
+          readOnly
+          disabled
+        />
+        <input
+          className={readOnlyStyle}
+          type="text"
+          name="district"
+          placeholder="District"
+          value={address?.area?.city?.district?.name || ""}
+          readOnly
+          disabled
+        />
+        <input
+          className={readOnlyStyle}
+          type="text"
+          name="state"
+          placeholder="State"
+          value={address?.area?.city?.district?.state?.name || ""}
+          readOnly
+          disabled
+        />
 
+        {/* Map */}
+        <div className="w-full mt-4 rounded-xl overflow-hidden shadow-md h-52 sm:h-64 md:h-72">
           <MapPicker
             onLocationSelect={(coords) => setCoords(coords)}
             location={coords}
@@ -179,17 +186,18 @@ const EditAddress = () => {
             type="edit"
             animateOnLoad={true}
           />
+        </div>
 
-          <div className="w-full flex justify-center mt-5">
-            <button
-              type="submit"
-              className="py-2 px-5 bg-[#0385c2] rounded-2xl text-2xl text-white inter-medium cursor-pointer mb-5"
-            >
-              Confirm Edit
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Submit Button */}
+        <div className="w-full flex justify-center mt-6">
+          <button
+            type="submit"
+            className="py-3 px-6 sm:px-10 bg-[#0385c2] rounded-2xl text-xl sm:text-2xl text-white inter-medium cursor-pointer transition-transform active:scale-95"
+          >
+            Confirm Edit
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

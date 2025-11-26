@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FC } from "react";
 import { createPortal } from "react-dom";
 import classNames from "classnames";
 
-type PaymentMethod = "cod" | "online";
+type PaymentMethod = "cod" | "online" | "wallet";
 
 interface Payment {
   id: number;

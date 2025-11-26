@@ -149,86 +149,92 @@ const CreateAddress = () => {
   };
 
   return (
-    <div className="w-full min-h-full flex flex-col overflow-hidden bg-white">
+    <div className="w-full min-h-screen flex flex-col bg-white items-center px-4 sm:px-6 md:px-10 py-6">
       {/* Header */}
-      <div className="shrink-0 pt-4 px-4 flex flex-col gap-4">
+      <div className="w-full max-w-3xl flex flex-col gap-2">
         <BackButton navigateTo="/profile/addresses" />
-        <h1 className="text-3xl poppins-bold">Create Address</h1>
+        <h1 className="text-2xl sm:text-3xl poppins-bold">Create Address</h1>
+        <p className="text-gray-600 text-sm sm:text-base">
+          Fill in the details below and pick your location on the map.
+        </p>
+      </div>
 
-        <div className="w-full py-4 flex flex-col gap-3 z-10000">
-          <input
-            {...inputProps}
-            type="text"
-            name="building"
-            placeholder="Building Name"
-            value={building}
-            onChange={(e) => setBuilding(e.target.value)}
-            required
-            autoComplete="off"
-          />
-          <input
-            {...inputProps}
-            type="text"
-            name="street"
-            placeholder="Street"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-          />
-          <DropDownOptions
-            selected={selectedState}
-            setSelected={setSelectedState}
-            options={states}
-            variant="name"
-            placeholder="Select State"
-          />
-          <DropDownOptions
-            selected={selectedDistrict}
-            setSelected={setSelectedDistrict}
-            options={districts}
-            variant="name"
-            placeholder="Select District"
-          />
-          <DropDownOptions
-            selected={selectedCity}
-            setSelected={setSelectedCity}
-            options={cities}
-            variant="name"
-            placeholder="Select City"
-          />
-          <DropDownOptions
-            selected={selectedArea}
-            setSelected={setSelectedArea}
-            options={areas}
-            variant="name"
-            placeholder="Select Area"
-          />
-        </div>
-        {selectedArea ? (
-          <MapPicker
-            onLocationSelect={(coords) => setCoords(coords)}
-            location={[
-              Number(selectedArea?.latitude),
-              Number(selectedArea?.longitude),
-            ]}
-            zoom={13}
-            type="create"
-            animateOnLoad={true}
-          />
-        ) : (
-          <MapPicker
-            onLocationSelect={(coords) => setCoords(coords)}
-            location={[25.545229354169017, 84.65927124023439]}
-          />
-        )}
+      {/* Inputs and dropdowns */}
+      <div className="w-full max-w-3xl flex flex-col gap-3 mt-4">
+        <input
+          className="bg-[#F4F4F4] rounded-lg text-lg h-12 w-full px-4 border focus:ring transition"
+          type="text"
+          name="building"
+          placeholder="Building Name"
+          value={building}
+          onChange={(e) => setBuilding(e.target.value)}
+          required
+          autoComplete="off"
+          maxLength={30}
+        />
+        <input
+          className="bg-[#F4F4F4] rounded-lg text-lg h-12 w-full px-4 border focus:ring transition"
+          type="text"
+          name="street"
+          placeholder="Street"
+          value={street}
+          onChange={(e) => setStreet(e.target.value)}
+          maxLength={30}
+        />
 
-        <div className="w-full flex justify-center ">
-          <button
-            className="py-2 px-5 bg-[#0385c2] rounded-2xl text-2xl text-white inter-medium cursor-pointer mb-5"
-            onClick={handleSubmit}
-          >
-            Create
-          </button>
-        </div>
+        <DropDownOptions
+          selected={selectedState}
+          setSelected={setSelectedState}
+          options={states}
+          variant="name"
+          placeholder="Select State"
+        />
+        <DropDownOptions
+          selected={selectedDistrict}
+          setSelected={setSelectedDistrict}
+          options={districts}
+          variant="name"
+          placeholder="Select District"
+        />
+        <DropDownOptions
+          selected={selectedCity}
+          setSelected={setSelectedCity}
+          options={cities}
+          variant="name"
+          placeholder="Select City"
+        />
+        <DropDownOptions
+          selected={selectedArea}
+          setSelected={setSelectedArea}
+          options={areas}
+          variant="name"
+          placeholder="Select Area"
+        />
+      </div>
+
+      {/* Map */}
+      <div className="w-full max-w-3xl mt-6 rounded-xl overflow-hidden shadow-md h-56 sm:h-64 md:h-72">
+        <MapPicker
+          onLocationSelect={(coords) => setCoords(coords)}
+          location={
+            selectedArea
+              ? [Number(selectedArea.latitude), Number(selectedArea.longitude)]
+              : [25.545229354169017, 84.65927124023439]
+          }
+          zoom={13}
+          type="create"
+          animateOnLoad={!!selectedArea}
+        />
+      </div>
+
+      {/* Submit button */}
+      <div className="w-full max-w-3xl flex justify-center mt-6">
+        <button
+          className="w-full sm:w-1/2 py-3 px-6 sm:px-10 bg-[#0385c2] rounded-2xl text-xl sm:text-2xl text-white inter-medium cursor-pointer transition-transform active:scale-95"
+          onClick={handleSubmit}
+        >
+          Create
+        </button>
       </div>
     </div>
   );

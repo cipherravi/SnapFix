@@ -1,32 +1,34 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import toast from "react-hot-toast";
 import { useAuth } from "../../utils/context/AuthContext";
-import { useUserInfo } from "../../utils/context/UserInfoContext";
+import { useDispatch } from "react-redux";
+import { setAuthenticated } from "../../features/auth/authSlice";
 import BackButton from "../Buttons/BackButton";
 import { useConversation } from "../../utils/context/CoversationContext";
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
-  const { fetchProfile } = useUserInfo();
   const { fetchConversations } = useConversation();
+  const dispatch = useDispatch();
+
   const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhoneNo] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginWithEmail, setLoginWithEmail] = useState(false);
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-
-    // Only allow 10-digit numbers that start with 6,7,8, or 9
     if (/^[6-9]\d{0,9}$/.test(newValue) || newValue === "") {
       setPhoneNo(newValue);
     }
   };
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   async function loginHandler() {
     try {
@@ -41,163 +43,150 @@ const Login = () => {
           return;
         }
       }
+
       if (password.length < 8) {
-        toast.error("Please provide valid password");
+        toast.error("Please provide a valid password");
         return;
       }
 
       const body = loginWithEmail ? { email, password } : { phone, password };
+
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        credentials: "include", // 🔥 critical to include cookies in request
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(body),
       });
+
       const data = await response.json();
 
       if (response.ok) {
-        toast.success(data.message || "Login successfully!");
-        setPhoneNo("");
-        setPassword("");
+        toast.success(data.message || "Login successful!");
+        await checkAuth();
+        dispatch(setAuthenticated());
+        await fetchConversations();
+
         navigate("/explore");
-        await checkAuth(); // update context state
-        await fetchProfile(); // update user profile context state
-        await fetchConversations(); // update user conversations state
       } else {
         toast.error(data.message || "Login failed!");
       }
-    } catch (err) {
+    } catch {
       toast.error("An error occurred while Login.");
     }
   }
 
   return (
-    <div className="w-full h-full flex flex-col gap-10 bg-white pt-4 px-3  ">
-      {/* Back button */}
-      <BackButton navigateTo="/signup" />
-
-      {/* Heading */}
-      <div className="w-11/12">
-        <h1 className="text-3xl  poppins-bold ">Welcome Back</h1>
-        <p className="text-sm text-gray-600 poppins-light pt-1">
-          Access your account securely by using credentials
+    <div className="w-full min-h-screen flex flex-col gap-10 bg-white pt-4 px-3 sm:px-6 md:px-10 pb-10">
+      {/* Header + BackButton */}
+      <div className="w-full max-w-md mx-auto flex flex-col gap-2">
+        <BackButton navigateTo="/" />
+        <h1 className="text-3xl poppins-bold">Welcome Back</h1>
+        <p className="text-sm text-gray-600 poppins-light pt-1 mb-6">
+          Access your account securely using your credentials
         </p>
       </div>
 
-      {/* Form */}
+      {/* Form Inputs */}
       <div className="w-full flex flex-col items-center">
-        <div className="w-full flex flex-col gap-4 pt-2">
+        <div className="w-full max-w-md mx-auto flex flex-col gap-4">
+          {/* Phone or Email */}
           {!loginWithEmail ? (
             <div className="relative">
               <img
                 src="/svg/call.svg"
-                alt="Call logo"
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
+                alt="Call"
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6"
               />
               <input
                 type="tel"
-                required
-                min={10}
-                maxLength={10}
                 value={phone}
                 onChange={handleChange}
                 placeholder="Enter Phone number"
-                className="bg-[#F4F4F4]  rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
+                maxLength={10}
+                className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none"
               />
             </div>
           ) : (
             <div className="relative">
               <img
                 src="/svg/email.svg"
-                alt="Call logo"
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
+                alt="Email"
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6"
               />
               <input
                 type="text"
-                required
-                maxLength={40}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter Email"
-                className="bg-[#F4F4F4]  rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
+                maxLength={40}
+                className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none"
               />
             </div>
           )}
 
+          {/* PASSWORD */}
           <div className="relative">
             <img
               src="/svg/lock.svg"
-              alt="Lock logo"
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6"
+              alt="Lock"
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6"
             />
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Enter Password"
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-              required
-              min={8}
-              maxLength={30}
-              className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring"
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter Password"
+              className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none"
             />
             <img
               src={showPassword ? "/svg/eye-slash.svg" : "/svg/eye.svg"}
               alt="Toggle password visibility"
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 cursor-pointer"
             />
           </div>
-          <div className="flex  items-center justify-around gap-15 ">
-            <div>
-              <p
-                className="text-sm inter-medium text-[#444]"
-                onClick={() => {
-                  if (loginWithEmail) {
-                    setEmail("");
-                  } else {
-                    setPhoneNo("");
-                  }
-                  setLoginWithEmail((prev) => !prev);
-                }}
-              >
-                Login with Email?
-              </p>
-            </div>
-            <span className="text-[#B00000]">
-              <Link to="/reset">Forgot password?</Link>
-            </span>
+
+          {/* Switch + Forgot Row */}
+          <div className="flex justify-between items-center w-full text-sm text-[#444]">
+            <p
+              className="cursor-pointer inter-medium"
+              onClick={() => {
+                setLoginWithEmail((prev) => !prev);
+                setEmail("");
+                setPhoneNo("");
+              }}
+            >
+              Login with {loginWithEmail ? "Phone" : "Email"}?
+            </p>
+
+            <Link to="/reset" className="text-[#B00000]">
+              Forgot password?
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="w-full flex flex-col items-center">
-        <div className="w-8/12 flex flex-col gap-4">
+      {/* Actions & Social Login */}
+      <div className="w-full flex flex-col items-center mt-6">
+        <div className="w-full max-w-md mx-auto flex flex-col gap-4">
           <button
             type="submit"
-            className=" text-white bg-[#0385C2] rounded-full h-12 cursor-pointer select-none  transform transition ease-in-out duration-300 hover:scale-95 active:scale-90"
             onClick={loginHandler}
+            className="text-white bg-[#0385C2] rounded-full h-12 w-full flex items-center justify-center hover:scale-95 active:scale-90 transition"
           >
             <p className="poppins-semibold text-xl">Login</p>
           </button>
-          <p className="text-center text-sm text-gray-500 poppins-regular">
+
+          <p className="text-center text-sm text-gray-500 poppins-regular mt-2">
             Or continue with
           </p>
-          <button className="bg-[#F8F8F8] rounded-full h-12 flex items-center justify-center gap-3 cursor-pointer select-none  transform transition ease-in-out duration-300 hover:scale-95 active:scale-90">
-            <span>
-              <img
-                src="/svg/google-icon.svg"
-                alt="Google icon"
-                className="h-6"
-              />
-            </span>
-            <span className=" poppins-regular"> Continue with Google</span>
+
+          <button className="bg-[#F8F8F8] rounded-full h-12 w-full flex items-center justify-center gap-3 hover:scale-95 active:scale-90 transition">
+            <img src="/svg/google-icon.svg" alt="Google icon" className="h-6" />
+            <span className="poppins-regular">Continue with Google</span>
           </button>
-          <p className="text-center text-sm poppins-extralight">
+
+          <p className="text-center text-sm poppins-extralight mt-2">
             Don't have an account?{" "}
             <b className="font-bold">
               <Link to="/signup">Sign Up</Link>

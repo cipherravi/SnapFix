@@ -42,30 +42,36 @@ const AssignedTasks = () => {
     fetchData();
   }, []);
 
-  const buttonStyleClass =
-    "bg-[#0385C2] text-white px-4 py-1 rounded-full text-sm sm:text-base whitespace-nowrap transition hover:bg-[#0271a4]";
-
   return (
-    <div className="w-full h-full flex flex-col justify-center overflow-hidden bg-white">
+    <div className="w-full min-h-screen flex flex-col bg-white px-4 sm:px-6 md:px-10 py-6">
       {/* Header */}
-      <div className="shrink-0 pt-4 px-4 sm:px-6 flex flex-col gap-4">
+      <div className="w-full max-w-3xl mx-auto flex flex-col gap-2">
         <BackButton navigateTo="/profile" />
-        <h1 className="text-2xl sm:text-3xl poppins-bold text-gray-800">
-          Tasks
-        </h1>
+        <h1 className="text-2xl sm:text-3xl poppins-bold">Tasks</h1>
+        <p className="text-gray-600 text-sm sm:text-base mb-4">
+          Manage your tasks and track their progress easily
+        </p>
+      </div>
 
-        {/* Filter Buttons */}
-        <div className="w-full flex justify-start gap-2  overflow-x-auto hide-scrollbar">
-          <button className={buttonStyleClass}>All</button>
-          <button className={buttonStyleClass}>Active</button>
-          <button className={buttonStyleClass}>Completed</button>
-          <button className={buttonStyleClass}>Failed</button>
-        </div>
+      {/* Filters */}
+      <div className="w-full max-w-3xl mx-auto flex gap-2 overflow-x-auto hide-scrollbar mb-4">
+        <button className="bg-[#0385C2] text-white px-4 py-1 rounded-2xl inter-medium">
+          All
+        </button>
+        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
+          Active
+        </button>
+        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
+          Completed
+        </button>
+        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
+          Failed
+        </button>
       </div>
 
       {/* Task Cards List */}
-      <div className="flex-1 overflow-y-auto px-3 py-2 pt-10">
-        <div className="w-full max-w-screen-sm md:max-w-3xl lg:max-w-5xl mx-auto space-y-4">
+      <div className="flex-1 overflow-y-auto">
+        <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
           {tasks.length > 0 ? (
             tasks.map((task) => (
               <TaskCard

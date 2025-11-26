@@ -21,55 +21,42 @@ const ManageFundsModal = ({
 }: ManageFundsModalProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null); // ✅ Ref for input
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Open / close animation visibility
+  // Handle open/close animation
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-
-      // Wait for modal to render before focusing input
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 50);
+      setTimeout(() => inputRef.current?.focus(), 100);
     } else {
-      const timeout = setTimeout(() => setIsVisible(false), 200);
-      return () => clearTimeout(timeout);
+      const t = setTimeout(() => setIsVisible(false), 250);
+      return () => clearTimeout(t);
     }
   }, [isOpen]);
 
-  // Close on outside click
+  // Click outside closes modal
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
         onCancel();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (isOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [isOpen, onCancel]);
 
-  // ✅ Trigger "Add || Withdraw" when Enter is pressed
+  // Enter to confirm
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handler = (e: KeyboardEvent) => {
       if (e.key === "Enter" && isOpen) {
         e.preventDefault();
         onConfirm();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [isOpen, onConfirm]);
 
   if (!isVisible) return null;
@@ -77,58 +64,91 @@ const ManageFundsModal = ({
   return createPortal(
     <div
       className={classNames(
-        "fixed inset-0 z-5000 flex items-center justify-center bg-gray-300/40 transition-opacity duration-200",
+        "fixed inset-0 z-5000 flex items-center justify-center",
+        "backdrop-blur-xl bg-black/40 transition-all duration-300",
         {
           "opacity-100": isOpen,
           "opacity-0 pointer-events-none": !isOpen,
         }
       )}
     >
+      {/* Modal Card */}
       <div
         ref={modalRef}
         className={classNames(
-          "bg-white w-[90%] max-w-md p-6 rounded-xl shadow-lg transform transition-transform duration-200",
-          "flex flex-col gap-4",
+          "relative w-[90%] max-w-md p-7 rounded-3xl",
+          "bg-white/10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)]",
+          "border border-white/20 transition-all duration-300",
           {
-            "scale-100": isOpen,
-            "scale-95": !isOpen,
+            "scale-100 opacity-100": isOpen,
+            "scale-95 opacity-0": !isOpen,
           }
         )}
-        style={{
-          maxHeight: "80vh",
-          overflowY: "auto",
-        }}
       >
-        <div className="flex flex-col gap-4">
-          <h1 className="text-xl inter-semibold">
-            {action == "add"
-              ? "Add Money into Wallet"
-              : "Withdraw Money from Wallet"}
-          </h1>
+        {/* Glow Orb */}
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-2xl rounded-full animate-pulse-slow"></div>
+
+        {/* Title */}
+        <h1 className="text-2xl font-semibold text-white drop-shadow mb-4">
+          {action === "add" ? "Add Money" : "Withdraw Money"}
+        </h1>
+
+        {/* Input */}
+        <div className="mt-4">
+          <label className="text-white/70 text-sm">Enter Amount</label>
           <input
-            ref={inputRef} // ✅ assign ref to input
+            ref={inputRef}
             type="number"
             onChange={(e) => setAmount(Number(e.target.value))}
-            placeholder="Enter Amount"
-            className="w-full h-10 border p-2 rounded-xl"
+            placeholder="₹ 0.00"
+            className="
+              mt-2 w-full p-3 rounded-2xl bg-white/20 text-white
+              placeholder-white/60 outline-none border border-white/20
+              focus:border-white/40 focus:bg-white/25 transition-all
+            "
           />
         </div>
-        <div className="flex justify-end gap-3">
+
+        {/* Buttons */}
+        <div className="mt-6 flex justify-end gap-3">
           <button
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
             onClick={onCancel}
+            className="
+              px-5 py-2 rounded-xl text-white bg-white/10 
+              hover:bg-white/20 transition-all shadow
+              active:scale-95
+            "
           >
             Cancel
           </button>
+
           <button
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            onClick={onConfirm}
             disabled={handling}
+            onClick={onConfirm}
+            className={classNames(
+              "px-6 py-2 rounded-xl shadow text-white font-semibold active:scale-95 transition-all",
+              {
+                "bg-green-500 hover:bg-green-600": action === "add",
+                "bg-blue-500 hover:bg-blue-600": action === "withdraw",
+                "opacity-50 cursor-not-allowed": handling,
+              }
+            )}
           >
-            {action == "add" ? "Add" : "Withdraw"}
+            {handling ? "Processing..." : action === "add" ? "Add" : "Withdraw"}
           </button>
         </div>
       </div>
+
+      {/* Animations */}
+      <style>
+        {`
+          @keyframes pulse-slow {
+            0% { opacity: .3; transform: scale(.95); }
+            50% { opacity: .6; transform: scale(1); }
+            100% { opacity: .3; transform: scale(.95); }
+          }
+        `}
+      </style>
     </div>,
     document.body
   );

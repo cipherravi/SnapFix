@@ -1,10 +1,11 @@
 import { useAuth } from "../utils/context/AuthContext";
 import { Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Profile = () => {
-  const { isLoggedIn } = useAuth();
+  const isAuthenticated = useSelector((s: any) => s.auth.isAuthenticated);
 
-  return isLoggedIn ? (
+  return isAuthenticated ? (
     <div className="min-h-screen flex flex-col justify-between">
       <Outlet />
     </div>

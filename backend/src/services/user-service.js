@@ -166,17 +166,16 @@ async function getProfiles(ids) {
 
 async function updateUser(userId, updateData) {
   try {
-    const findUser = await userRepository.getById(userId);
+    const user = await userRepository.getById(userId);
     const oneTimeAllowed = ["dateOfBirth", "gender"];
 
     for (const key in updateData) {
       if (oneTimeAllowed.includes(key)) {
-        if (findUser[key] !== null && findUser[key] !== undefined) {
+        if (user[key] !== null && user[key] !== undefined) {
           throw new AppError(FIELD_IMMUTABLE(key), StatusCodes.BAD_REQUEST);
         }
       }
     }
-
     const updateUser = await userRepository.update(userId, updateData);
     return updateUser;
   } catch (error) {

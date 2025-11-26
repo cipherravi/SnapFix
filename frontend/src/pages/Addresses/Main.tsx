@@ -47,15 +47,18 @@ const Main = () => {
   };
 
   return (
-    <>
+    <div className="w-full min-h-screen flex flex-col bg-white items-center px-4 sm:px-6 md:px-10 py-6">
       {/* Header */}
-      <div className="shrink-0 pt-4 px-4 flex flex-col gap-4">
+      <div className="w-full max-w-3xl flex flex-col gap-2">
         <BackButton navigateTo="/profile" />
-        <h1 className="text-3xl poppins-bold">Addresses</h1>
+        <h1 className="text-2xl sm:text-3xl poppins-bold">Addresses</h1>
+        <p className="text-gray-600 text-sm sm:text-base">
+          Manage your saved addresses. You can edit or delete any address below.
+        </p>
       </div>
 
       {/* Address List */}
-      <div className="flex flex-col gap-4 px-4 py-6 overflow-y-auto">
+      <div className="w-full max-w-3xl flex flex-col gap-4 mt-6">
         {addresses.length > 0 ? (
           addresses.map((address) => (
             <div
@@ -76,13 +79,13 @@ const Main = () => {
               </div>
               <div className="flex flex-col gap-2">
                 <button
-                  className=" bg-[#dfdfdf] p-1 rounded-full"
+                  className="bg-[#dfdfdf] p-1 rounded-full"
                   onClick={() => navigate(`edit/${address.id}`)}
                 >
                   <img src="/svg/edit.svg" alt="" className="w-7 p-1" />
                 </button>
                 <button
-                  className=" bg-[#ffbdbd] p-1 rounded-full"
+                  className="bg-[#ffbdbd] p-1 rounded-full"
                   onClick={() => handleDeleteClick(address.id)}
                 >
                   <img src="/svg/delete.svg" alt="" className="w-7 p-1" />
@@ -94,15 +97,17 @@ const Main = () => {
           <p className="text-center text-gray-500 mt-8">No addresses found</p>
         )}
 
-        <div className="w-full flex justify-center mt-10">
+        {/* Create Address Button */}
+        <div className="w-full flex justify-center mt-6">
           <button
-            className="bg-[#0385c2] p-2 rounded-lg text-white inter-regular cursor-pointer"
+            className="w-full sm:w-1/2 py-3 px-6 sm:px-10 bg-[#0385c2] rounded-2xl text-xl sm:text-2xl text-white inter-medium cursor-pointer transition-transform active:scale-95"
             onClick={() => navigate("create")}
           >
             Create Address
           </button>
         </div>
       </div>
+
       <ConfirmModal
         isOpen={showConfirm}
         onConfirm={confirmDelete}
@@ -112,7 +117,7 @@ const Main = () => {
         }}
         message="Are you sure you want to delete this address?"
       />
-    </>
+    </div>
   );
 };
 

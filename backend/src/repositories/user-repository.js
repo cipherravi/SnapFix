@@ -1,5 +1,5 @@
 const CrudRepository = require("./crud-repository");
-const { User, Kyc, City } = require("../models");
+const { User, Kyc } = require("../models");
 const { Op } = require("sequelize");
 class UserRepository extends CrudRepository {
   constructor() {
@@ -7,13 +7,11 @@ class UserRepository extends CrudRepository {
   }
   async getById(id) {
     try {
-      const response = await this.model.findByPk(id);
-      logger.info("Successfully accessed getById");
+      const response = await User.findByPk(id);
 
       delete response.dataValues.password;
       return response;
     } catch (error) {
-      logger.error("Error in user-repository - getById:", error);
       throw error;
     }
   }

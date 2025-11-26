@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import useWalletFetcher from "../../utils/Hooks/useWalletFetcher";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-import { useUserInfo } from "../../utils/context/UserInfoContext";
+
+import { useSelector } from "react-redux";
+
 declare global {
   interface Window {
     Razorpay: any;
@@ -12,7 +14,7 @@ declare global {
 }
 
 const Wallet = () => {
-  const { userData } = useUserInfo();
+  const userData = useSelector((s: any) => s.user.userData);
   const { data, error, loading, refetch } = useWalletFetcher();
 
   const [balance, setBalance] = useState<number>(0);
@@ -29,32 +31,24 @@ const Wallet = () => {
   }, [data]);
 
   useEffect(() => {
-    if (error) {
-      toast.error("Failed to load wallet balance. Please try again!");
-    }
+    if (error) toast.error("Failed to load wallet balance. Please try again!");
   }, [error]);
 
   const confirmAdd = async () => {
     setHandling(true);
     try {
-      if (amount < 100) {
-        toast.error("Minimum ₹100 allowed");
-        return;
-      }
+      if (amount < 100) return toast.error("Minimum ₹100 allowed");
 
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/wallet/add-money`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount,
-          purpose: "add_balance",
-        }),
+        body: JSON.stringify({ amount, purpose: "add_balance" }),
       });
+
       const data = await res.json();
       if (res.ok && data?.data) {
         const order = data?.data;
-
         handlePayment(
           order.walletId,
           Number(order.amount),
@@ -62,8 +56,8 @@ const Wallet = () => {
           order.id
         );
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setHandling(false);
       setAmount(0);
@@ -74,14 +68,9 @@ const Wallet = () => {
   async function confirmWithdawal() {
     setHandling(true);
     try {
-      if (amount <= 0 || amount > balance) {
-        toast.error("Enter Valid amount");
-        return;
-      }
-      if (amount < 200) {
-        toast.error("Minimum ₹200 withdrawal allowed");
-        return;
-      }
+      if (amount <= 0 || amount > balance)
+        return toast.error("Enter valid amount");
+      if (amount < 200) return toast.error("Minimum ₹200 withdrawal allowed");
 
       const res = await fetch(
         `${VITE_API_BASE_URL}/api/v1/wallet/withdraw-money`,
@@ -89,21 +78,15 @@ const Wallet = () => {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount,
-            purpose: "withdrawal",
-          }),
+          body: JSON.stringify({ amount, purpose: "withdrawal" }),
         }
       );
+
       const data = await res.json();
       if (res.ok) {
         await refetch();
         toast.success(data.message);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.error(error);
+      } else toast.error(data.message);
     } finally {
       setHandling(false);
       setAmount(0);
@@ -118,15 +101,12 @@ const Wallet = () => {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount,
-          purpose: "repayment",
-        }),
+        body: JSON.stringify({ amount, purpose: "repayment" }),
       });
+
       const data = await res.json();
       if (res.ok && data?.data) {
         const order = data?.data;
-
         handlePayment(
           order.walletId,
           Number(order.amount),
@@ -134,8 +114,6 @@ const Wallet = () => {
           order.id
         );
       }
-    } catch (error) {
-      console.error(error);
     } finally {
       setHandling(false);
     }
@@ -155,20 +133,8 @@ const Wallet = () => {
         name: "Snapfix",
         description: "Test Transaction",
         order_id,
-        prefill: {
-          name: "Ravi Kumar",
-          email: "ravi.kumar@example.com",
-          contact: "9999999999",
-        },
-        theme: {
-          color: "#F37254",
-        },
+        theme: { color: "#0385C2" },
         handler: async function (response: any) {
-          // ✅ Razorpay gives you these fields
-          const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
-            response;
-
-          // Now call your backend to verify payment
           try {
             const verifyRes = await fetch(
               `${VITE_API_BASE_URL}/api/v1/wallet/verify`,
@@ -177,9 +143,9 @@ const Wallet = () => {
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  razorpay_payment_id,
-                  razorpay_order_id,
-                  razorpay_signature,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
                   id,
                   walletId,
                   amount,
@@ -188,109 +154,187 @@ const Wallet = () => {
             );
 
             const data = await verifyRes.json();
-
             if (verifyRes.ok) {
-              // ✅ Refresh wallet data after success
               await refetch();
               toast.success("Amount added successfully 🎉");
-            } else {
-              toast.error(data?.message || "Payment verification failed!");
-            }
+            } else toast.error(data?.message);
           } catch (err) {
-            console.error(err);
-            toast.error("Something went wrong while verifying payment");
+            toast.error("Verification failed");
           }
         },
         modal: {
-          ondismiss: function () {
-            toast.error("Payment cancelled");
-          },
+          ondismiss: () => toast.error("Payment cancelled"),
         },
       };
+
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (error) {}
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  const onCancel = async () => {
+  const onCancel = () => {
     setIsAddModalOpen(false);
     setIsWithdrawalModalOpen(false);
     setAmount(0);
   };
 
   return (
-    <div className="w-full h-screen flex flex-col overflow-hidden bg-[#F2F2F2] relative">
-      <div className="shrink-0 pt-4 px-3 flex flex-col gap-4 absolute z-100">
+    <div className="w-full h-screen flex flex-col bg-linear-to-b from-[#0F8DD8] to-[#0C6FB0] relative overflow-hidden">
+      {/* Back Button */}
+      <div className="absolute top-4 left-3 z-50  bg-white/10 rounded-full invert shadow-lg">
         <BackButton navigateTo="/profile" />
       </div>
-      <div className="w-full h-2/5 bg-[#0385C2] rounded-b-4xl ">
-        <div className="pt-30 pl-6 ">
-          <p className="text-white text-xl inter-semibold">Total Balance</p>
-          <p className="text-white text-5xl mt-2 inter-bold">
-            ₹{" "}
-            <span
-              className={`text-green-400 ${
-                balance > 0 ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              {Number(balance || 0).toFixed(2)}
-            </span>
-          </p>
-        </div>
 
-        <div className="w-full flex justify-around mt-10">
+      {/* HEADER + BALANCE CARD */}
+      <div className="pt-28 px-6 text-white w-full flex flex-col items-center">
+        {/* === ULTRA PREMIUM BALANCE CARD === */}
+        <div
+          className="
+      mt-5 relative w-full max-w-md
+      bg-white/10 backdrop-blur-2xl 
+      rounded-3xl p-7
+      border border-white/20 
+      shadow-[0_15px_40px_rgba(0,0,0,0.25)]
+      overflow-hidden
+      animate-fadeIn
+    "
+        >
+          {/* Animated glow ring */}
           <div
-            className="bg-white px-7 py-2 rounded-3xl flex gap-2"
-            onClick={() => {
-              setIsAddModalOpen(true);
-            }}
-          >
-            <img src="/svg/money-in.svg" alt="" className="w-8" />
-            <button className=" text-xl inter-semibold">Add</button>
+            className="
+        absolute -top-20 right-10 
+        w-56 h-56 rounded-full 
+        bg-linear-to-br from-white/30 to-transparent 
+        blur-2xl opacity-40
+        animate-pulse-slow
+      "
+          />
+
+          {/* Bottom glow */}
+          <div
+            className="
+        absolute bottom-0 left-0 right-0 h-14 
+        bg-linear-to-t from-white/10 to-transparent
+      "
+          />
+
+          {/* BALANCE */}
+          <div className="relative z-20 text-center">
+            <p className="text-white/80 text-sm tracking-wide">
+              Available Balance
+            </p>
+
+            <div className="flex justify-center items-end gap-2 mt-1">
+              <span className="text-white text-4xl font-extrabold drop-shadow-md">
+                ₹
+              </span>
+
+              <span
+                className={`
+            text-5xl font-extrabold tracking-tight drop-shadow-xl
+            ${balance > 0 ? "text-green-300" : "text-red-300"}
+          `}
+              >
+                {Number(balance || 0).toFixed(2)}
+              </span>
+            </div>
+
+            <p className="text-white/70 text-xs mt-2">
+              Updated automatically • Secure Wallet
+            </p>
           </div>
 
-          {balance > 0 && userData?.role === "Worker" ? (
-            <div
-              className="bg-white px-7 py-2 rounded-3xl flex gap-2"
-              onClick={() => setIsWithdrawalModalOpen(true)}
-            >
-              <img src="/svg/cash-payment.svg" alt="" className="w-8" />
-              <button className=" text-xl inter-semibold">Withdraw</button>
+          {/* PROGRESS INDICATOR */}
+          <div className="relative z-20 mt-6">
+            <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+              <div
+                className={`
+            h-full rounded-full 
+            transition-all duration-700 ease-out
+            ${balance > 0 ? "bg-green-400/90" : "bg-red-400/90"}
+          `}
+                style={{ width: `${Math.min((balance / 2000) * 100, 100)}%` }}
+              />
             </div>
+
+            <p className="text-white/70 text-xs mt-1">
+              {balance > 0 ? "Healthy balance" : "Balance below zero"}
+            </p>
+          </div>
+        </div>
+
+        {/* ACTION BUTTONS */}
+        <div className="mt-10 flex items-center justify-center gap-6 px-1">
+          {/* Add Money */}
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="backdrop-blur-xl bg-white/20 hover:bg-white/30 
+        text-white px-7 py-3 rounded-3xl flex items-center gap-2 
+        shadow-xl transition-all active:scale-95"
+          >
+            <img src="/svg/money-in.svg" className="w-7" />
+            <span className="text-lg font-semibold">Add</span>
+          </button>
+
+          {/* Withdraw / Pay */}
+          {balance > 0 && userData?.role === "Worker" ? (
+            <button
+              onClick={() => setIsWithdrawalModalOpen(true)}
+              className="backdrop-blur-xl bg-white/20 hover:bg-white/30 
+          text-white px-7 py-3 rounded-3xl flex items-center gap-2 
+          shadow-xl transition-all active:scale-95"
+            >
+              <img src="/svg/cash-payment.svg" className="w-7" />
+              <span className="text-lg font-semibold">Withdraw</span>
+            </button>
           ) : (
-            <div
-              className={` px-7 py-2 rounded-3xl flex gap-2 ${
-                balance >= 0 ? "bg-gray-300 " : "bg-green-400"
-              }`}
+            <button
               onClick={() => {
                 if (balance >= 0) return;
-                if (handling) return;
-                confirmPay();
+                if (!handling) confirmPay();
               }}
+              className={`
+          px-7 py-3 rounded-3xl flex items-center gap-2 shadow-xl active:scale-95 backdrop-blur-xl
+          ${
+            balance >= 0
+              ? "bg-white/10 opacity-60 text-white"
+              : "bg-green-400 text-white"
+          }
+        `}
             >
-              <img src="/svg/cash-payment.svg" alt="" className="w-8" />
-              <button className=" text-xl inter-semibold">Pay</button>
-            </div>
+              <img src="/svg/cash-payment.svg" className="w-7" />
+              <span className="text-lg font-semibold">Pay</span>
+            </button>
           )}
         </div>
       </div>
-      <div className="mt-7 ml-4">
-        <h1 className="inter-semibold text-2xl">Transactions</h1>
-        <div className="w-full mt-3 flex gap-3">
-          <button className="text-lg inter-medium px-4 bg-gray-300 rounded-2xl">
-            Recent
-          </button>
-          <button className="text-lg inter-medium px-4 bg-gray-300 rounded-2xl">
-            Last Week
-          </button>
-          <button className="text-lg inter-medium px-4 bg-gray-300 rounded-2xl">
-            Custom
-          </button>
+
+      {/* TRANSACTIONS SECTION */}
+      <div className="mt-10 bg-white rounded-t-3xl p-6 h-full overflow-y-auto">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+          Transactions
+        </h2>
+
+        <div className="flex gap-3 mb-4">
+          {["Recent", "Last Week", "Custom"].map((item) => (
+            <button
+              key={item}
+              className="px-4 py-2 bg-gray-200 rounded-2xl text-gray-700 font-medium hover:bg-gray-300"
+            >
+              {item}
+            </button>
+          ))}
         </div>
 
-        <div></div>
+        {/* Transactions List — You can integrate actual data here */}
+        <div className="text-gray-500 text-center mt-20">
+          No transactions found
+        </div>
       </div>
 
+      {/* Modals */}
       <ManageFundsModal
         isOpen={isAddModalOpen}
         onConfirm={confirmAdd}
@@ -299,6 +343,7 @@ const Wallet = () => {
         handling={handling}
         action="add"
       />
+
       <ManageFundsModal
         isOpen={isWithdrawalModalOpen}
         onConfirm={confirmWithdawal}

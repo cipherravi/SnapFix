@@ -5,11 +5,20 @@ import "./index.css";
 import "leaflet/dist/leaflet.css";
 import router from "./router/index";
 import Providers from "./utils/context/Providers";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "./app/store";
 
 createRoot(document.getElementById("root")!).render(
   // <StrictMode>
-  <Providers>
-    <RouterProvider router={router} />
-  </Providers>
+
+  <Provider store={store}>
+    <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+      <Providers>
+        <RouterProvider router={router} />
+      </Providers>
+    </PersistGate>
+  </Provider>
+
   // </StrictMode>
 );

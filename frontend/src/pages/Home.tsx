@@ -40,7 +40,7 @@ function Home() {
         setIsFetchingMore(false);
       });
     }
-  }, [inView, jobsLoading, hasMore]);
+  }, [inView, jobsLoading, hasMore, offset, isFetchingMore]);
 
   useEffect(() => {
     if (!jobsLoading) {
@@ -115,7 +115,7 @@ function Home() {
 
           {/* JOB LIST */}
           {hasLoadedOnce && jobs.length > 0 && (
-            <div className="grid grid-cols-2 gap-2 rounded-2xl pb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 rounded-2xl pb-4 auto-rows-fr">
               {jobs.map((job) => {
                 const mainAsset = job.assets.find(
                   (file) => file.filePosition === "thumbnail"

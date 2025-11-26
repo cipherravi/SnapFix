@@ -4,13 +4,12 @@ import DropDownOptions from "../components/modals/DropDownOptions";
 import { sanitizeBudgetInput } from "../utils/inputSanitizers";
 import useCategoryFetcher from "../utils/Hooks/useCategoryFetcher";
 import useAddressFetcher from "../utils/Hooks/useAddressFetcher";
-// import MapPicker from "../components/map/MapPicker";
-import sortByName from "../utils/sortByName";
 import { useNavigate } from "react-router-dom";
 import ImageCapturer from "../components/ImageCapturer";
 import type { Address } from "../../types";
 import { useAddressContext } from "../utils/context/AddressContext";
 import compressImage from "../utils/compressImage";
+import sortByName from "../utils/sortByName";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -23,12 +22,19 @@ const Create = () => {
   const navigate = useNavigate();
   const { addresses } = useAddressContext();
   const [categoryOptions, setCategoryOptions] = useState<BaseOption[]>([]);
-
   const [selectedCategory, setSelectedCategory] = useState<BaseOption | null>(
     null
   );
-
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [jobTitle, setJobTitle] = useState("");
+  const [jobBudget, setJobBudget] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [coords, setCoords] = useState<[number, number] | null>(null);
+  const [jobPhotos, setJobPhotos] = useState<File[]>([]);
+  const [creating, setCreating] = useState(false);
+  const fetchCategories = useCategoryFetcher();
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const { fetchAddresses } = useAddressFetcher();
 
   useEffect(() => {
     if (selectedAddress) {
@@ -39,32 +45,12 @@ const Create = () => {
     }
   }, [selectedAddress]);
 
-  const [jobTitle, setJobTitle] = useState("");
-  const [jobBudget, setJobBudget] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
-  const [coords, setCoords] = useState<[number, number] | null>(null);
-  const [jobPhotos, setJobPhotos] = useState<File[]>([]);
-
-  const [creating, setCreating] = useState(false);
-
-  const fetchCategories = useCategoryFetcher();
-
-  const [showAddressModal, setShowAddressModal] = useState(false);
-
-  const { fetchAddresses } = useAddressFetcher();
-
   useEffect(() => {
     const loadOptions = async () => {
       const fetchedCategories = await fetchCategories();
-      // Sort categories by name (case-insensitive)
       setCategoryOptions(sortByName(fetchedCategories));
-
       const fetchedAddresses = await fetchAddresses();
-
-      if (
-        fetchedAddresses.length < 1 ||
-        Object.keys(fetchedAddresses).length === 0
-      ) {
+      if (!fetchedAddresses || fetchedAddresses.length === 0) {
         setShowAddressModal(true);
       }
     };
@@ -72,58 +58,30 @@ const Create = () => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!jobTitle) {
-      toast.error("Title is required field");
-      return;
-    }
-
-    if (!jobBudget) {
-      toast.error("Budget is required field");
-      return;
-    }
-    if (!selectedAddress) {
-      toast.error("Select address");
-      return;
-    }
+    if (!jobTitle) return toast.error("Title is required field");
+    if (!jobBudget) return toast.error("Budget is required field");
+    if (!selectedAddress) return toast.error("Select address");
 
     try {
       const formData = new FormData();
-
-      // Compress images before appending
-      let main = jobPhotos[0]
+      const main = jobPhotos[0]
         ? await compressImage.mainImage(jobPhotos[0])
         : null;
-      if (main) {
-        console.log(
-          `Compressed main image size: ${(main.size / 1024).toFixed(2)} KB`
-        );
-      }
-
-      let thumbnail = jobPhotos[0]
+      const thumbnail = jobPhotos[0]
         ? await compressImage.thumbnailImage(jobPhotos[0])
         : null;
-      if (thumbnail) {
-        console.log(
-          `Compressed thumbnail image size: ${(thumbnail.size / 1024).toFixed(
-            2
-          )} KB`
-        );
-      }
-
-      let secondary = jobPhotos[1]
+      const secondary = jobPhotos[1]
         ? await compressImage.mainImage(jobPhotos[1])
         : null;
-      let third = jobPhotos[2]
+      const third = jobPhotos[2]
         ? await compressImage.mainImage(jobPhotos[2])
         : null;
 
-      // Append images
       if (main) formData.append("main", main, "main.webp");
       if (thumbnail) formData.append("thumbnail", thumbnail, "thumbnail.webp");
       if (secondary) formData.append("secondary", secondary, "secondary.webp");
       if (third) formData.append("third", third, "third.webp");
 
-      // Append job details
       formData.append("title", jobTitle);
       formData.append("description", jobDescription);
       formData.append("budget", jobBudget);
@@ -142,14 +100,10 @@ const Create = () => {
       });
 
       const data = await response.json();
-      if (response.ok) {
-        // toast.success(data.message);
-        navigate(`/payments/${data?.data?.id}`);
-      } else {
-        toast.error(data?.message);
-      }
+      if (response.ok) navigate(`/payments/${data?.data?.id}`);
+      else toast.error(data?.message);
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error(error);
       toast.error("Something went wrong!");
     } finally {
       setCreating(false);
@@ -157,17 +111,19 @@ const Create = () => {
   };
 
   return (
-    <div className="w-full min-h-full bg-white pt-4  flex flex-col gap-10 pb-20">
-      <div className="flex flex-col gap-2 mx-4 ">
-        {/* Heading */}
-        <h1 className="text-2xl  poppins-semibold ">Create Job</h1>
-        <p className="inter-extralight text-xs">
+    <div className="w-full min-h-screen bg-white pt-4 flex flex-col gap-8 pb-20 px-4 sm:px-6 md:px-10">
+      {/* Heading aligned with form */}
+      <div className="flex flex-col gap-2 w-full max-w-3xl mx-auto">
+        <h1 className="text-2xl md:text-3xl poppins-semibold text-left">
+          Create Job
+        </h1>
+        <p className="inter-extralight text-sm md:text-base text-left">
           Get your work done by creating a job and leave rest on us
         </p>
       </div>
 
-      {/* Dynamic contents .... */}
-      <div className="flex flex-col gap-5 items-center px-4">
+      {/* Form */}
+      <div className="flex flex-col gap-5 w-full max-w-3xl mx-auto">
         <DropDownOptions
           selected={selectedCategory}
           setSelected={setSelectedCategory}
@@ -181,28 +137,23 @@ const Create = () => {
           value={jobTitle}
           onChange={(e) => setJobTitle(e.target.value)}
           placeholder="Job Title"
-          className="bg-[#F4F4F4] rounded-lg h-12 w-full  text-xl border shadow px-4 "
+          className="bg-[#F4F4F4] rounded-lg h-12 w-full text-xl border shadow px-4"
         />
+
         <input
           type="tel"
           value={jobBudget}
           onChange={(e) => {
-            const inputValue = e.target.value;
-            const sanitized = sanitizeBudgetInput(inputValue);
-
-            // Allow user to clear or backspace
-            if (inputValue === "" || sanitized === inputValue) {
-              setJobBudget(inputValue);
-            }
+            const sanitized = sanitizeBudgetInput(e.target.value);
+            if (e.target.value === "" || sanitized === e.target.value)
+              setJobBudget(e.target.value);
           }}
           onPaste={(e) => {
             const paste = e.clipboardData.getData("text");
-            if (sanitizeBudgetInput(paste) === "") {
-              e.preventDefault();
-            }
+            if (sanitizeBudgetInput(paste) === "") e.preventDefault();
           }}
           placeholder="Budget"
-          className="bg-[#F4F4F4] rounded-lg h-12 w-full text-xl border shadow px-4 "
+          className="bg-[#F4F4F4] rounded-lg h-12 w-full text-xl border shadow px-4"
         />
 
         {showAddressModal ? (
@@ -211,9 +162,7 @@ const Create = () => {
               🚫 No address found. Please add one before continuing.
             </p>
             <button
-              onClick={() => {
-                navigate("/profile/addresses/create");
-              }}
+              onClick={() => navigate("/profile/addresses/create")}
               className="px-4 py-2 rounded bg-blue-500 text-white text-sm"
             >
               Add Address
@@ -231,33 +180,21 @@ const Create = () => {
 
         <textarea
           placeholder="Tell us more about your work"
-          className="bg-[#F4F4F4] rounded-lg min-h-24 max-h-48 w-full text-md border shadow px-4 py-2 resize-none focus:outline-none select-text"
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-        ></textarea>
+          className="bg-[#F4F4F4] rounded-lg min-h-24 max-h-48 w-full text-md border shadow px-4 py-2 resize-none focus:outline-none"
+        />
 
         <ImageCapturer
           photos={jobPhotos}
           setPhotos={setJobPhotos}
           photoLimit={3}
         />
-        {/* {selectedAddress && (
-          <MapPicker
-            onLocationSelect={(coords) => setCoords(coords)}
-            zoom={13}
-            location={[
-              Number(selectedAddress?.latitude),
-              Number(selectedAddress?.longitude),
-            ]}
-            animateOnLoad={false} // currently false
-            type="create"
-          />
-        )} */}
 
         <button
-          className="w-1/2 h-12 bg-[#0385C2] text-white rounded-3xl text-2xl inter-medium"
           onClick={handleSubmit}
           disabled={creating}
+          className="w-full sm:w-1/2 h-12 bg-[#0385C2] text-white rounded-3xl text-xl sm:text-2xl inter-medium mx-auto"
         >
           {creating ? "Processing" : "Continue"}
         </button>

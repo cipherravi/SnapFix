@@ -97,7 +97,10 @@ const JobPoster = () => {
       </div>
 
       {/* Banner Swiper */}
-      <div className="h-60 rounded-b-4xl overflow-hidden">
+      <div className="relative w-full h-60 rounded-b-4xl overflow-hidden bg-gray-200">
+        {/* Prevent BackButton shift by reserving space */}
+        <div className="absolute top-4 left-3 w-8 h-8"></div>
+
         {imageUrls.length > 1 ? (
           <Swiper
             modules={[Autoplay, Pagination]}
@@ -110,21 +113,20 @@ const JobPoster = () => {
               <SwiperSlide key={index}>
                 <img
                   src={src}
-                  alt={`Job Image ${index + 1}`}
-                  className="w-full h-full object-contain"
+                  alt=""
+                  className="w-full h-full object-contain aspect-4/3"
+                  loading="lazy"
                 />
               </SwiperSlide>
             ))}
           </Swiper>
-        ) : imageUrls.length == 1 ? (
-          imageUrls.map((src, index) => (
-            <img
-              key={index}
-              src={src}
-              alt={`Job Image`}
-              className="w-full h-full object-contain"
-            />
-          ))
+        ) : imageUrls.length === 1 ? (
+          <img
+            src={imageUrls[0]}
+            alt=""
+            className="w-full h-full object-contain aspect-4/3"
+            loading="lazy"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
             No images available

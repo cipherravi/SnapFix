@@ -5,10 +5,25 @@ import { Outlet, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Tabs from "./components/Tabs";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { useDispatch, useSelector } from "react-redux";
+import { useGetProfileQuery } from "./services/api/userApi";
+import { setUser } from "./features/user/userSlice";
 
 function App() {
   const [showSplash, setShowSplash] = useState(false);
   const [fadeSplash, setFadeSplash] = useState(false);
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector((s: any) => s.auth.isAuthenticated);
+
+  const { data, isLoading } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
+  useEffect(() => {
+    if (data) {
+      dispatch(setUser(data));
+    }
+  }, [data]);
 
   const location = useLocation();
 

@@ -1,24 +1,26 @@
 import { useNavigate } from "react-router-dom";
-import { useUserInfo } from "../../utils/context/UserInfoContext";
+// import { useUserInfo } from "../../utils/context/UserInfoContext";
+import { useSelector } from "react-redux";
 
 const Secondary = () => {
   const navigate = useNavigate();
-  const { userData } = useUserInfo();
+  // const { userData } = useUserInfo();
+  const userData = useSelector((store: any) => store.user.userData);
 
   return (
     <div className="w-full  flex flex-col items-center ">
       <div className="w-full h-full bg-[#545454] rounded-2xl relative py-2 pl-7">
         {/* Address */}
-        <div
-          className="w-full flex items-center gap-5"
-          onClick={() => navigate("addresses")}
-        >
+        <div className="w-full flex items-center gap-5">
           <img
             src="/svg/location.svg"
             alt="wallet icon"
             className="w-7 filter invert"
           />
-          <div className="w-full border-b border-white/30 py-2 flex justify-between items-center">
+          <div
+            className="w-full border-b border-white/30 py-2 flex justify-between items-center cursor-pointer"
+            onClick={() => navigate("addresses")}
+          >
             <p className="text-white text-sm inter-regular">Addresses</p>
             <img
               src="/svg/dropdown-arrow.svg"
@@ -28,16 +30,16 @@ const Secondary = () => {
           </div>
         </div>
         {/* Account*/}
-        <div
-          className="w-full flex items-center gap-5"
-          onClick={() => navigate("account")}
-        >
+        <div className="w-full flex items-center gap-5">
           <img
             src="/svg/user.svg"
             alt="wallet icon"
             className="w-7 filter invert"
           />
-          <div className="w-full border-b border-white/30 py-2 flex justify-between items-center">
+          <div
+            className="w-full border-b border-white/30 py-2 flex justify-between items-center cursor-pointer"
+            onClick={() => navigate("account")}
+          >
             <p className="text-white text-sm inter-regular">Account</p>
             <img
               src="/svg/dropdown-arrow.svg"
@@ -54,7 +56,7 @@ const Secondary = () => {
             className="w-7 filter invert"
           />
           <div
-            className="w-full py-2 flex justify-between items-center border-b border-white/30"
+            className="w-full py-2 flex justify-between items-center border-b border-white/30 cursor-pointer"
             onClick={() => navigate("kyc")}
           >
             <p className="text-white text-sm inter-regular">KYC</p>
@@ -76,7 +78,7 @@ const Secondary = () => {
               className="w-7 filter invert"
             />
             <div
-              className="w-full border-b border-white/30 py-2 flex justify-between items-center"
+              className="w-full border-b border-white/30 py-2 flex justify-between items-center cursor-pointer"
               onClick={() => navigate("/admin")}
             >
               <p className="text-white text-sm inter-regular">Admin Panel</p>
@@ -96,7 +98,10 @@ const Secondary = () => {
             alt="wallet icon"
             className="w-7 filter invert"
           />
-          <div className="w-full py-2 flex justify-between items-center">
+          <div
+            className="w-full py-2 flex justify-between items-center cursor-pointer"
+            onClick={() => navigate("help")}
+          >
             <p className="text-white text-sm inter-regular">Help & Support</p>
 
             <img

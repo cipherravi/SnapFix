@@ -10,7 +10,8 @@ import BackButton from "../components/Buttons/BackButton";
 import useIsMobile from "../utils/Hooks/useIsMobile";
 import { useSocket } from "../utils/context/SocketContext";
 import { useConversation } from "../utils/context/CoversationContext";
-import { useUserInfo } from "../utils/context/UserInfoContext";
+// import { useUserInfo } from "../utils/context/UserInfoContext";
+import { useSelector } from "react-redux";
 import useMessageFetcher from "../utils/Hooks/useMessageFetcher";
 
 type ChatProps = {
@@ -30,7 +31,8 @@ type Message = {
 const Chat = ({ verified = true }: ChatProps) => {
   const { id } = useParams();
   const { conversations } = useConversation();
-  const { userData } = useUserInfo();
+  // const { userData } = useUserInfo();
+  const userData = useSelector((s: any) => s.user.userData);
   const currentConversation = conversations.find((conv) => conv.id === id);
   const user = currentConversation?.participant;
   const isMobile = useIsMobile();
@@ -343,37 +345,31 @@ const Chat = ({ verified = true }: ChatProps) => {
   // JSX
   // -------------------------
   return (
-    <div className="w-full chat-viewport-height flex flex-col overflow-hidden bg-gray-100">
+    <div className="w-full h-full flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="h-16 bg-[#6B6B6B] flex items-center gap-4 shadow-md shrink-0 px-4 z-10">
+      <div className="h-16 bg-gray-100 flex items-center gap-4 shadow-sm px-4 z-10">
         <BackButton
           navigateTo="/conversations"
-          imgUrl="/svg/dropdown-arrow.svg"
-          bgColor="#6B6B6B"
-          rotateDegree="90deg"
+          // imgUrl="/svg/dropdown-arrow.svg"
+          bgColor="transparent"
+          // rotateDegree="90deg"
         />
         <img
           src="/svg/profile.svg"
           alt="Profile Pic"
-          className="w-10 h-10 p-2 rounded-full border border-white bg-white"
+          className="w-10 h-10 p-1 rounded-full border border-gray-300 bg-white object-cover"
         />
-        <h1 className="text-2xl inter-regular text-white truncate max-w-[50%]">
+        <h1 className="text-xl font-medium text-gray-800 truncate max-w-[50%]">
           {user?.name}
         </h1>
 
         {/* Call Button */}
         {!inCall ? (
-          <button
-            onClick={startCall}
-            className="ml-auto bg-green-500 text-white px-4 py-2 rounded-full"
-          >
+          <button className="ml-auto bg-green-500 hover:bg-green-600 transition-colors text-white px-4 py-2 rounded-full shadow-sm">
             📞 Call
           </button>
         ) : (
-          <button
-            onClick={endCall}
-            className="ml-auto bg-red-500 text-white px-4 py-2 rounded-full"
-          >
+          <button className="ml-auto bg-red-500 hover:bg-red-600 transition-colors text-white px-4 py-2 rounded-full shadow-sm">
             🔴 End
           </button>
         )}
@@ -381,19 +377,13 @@ const Chat = ({ verified = true }: ChatProps) => {
 
       {/* Incoming Call Popup */}
       {incomingCall && (
-        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-white shadow-lg p-4 rounded-xl text-center">
-          <p className="text-lg font-semibold mb-2">📞 Incoming Call…</p>
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={acceptCall}
-              className="bg-green-500 text-white px-4 py-2 rounded-full"
-            >
+        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white shadow-xl p-5 rounded-2xl text-center w-80">
+          <p className="text-lg font-medium mb-3">📞 Incoming Call…</p>
+          <div className="flex gap-4 justify-center">
+            <button className="bg-green-500 hover:bg-green-600 transition-colors text-white px-6 py-2 rounded-full shadow">
               Accept
             </button>
-            <button
-              onClick={declineCall}
-              className="bg-red-500 text-white px-4 py-2 rounded-full"
-            >
+            <button className="bg-red-500 hover:bg-red-600 transition-colors text-white px-6 py-2 rounded-full shadow">
               Decline
             </button>
           </div>
@@ -403,7 +393,7 @@ const Chat = ({ verified = true }: ChatProps) => {
       {/* Chat Area */}
       <div
         ref={chatContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-2 space-y-3 bg-gray-100 custom-scrollbar ios-momentum-scroll flex flex-col"
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-3 flex flex-col custom-scrollbar"
       >
         {messages.map((msg, index) => {
           const onlyEmoji = isOnlyEmojis(msg.text || "");
@@ -412,17 +402,17 @@ const Chat = ({ verified = true }: ChatProps) => {
           return (
             <div
               key={msg._id ?? msg.localId ?? msg.createdAt?.toString() ?? index}
-              className={`max-w-[85%] md:max-w-[70%] px-4 py-2 rounded-2xl shadow-sm wrap-break-word whitespace-pre-wrap
-                ${
-                  isMe
-                    ? onlyEmoji
-                      ? "bg-transparent text-5xl self-end shadow-none px-0 py-0"
-                      : "bg-blue-500 text-white self-end text-sm"
-                    : onlyEmoji
-                    ? "bg-transparent text-5xl self-start shadow-none px-0 py-0"
-                    : "bg-white text-black self-start text-sm"
-                }
-              `}
+              className={`max-w-[80%] px-4 py-2 rounded-2xl shadow-sm wrap-break-word whitespace-pre-wrap transition-all duration-300
+            ${
+              isMe
+                ? onlyEmoji
+                  ? "text-5xl self-end bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
+                  : "self-end bg-blue-500 text-white text-sm shadow-md animate-slideUpFade"
+                : onlyEmoji
+                ? "text-5xl self-start bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
+                : "self-start bg-white text-gray-800 text-sm shadow-md animate-slideUpFade"
+            }
+          `}
             >
               {msg.text}
             </div>
@@ -432,13 +422,13 @@ const Chat = ({ verified = true }: ChatProps) => {
       </div>
 
       {/* Footer */}
-      <div className="bg-[#6B6B6B] w-full px-4 py-3 flex items-end gap-2 shrink-0 z-10">
+      <div className="bg-gray-100 w-full px-4 py-3 flex items-end gap-2 shrink-0">
         <textarea
           ref={textareaRef}
           value={input}
           onChange={handleInputChange}
-          placeholder="Type a message"
-          className="flex-1 bg-gray-100 px-4 py-3 rounded-2xl outline-none resize-none overflow-y-auto max-h-32 min-h-11"
+          placeholder="Type a message..."
+          className="flex-1 bg-white text-gray-800 px-4 py-3 rounded-2xl outline-none resize-none overflow-y-auto max-h-32 min-h-11 placeholder-gray-400 shadow-sm"
           rows={1}
           onKeyDown={(e) => {
             if (!isMobile && e.key === "Enter" && !e.shiftKey) {
@@ -449,13 +439,13 @@ const Chat = ({ verified = true }: ChatProps) => {
         />
         <button
           onClick={handleSend}
-          className="bg-blue-500 text-white px-6 py-2 rounded-full font-medium h-11 flex items-center justify-center"
+          className="bg-blue-500 hover:bg-blue-600 transition-colors text-white px-6 py-2 rounded-full font-medium h-11 flex items-center justify-center shadow"
         >
           Send
         </button>
       </div>
 
-      {/* Hidden audio for remote voice */}
+      {/* Hidden audio */}
       <audio id="remoteAudio" autoPlay />
     </div>
   );
