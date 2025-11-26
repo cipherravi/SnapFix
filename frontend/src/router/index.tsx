@@ -45,6 +45,7 @@ import WalletShimmer from "../components/shimmer/WalletShimmer";
 import JobsShimmer from "../components/shimmer/JobsShimmer";
 import AccountShimmer from "../components/shimmer/AccountShimmer";
 import ConversationsShimmer from "../components/shimmer/ConversationsShimmer";
+import KycShimmer from "../components/shimmer/KycShimmer";
 
 const router = createBrowserRouter([
   {
@@ -168,7 +169,11 @@ const router = createBrowserRouter([
           },
           {
             path: "kyc",
-            element: <Kyc />,
+            element: (
+              <Suspense fallback={<KycShimmer />}>
+                <Kyc />
+              </Suspense>
+            ),
           },
         ],
       },

@@ -194,7 +194,7 @@ const Create = () => {
         <button
           onClick={handleSubmit}
           disabled={creating}
-          className="w-full sm:w-1/2 h-12 bg-[#0385C2] text-white rounded-3xl text-xl sm:text-2xl inter-medium mx-auto"
+          className="w-full sm:w-1/2 h-12 bg-[#0385C2] text-white rounded-3xl text-xl sm:text-2xl inter-medium mx-auto cursor-pointer"
         >
           {creating ? "Processing" : "Continue"}
         </button>

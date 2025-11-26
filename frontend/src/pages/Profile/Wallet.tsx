@@ -16,7 +16,7 @@ declare global {
 const Wallet = () => {
   const userData = useSelector((s: any) => s.user.userData);
   const { data, error, loading, refetch } = useWalletFetcher();
-
+  console.log(loading);
   const [balance, setBalance] = useState<number>(0);
   const [amount, setAmount] = useState<number>(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -231,16 +231,19 @@ const Wallet = () => {
                 ₹
               </span>
 
-              <span
-                className={`
+              {loading ? (
+                <div className="w-32 h-10 bg-white/30 rounded-xl animate-pulse"></div>
+              ) : (
+                <span
+                  className={`
             text-5xl font-extrabold tracking-tight drop-shadow-xl
             ${balance > 0 ? "text-green-300" : "text-red-300"}
           `}
-              >
-                {Number(balance || 0).toFixed(2)}
-              </span>
+                >
+                  {balance}
+                </span>
+              )}
             </div>
-
             <p className="text-white/70 text-xs mt-2">
               Updated automatically • Secure Wallet
             </p>

@@ -289,7 +289,7 @@ const Account = () => {
           <div className="w-full max-w-2xl flex justify-center gap-4 mt-10">
             {canEdit && (
               <button
-                className="w-2/5 h-12 bg-[#5b5b5b] text-white rounded-3xl text-xl"
+                className="w-2/5 h-12 bg-[#5b5b5b] text-white rounded-3xl text-xl cursor-pointer"
                 onClick={handleCancel}
               >
                 Cancel
@@ -298,7 +298,7 @@ const Account = () => {
 
             <button
               className={`
-        w-2/5 h-12 bg-[#0385C2] text-white rounded-3xl text-xl
+        w-2/5 h-12 bg-[#0385C2] text-white rounded-3xl text-xl cursor-pointer
         ${uploading ? "opacity-60" : ""}
       `}
               disabled={uploading}
