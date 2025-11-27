@@ -1,8 +1,13 @@
 import { useNavigate } from "react-router-dom";
 
-const isIOS =
-  typeof window !== "undefined" &&
-  /iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+const isIOSPWA = () => {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    // fallback for older iOS
+    (window.navigator as any).standalone === true;
+  return isIOS && isStandalone;
+};
 
 const Tabs = () => {
   const navigate = useNavigate();
@@ -16,7 +21,7 @@ const Tabs = () => {
           border border-white/30
           shadow-[0_20px_40px_-10px_rgba(0,0,0,0.25)]
           flex justify-around items-center
-          ${isIOS ? "mb-[env(safe-area-inset-bottom)]" : ""}
+          ${isIOSPWA() ? "mb-[env(safe-area-inset-bottom)]" : ""}
         `}
       >
         <img
