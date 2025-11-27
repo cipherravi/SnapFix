@@ -9,10 +9,7 @@ import { useSelector } from "react-redux";
 import useMessageFetcher from "../utils/Hooks/useMessageFetcher";
 import ChatShimmer from "../components/shimmer/ChatShimmer";
 
-type ChatProps = {
-  verified?: boolean;
-};
-
+type ChatProps = { verified?: boolean };
 type Message = {
   conversationId: string;
   senderId: number;
@@ -27,7 +24,6 @@ const isIOSPWA = () => {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const isStandalone =
     window.matchMedia("(display-mode: standalone)").matches ||
-    // fallback for older iOS
     (window.navigator as any).standalone === true;
   return isIOS && isStandalone;
 };
@@ -35,7 +31,6 @@ const isIOSPWA = () => {
 const Chat = ({ verified = true }: ChatProps) => {
   const { id } = useParams();
   const { conversations } = useConversation();
-
   const userData = useSelector((s: any) => s.user.userData);
   const currentConversation = conversations.find((conv) => conv.id === id);
   const user = currentConversation?.participant;
@@ -43,9 +38,6 @@ const Chat = ({ verified = true }: ChatProps) => {
   const socket = useSocket();
   const { fetchMessages, loading } = useMessageFetcher();
 
-  // -------------------------
-  // Chat states
-  // -------------------------
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [hasMore, setHasMore] = useState(true);
@@ -55,9 +47,7 @@ const Chat = ({ verified = true }: ChatProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // -------------------------
-  // Voice Call States
-  // -------------------------
+  // Voice call
   const [incomingCall, setIncomingCall] = useState(false);
   const [inCall, setInCall] = useState(false);
   const [remoteUserId, setRemoteUserId] = useState<number | null>(null);
@@ -66,20 +56,13 @@ const Chat = ({ verified = true }: ChatProps) => {
 
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const iceCandidatesBuffer = useRef<RTCIceCandidateInit[]>([]);
 
   // -------------------------
-  // Create Peer Connection
-  // -------------------------
+  // Create Peer
   const createPeer = () => {
     const peer = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        // {
-        //   urls: "turn:openrelay.metered.ca:80",
-        //   username: "openrelayproject",
-        //   credential: "openrelayproject",
-        // },
-      ],
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
 
     peer.onicecandidate = (event) => {
@@ -99,9 +82,6 @@ const Chat = ({ verified = true }: ChatProps) => {
     return peer;
   };
 
-  // -------------------------
-  // Start Call (Caller)
-  // -------------------------
   const startCall = async () => {
     if (!socket || !id) return;
 
@@ -113,21 +93,14 @@ const Chat = ({ verified = true }: ChatProps) => {
       .getTracks()
       .forEach((track) => peerRef.current!.addTrack(track, stream));
 
-    // Create offer
     const offer = await peerRef.current.createOffer();
     await peerRef.current.setLocalDescription(offer);
 
     socket.emit("send-offer", { offer, conversationId: id });
   };
 
-  // -------------------------
-  // Accept Call (Receiver)
-  // -------------------------
   const acceptCall = async () => {
-    if (!remoteOffer) {
-      console.error("No peer or offer to accept");
-      return;
-    }
+    if (!remoteOffer) return;
 
     setIncomingCall(false);
 
@@ -139,8 +112,17 @@ const Chat = ({ verified = true }: ChatProps) => {
       .getTracks()
       .forEach((track) => peerRef.current!.addTrack(track, stream));
 
-    // Set remote offer first
     await peerRef.current.setRemoteDescription(remoteOffer!);
+
+    // Flush buffered ICE candidates
+    for (const candidate of iceCandidatesBuffer.current) {
+      try {
+        await peerRef.current.addIceCandidate(candidate);
+      } catch (e) {
+        console.log("Buffered ICE error", e);
+      }
+    }
+    iceCandidatesBuffer.current = [];
 
     const answer = await peerRef.current.createAnswer();
     await peerRef.current.setLocalDescription(answer);
@@ -149,20 +131,13 @@ const Chat = ({ verified = true }: ChatProps) => {
     setInCall(true);
   };
 
-  // -------------------------
-  // Decline call
-  // -------------------------
   const declineCall = () => {
     setIncomingCall(false);
     if (remoteUserId) socket.emit("reject-call", { conversationId: id });
   };
 
-  // -------------------------
-  // End Call
-  // -------------------------
   const endCall = () => {
     setInCall(false);
-
     peerRef.current?.close();
     peerRef.current = null;
 
@@ -173,8 +148,6 @@ const Chat = ({ verified = true }: ChatProps) => {
   };
 
   // -------------------------
-  // Socket Events (Voice)
-  // -------------------------
   useEffect(() => {
     if (!socket) return;
 
@@ -184,28 +157,43 @@ const Chat = ({ verified = true }: ChatProps) => {
     });
 
     socket.on("call-offer", async ({ offer, from }) => {
-      // if this offer is from me → ignore
       if (from === userData?.id) return;
       setRemoteUserId(from);
       setRemoteOffer(offer);
-      setIncomingCall(true); // show popup
+      setIncomingCall(true);
     });
 
     socket.on("call-answered", async ({ answer }) => {
       await peerRef.current?.setRemoteDescription(answer);
+
+      // Flush ICE buffer
+      for (const candidate of iceCandidatesBuffer.current) {
+        try {
+          await peerRef.current?.addIceCandidate(candidate);
+        } catch (e) {
+          console.log("Buffered ICE error", e);
+        }
+      }
+      iceCandidatesBuffer.current = [];
+
       setInCall(true);
     });
 
     socket.on("ice-candidate", async ({ candidate }) => {
-      try {
-        await peerRef.current?.addIceCandidate(candidate);
-      } catch (e) {
-        console.log("ICE error", e);
+      if (!peerRef.current) return;
+
+      if (peerRef.current.remoteDescription) {
+        try {
+          await peerRef.current.addIceCandidate(candidate);
+        } catch (e) {
+          console.log("ICE error", e);
+        }
+      } else {
+        iceCandidatesBuffer.current.push(candidate);
       }
     });
 
-    socket.on("call-ended", () => endCall());
-
+    socket.on("call-ended", endCall);
     socket.on("call-rejected", () => {
       alert("Call was rejected");
       endCall();
@@ -222,9 +210,7 @@ const Chat = ({ verified = true }: ChatProps) => {
   }, [socket, remoteUserId, remoteOffer]);
 
   // -------------------------
-  // Chat logic (unchanged)
-  // -------------------------
-  // ⬇️ Fetch initial messages
+  // Chat fetching
   useEffect(() => {
     if (!id) return;
 
@@ -234,14 +220,12 @@ const Chat = ({ verified = true }: ChatProps) => {
       setShouldScrollToBottom(true);
     };
 
-    if (userData?.id) {
-      socket.emit("markAsRead", id);
-    }
+    if (userData?.id) socket.emit("markAsRead", id);
 
     loadMessages();
   }, [id]);
 
-  // ⬆️ Load older messages on scroll to top
+  // Load older messages
   useEffect(() => {
     const container = chatContainerRef.current;
     if (!container || !id || !hasMore) return;
@@ -260,8 +244,7 @@ const Chat = ({ verified = true }: ChatProps) => {
           setMessages((prev) => [...olderMessages.reverse(), ...prev]);
           setShouldScrollToBottom(false);
           setTimeout(() => {
-            const newHeight = container.scrollHeight;
-            container.scrollTop = newHeight - prevHeight;
+            container.scrollTop = container.scrollHeight - prevHeight;
           }, 0);
         } else {
           setHasMore(false);
@@ -273,29 +256,25 @@ const Chat = ({ verified = true }: ChatProps) => {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [id, messages, loading, hasMore]);
 
-  // 📩 Handle incoming message from socket
+  // Receive messages
   useEffect(() => {
     if (!socket || !id) return;
 
     const handleReceiveMessage = (msg: Message) => {
-      if (msg.conversationId !== id) return; // drop messages for other conv
+      if (msg.conversationId !== id) return;
       setMessages((prev) => [...prev, msg]);
       setShouldScrollToBottom(true);
     };
 
     socket.on("receiveMessage", handleReceiveMessage);
-    // socket.emit("joinRoom", id);
 
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
-      if (userData?.id) {
-        socket.emit("markAsRead", id);
-      }
-      // socket.emit("leaveRoom", id);
+      if (userData?.id) socket.emit("markAsRead", id);
     };
   }, [socket, id]);
 
-  // 🚀 Send message
+  // Send message
   const handleSend = useCallback(() => {
     const trimmed = input.trim();
     if (!trimmed || !socket || !id || !userData?.id) return;
@@ -305,7 +284,7 @@ const Chat = ({ verified = true }: ChatProps) => {
       text: trimmed,
       senderId: userData.id,
       sentAt: new Date(),
-      localId: `${Date.now()}-${Math.random()}`, // unique temp key
+      localId: `${Date.now()}-${Math.random()}`,
     };
 
     setMessages((prev) => [...prev, newMsg]);
@@ -316,20 +295,11 @@ const Chat = ({ verified = true }: ChatProps) => {
     socket.emit("sendMessage", newMsg);
   }, [input, socket, id, userData?.id]);
 
-  //---------------------------------------------
-
-  // ⬇️ Auto-scroll to bottom
   useEffect(() => {
-    if (shouldScrollToBottom) {
+    if (shouldScrollToBottom)
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
   }, [messages]);
 
-  useEffect(() => {
-    if (shouldScrollToBottom) setShouldScrollToBottom(false);
-  }, [shouldScrollToBottom]);
-
-  // ⌨️ Input change + auto-grow
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     if (textareaRef.current) {
@@ -338,7 +308,6 @@ const Chat = ({ verified = true }: ChatProps) => {
     }
   };
 
-  // To check whether text is just emoji's or not
   const isOnlyEmojis = (text: string) => {
     const emojiRegex =
       /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base})+$/gu;
@@ -346,18 +315,11 @@ const Chat = ({ verified = true }: ChatProps) => {
   };
 
   // -------------------------
-  // JSX
-  // -------------------------
   return (
-    <div className="w-full h-dvh flex flex-col bg-gray-50">
+    <div className="relative w-full h-dvh flex flex-col bg-gray-50">
       {/* Header */}
       <div className="h-16 bg-gray-100 flex items-center gap-4 shadow-sm px-4 z-10">
-        <BackButton
-          navigateTo="/conversations"
-          // imgUrl="/svg/dropdown-arrow.svg"
-          bgColor="transparent"
-          // rotateDegree="90deg"
-        />
+        <BackButton navigateTo="/conversations" bgColor="transparent" />
         <img
           src="/svg/profile.svg"
           alt="Profile Pic"
@@ -367,7 +329,6 @@ const Chat = ({ verified = true }: ChatProps) => {
           {user?.name}
         </h1>
 
-        {/* Call Button */}
         {!inCall ? (
           <button
             className="ml-auto bg-green-500 hover:bg-green-600 transition-colors text-white px-4 py-2 rounded-full shadow-sm"
@@ -385,9 +346,9 @@ const Chat = ({ verified = true }: ChatProps) => {
         )}
       </div>
 
-      {/* Incoming Call Popup */}
+      {/* Incoming Call */}
       {incomingCall && (
-        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white shadow-xl p-5 rounded-2xl text-center w-80 z-100">
+        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white shadow-xl p-5 rounded-2xl text-center w-80 z-50">
           <p className="text-lg font-medium mb-3">📞 Incoming Call…</p>
           <div className="flex gap-4 justify-center">
             <button
@@ -406,7 +367,7 @@ const Chat = ({ verified = true }: ChatProps) => {
         </div>
       )}
 
-      {/* Chat Area */}
+      {/* Chat */}
       <div
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto px-4 py-3 space-y-3 flex flex-col custom-scrollbar"
@@ -417,23 +378,21 @@ const Chat = ({ verified = true }: ChatProps) => {
           messages.map((msg, index) => {
             const onlyEmoji = isOnlyEmojis(msg.text || "");
             const isMe = msg?.senderId === userData?.id;
-
             return (
               <div
                 key={
                   msg._id ?? msg.localId ?? msg.createdAt?.toString() ?? index
                 }
                 className={`max-w-[80%] px-4 py-2 rounded-2xl shadow-sm wrap-break-word whitespace-pre-wrap transition-all duration-300
-            ${
-              isMe
-                ? onlyEmoji
-                  ? "text-5xl self-end bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
-                  : "self-end bg-blue-500 text-white text-sm shadow-md animate-slideUpFade"
-                : onlyEmoji
-                ? "text-5xl self-start bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
-                : "self-start bg-white text-gray-800 text-sm shadow-md animate-slideUpFade"
-            }
-          `}
+                ${
+                  isMe
+                    ? onlyEmoji
+                      ? "text-5xl self-end bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
+                      : "self-end bg-blue-500 text-white text-sm shadow-md animate-slideUpFade"
+                    : onlyEmoji
+                    ? "text-5xl self-start bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
+                    : "self-start bg-white text-gray-800 text-sm shadow-md animate-slideUpFade"
+                }`}
               >
                 {msg.text}
               </div>
@@ -448,9 +407,7 @@ const Chat = ({ verified = true }: ChatProps) => {
         className="bg-gray-100 w-full px-4 py-3 flex items-end gap-2 shrink-0"
         style={
           isIOSPWA()
-            ? {
-                paddingBottom: `calc(env(safe-area-inset-bottom) + 10px)`, // <-- important
-              }
+            ? { paddingBottom: `calc(env(safe-area-inset-bottom) + 10px)` }
             : undefined
         }
       >
@@ -468,7 +425,6 @@ const Chat = ({ verified = true }: ChatProps) => {
             }
           }}
         />
-
         <button
           onClick={handleSend}
           className="bg-blue-500 hover:bg-blue-600 transition-colors text-white px-6 py-2 rounded-full font-medium h-11 flex items-center justify-center shadow"
@@ -477,7 +433,6 @@ const Chat = ({ verified = true }: ChatProps) => {
         </button>
       </div>
 
-      {/* Hidden audio */}
       <audio id="remoteAudio" autoPlay />
     </div>
   );
