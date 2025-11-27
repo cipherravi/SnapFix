@@ -28,6 +28,15 @@ type Message = {
   localId?: string;
 };
 
+const isIOSPWA = () => {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    // fallback for older iOS
+    (window.navigator as any).standalone === true;
+  return isIOS && isStandalone;
+};
+
 const Chat = ({ verified = true }: ChatProps) => {
   const { id } = useParams();
   const { conversations } = useConversation();
@@ -422,7 +431,16 @@ const Chat = ({ verified = true }: ChatProps) => {
       </div>
 
       {/* Footer */}
-      <div className="bg-gray-100 w-full px-4 py-3 flex items-end gap-2 shrink-0">
+      <div
+        className="bg-gray-100 w-full px-4 py-3 flex items-end gap-2 shrink-0"
+        style={
+          isIOSPWA()
+            ? {
+                paddingBottom: `calc(env(safe-area-inset-bottom) + 10px)`, // <-- important
+              }
+            : undefined
+        }
+      >
         <textarea
           ref={textareaRef}
           value={input}
@@ -437,6 +455,7 @@ const Chat = ({ verified = true }: ChatProps) => {
             }
           }}
         />
+
         <button
           onClick={handleSend}
           className="bg-blue-500 hover:bg-blue-600 transition-colors text-white px-6 py-2 rounded-full font-medium h-11 flex items-center justify-center shadow"
