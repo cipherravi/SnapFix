@@ -5,8 +5,11 @@ import { useNavigate } from "react-router-dom";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import ConfirmModal from "../../components/modals/ConfirmModal";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
 const Main = () => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const navigate = useNavigate();
   const { addresses, setAddresses } = useAddressContext();
 
@@ -25,7 +28,10 @@ const Main = () => {
         `${VITE_API_BASE_URL}/api/v1/addresses/${selectedId}`,
         {
           method: "DELETE",
-          credentials: "include",
+          // credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       const data = await response.json();

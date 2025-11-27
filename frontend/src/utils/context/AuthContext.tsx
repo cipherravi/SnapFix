@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const checkAuth = async () => {
     try {
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/check-auth`, {
-        credentials: "include", // Send cookies
+        // credentials: "include"
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       await fetch(`${VITE_API_BASE_URL}/api/v1/auth/logout`, {
         method: "POST",
-        credentials: "include",
+        // credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },

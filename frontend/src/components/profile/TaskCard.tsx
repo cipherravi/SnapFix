@@ -38,6 +38,8 @@ const TaskCard = ({
   createdAt,
   payment,
 }: TaskCardProps) => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const navigate = useNavigate();
   // const { userData } = useUserInfo();
   const userData = useSelector((store: any) => store.user.userData);
@@ -59,8 +61,11 @@ const TaskCard = ({
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/jobs/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status: newStatus }),
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        // credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
       const data = await res.json();
 

@@ -5,6 +5,7 @@ import useJobBillsFetcher from "../utils/Hooks/useJobBillsFetcher";
 import { useExploreContext } from "../utils/context/ExploreContext";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -28,6 +29,8 @@ interface jobBills {
 }
 
 const Payment = () => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { fetchJobBills, fetching } = useJobBillsFetcher();
@@ -50,9 +53,10 @@ const Payment = () => {
     try {
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/payments/initiate`, {
         method: "POST",
-        credentials: "include",
+        // credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           amount: jobBills?.total,
@@ -122,8 +126,11 @@ const Payment = () => {
               `${VITE_API_BASE_URL}/api/v1/payments/verify`,
               {
                 method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
+                // credentials: "include",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify({
                   razorpay_payment_id,
                   razorpay_order_id,

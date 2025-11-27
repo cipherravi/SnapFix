@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { sanitizeBudgetInput } from "../../utils/inputSanitizers";
 
 import MapPicker from "../map/MapPicker";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -26,6 +26,8 @@ const EditSection = ({
   latitude,
   longitude,
 }: EditSectionProps) => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const [jobTitle, setJobTitle] = useState(title);
   const [jobBudget, setJobBudget] = useState(budget.toString());
   const [jobDescription, setJobDescription] = useState(description);
@@ -42,8 +44,11 @@ const EditSection = ({
     try {
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/jobs/${id}`, {
         method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        // credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           title: jobTitle,
           description: jobDescription,

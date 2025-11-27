@@ -14,6 +14,8 @@ declare global {
 }
 
 const Wallet = () => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const userData = useSelector((s: any) => s.user.userData);
   const { data, error, loading, refetch } = useWalletFetcher();
   console.log(loading);
@@ -41,8 +43,11 @@ const Wallet = () => {
 
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/wallet/add-money`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        // credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ amount, purpose: "add_balance" }),
       });
 
@@ -76,8 +81,11 @@ const Wallet = () => {
         `${VITE_API_BASE_URL}/api/v1/wallet/withdraw-money`,
         {
           method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          // credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ amount, purpose: "withdrawal" }),
         }
       );
@@ -99,8 +107,11 @@ const Wallet = () => {
     try {
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/wallet/pay-debt`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        // credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ amount, purpose: "repayment" }),
       });
 
@@ -140,8 +151,11 @@ const Wallet = () => {
               `${VITE_API_BASE_URL}/api/v1/wallet/verify`,
               {
                 method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
+                // credentials: "include",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify({
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_order_id: response.razorpay_order_id,

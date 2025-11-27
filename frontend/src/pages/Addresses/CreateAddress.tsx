@@ -14,9 +14,13 @@ import userCityFetcher from "../../utils/Hooks/useCityFetcher";
 import useAreaFetcher from "../../utils/Hooks/useAreaFetcher";
 import { useAddressContext } from "../../utils/context/AddressContext";
 
+import { useSelector } from "react-redux";
+
 import type { State, Area, City, District } from "../../../types";
 
 const CreateAddress = () => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const navigate = useNavigate();
   const { loadAddresses } = useAddressContext();
 
@@ -114,8 +118,9 @@ const CreateAddress = () => {
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        credentials: "include",
+        // credentials: "include",
         body: JSON.stringify({
           building,
           street,

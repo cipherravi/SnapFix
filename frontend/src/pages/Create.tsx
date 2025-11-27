@@ -10,6 +10,7 @@ import type { Address } from "../../types";
 import { useAddressContext } from "../utils/context/AddressContext";
 import compressImage from "../utils/compressImage";
 import sortByName from "../utils/sortByName";
+import { useSelector } from "react-redux";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,6 +20,8 @@ interface BaseOption {
 }
 
 const Create = () => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const navigate = useNavigate();
   const { addresses } = useAddressContext();
   const [categoryOptions, setCategoryOptions] = useState<BaseOption[]>([]);
@@ -96,7 +99,10 @@ const Create = () => {
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/jobs`, {
         method: "POST",
         body: formData,
-        credentials: "include",
+        // credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const data = await response.json();

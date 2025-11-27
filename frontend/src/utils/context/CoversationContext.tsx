@@ -63,7 +63,7 @@ const ConversationProvider = ({ children }: ConversationProviderProps) => {
     try {
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/conversations`, {
         method: "GET",
-        credentials: "include",
+        // credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

@@ -7,10 +7,13 @@ import MapPicker from "../../components/map/MapPicker";
 import { useAddressContext } from "../..//utils/context/AddressContext";
 import type { Address } from "../../../types";
 import EditAddressShimmer from "../../components/shimmer/EditAddressShimmer";
+import { useSelector } from "react-redux";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const EditAddress = () => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { addresses, loadAddresses } = useAddressContext();
@@ -61,8 +64,9 @@ const EditAddress = () => {
         method: "PATCH",
         headers: {
           "Content-type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        credentials: "include",
+        // credentials: "include",
         body: JSON.stringify({
           id,
           building,

@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { useConversation } from "../../utils/context/CoversationContext";
+import { useSelector } from "react-redux";
 
 interface Application {
   id: number;
@@ -29,6 +30,8 @@ const ApplicantCard = ({
   onReject,
   onAssign,
 }: ApplicantCardProps) => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const navigate = useNavigate();
   const { fetchConversations } = useConversation();
   const [isAssigning, setIsAssigning] = useState(false);
@@ -42,9 +45,10 @@ const ApplicantCard = ({
           `${VITE_API_BASE_URL}/api/v1/jobs/${applicant.jobId}/accept`,
           {
             method: "POST",
-            credentials: "include",
+            // credentials: "include",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ userId: applicant.userId }),
           }
@@ -79,9 +83,10 @@ const ApplicantCard = ({
           `${VITE_API_BASE_URL}/api/v1/jobs/${applicant.jobId}/applicants/${applicant.id}/reject`,
           {
             method: "POST",
-            credentials: "include",
+            // credentials: "include",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -103,9 +108,10 @@ const ApplicantCard = ({
       const response = await fetch(
         `${VITE_API_BASE_URL}/api/v1/conversations/${applicant.jobId}`,
         {
-          credentials: "include",
+          // credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );

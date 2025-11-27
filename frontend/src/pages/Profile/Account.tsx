@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Account = () => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const userData = useSelector((s: any) => s.user.userData);
 
   const { fetchPublicImage } = useImageFetcher();
@@ -113,8 +115,11 @@ const Account = () => {
 
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/users/me`, {
         method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        // credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 

@@ -4,6 +4,7 @@ import UpdateStatusModal from "../modals/UpdateStatusModal";
 import toast from "react-hot-toast";
 import { useState } from "react";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { useSelector } from "react-redux";
 
 type jobCardProps = {
   id: number;
@@ -27,6 +28,8 @@ const JobCard = ({
   budget,
   worker,
 }: jobCardProps) => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(status);
@@ -39,7 +42,10 @@ const JobCard = ({
         method: "PATCH",
         body: JSON.stringify({ status: newStatus }),
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
       const data = await res.json();
 
