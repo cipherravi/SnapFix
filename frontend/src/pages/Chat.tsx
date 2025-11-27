@@ -399,7 +399,7 @@ const Chat = ({ verified = true }: ChatProps) => {
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto px-4 py-3 space-y-3 flex flex-col custom-scrollbar"
       >
-        {!loading && messages.length !== 0 ? (
+        {loading && messages.length === 0 ? (
           <ChatShimmer count={20} />
         ) : (
           messages.map((msg, index) => {
