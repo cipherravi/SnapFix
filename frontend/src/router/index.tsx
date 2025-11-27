@@ -51,6 +51,7 @@ import CreateJobShimmer from "../components/shimmer/CreateJobShimmer";
 import AddressShimmer from "../components/shimmer/AddressShimmer";
 import CreateAddressShimmer from "../components/shimmer/CreateAddressShimmer";
 import EditAddressShimmer from "../components/shimmer/EditAddressShimmer";
+import JobPosterShimmer from "../components/shimmer/JobPosterShimmer";
 
 const router = createBrowserRouter([
   {
@@ -211,7 +212,11 @@ const router = createBrowserRouter([
       },
       {
         path: `jobs/:id/:title`,
-        element: <JobPoster />,
+        element: (
+          <Suspense fallback={<JobPosterShimmer />}>
+            <JobPoster />
+          </Suspense>
+        ),
       },
       {
         path: "admin",

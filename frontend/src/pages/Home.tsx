@@ -103,7 +103,7 @@ function Home() {
 
           {/* INITIAL SHIMMER — only before first load */}
           {!hasLoadedOnce && jobsLoading && (
-            <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 rounded-2xl pb-20">
               {Array.from({ length: 8 }).map((_, idx) => (
                 <div
                   key={idx}

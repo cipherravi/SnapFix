@@ -96,64 +96,76 @@ const JobPoster = () => {
   return (
     <div className="w-full min-h-screen flex flex-col bg-white relative">
       {/* Back Button */}
-      <div className="absolute top-4 left-3 z-10">
-        <BackButton navigateTo="/explore" />
+      <div className="absolute top-4 left-0 right-0 z-20 flex justify-start">
+        <div className="mx-auto w-full max-w-3xl px-5">
+          <BackButton navigateTo="/explore" />
+        </div>
       </div>
 
       {/* Banner Swiper */}
-      <div className="relative w-full h-60 rounded-b-4xl overflow-hidden bg-gray-200">
-        {/* Prevent BackButton shift by reserving space */}
-        <div className="absolute top-4 left-3 w-8 h-8"></div>
-
-        {imageUrls.length > 1 ? (
-          <Swiper
-            modules={[Autoplay, Pagination]}
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            pagination={{ clickable: true }}
-            loop
-            className="w-full h-full"
-          >
-            {imageUrls.map((src, index) => (
-              <SwiperSlide key={index}>
-                <img
-                  src={src}
-                  alt=""
-                  className="w-full h-full object-contain aspect-4/3"
-                  loading="lazy"
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        ) : imageUrls.length === 1 ? (
-          <img
-            src={imageUrls[0]}
-            alt=""
-            className="w-full h-full object-contain aspect-4/3"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-            No images available
+      <div className="w-full flex justify-center">
+        <div
+          className="
+      relative w-full max-w-3xl h-60 sm:h-64 md:h-72 
+      overflow-hidden bg-gray-200 
+      rounded-b-4xl  
+      shadow-lg
+    "
+        >
+          {/* Reserve space for back button */}
+          <div className="absolute top-4 left-0 right-0">
+            <div className="px-5 h-8"></div>
           </div>
-        )}
+
+          {imageUrls.length > 1 ? (
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              pagination={{ clickable: true }}
+              loop
+              className="w-full h-full"
+            >
+              {imageUrls.map((src, index) => (
+                <SwiperSlide key={index}>
+                  <img
+                    src={src}
+                    alt=""
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : imageUrls.length === 1 ? (
+            <img
+              src={imageUrls[0]}
+              alt=""
+              className="w-full h-full object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              No images available
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Info Section */}
-      <div className="flex flex-col gap-6 p-5">
-        {/* Title & Apply */}
+      {/* Content */}
+      <div className="flex flex-col gap-6 p-5 w-full max-w-3xl mx-auto">
+        {/* Title + Apply */}
         <div className="flex justify-between items-start gap-4">
           <h1
             className={`text-2xl poppins-semibold flex-1 cursor-pointer ${
               isTitleExpanded ? "whitespace-normal" : "truncate"
             }`}
-            onClick={() => setIsTitleExpanded((prev) => !prev)}
-            title="Click to expand/collapse"
+            onClick={() => setIsTitleExpanded((p) => !p)}
           >
             {jobDetails?.title}
           </h1>
 
           <button
-            className="px-5 py-2 rounded-xl bg-[#0385C2] text-white inter-semibold hover:bg-[#0274aa] transition-all"
+            className="px-5 py-2 rounded-xl bg-[#0385C2] text-white inter-semibold hover:bg-[#0274aa]"
             onClick={() => setShowMessageModal(true)}
           >
             Apply
@@ -163,14 +175,12 @@ const JobPoster = () => {
         <ApplyJobModal
           isOpen={showMessageModal}
           onConfirm={applyHandler}
-          onCancel={() => {
-            setShowMessageModal(false);
-          }}
+          onCancel={() => setShowMessageModal(false)}
           message="Send custom message to client which will increase chances of your selection"
           setMessage={setMessage}
         />
 
-        {/* Budget & Posted Date */}
+        {/* Budget */}
         <div className="flex flex-col gap-2 text-gray-700 text-[16px]">
           <p>
             <strong>Budget:</strong> ₹{jobDetails?.budget}
@@ -185,10 +195,9 @@ const JobPoster = () => {
           className={`text-gray-800 text-sm leading-relaxed cursor-pointer ${
             isDescExpanded ? "whitespace-pre-wrap" : "line-clamp-4"
           }`}
-          onClick={() => setIsDescExpanded((prev) => !prev)}
-          title="Click to expand/collapse"
+          onClick={() => setIsDescExpanded((p) => !p)}
         >
-          <strong>Description:</strong>{" "}
+          <strong>Description: </strong>
           {jobDetails?.description || "No description provided."}
         </div>
 
@@ -200,29 +209,26 @@ const JobPoster = () => {
         )}
 
         {/* Map Section */}
-        {jobDetails?.latitude &&
-          jobDetails?.longitude &&
-          !isNaN(Number(jobDetails.latitude)) &&
-          !isNaN(Number(jobDetails.longitude)) && (
-            <>
-              <MapDisplay
-                location={[
-                  Number(jobDetails.latitude),
-                  Number(jobDetails.longitude),
-                ]}
-                animateOnLoad={true}
-              />
+        {jobDetails?.latitude && jobDetails?.longitude && (
+          <>
+            <MapDisplay
+              location={[
+                Number(jobDetails.latitude),
+                Number(jobDetails.longitude),
+              ]}
+              animateOnLoad
+            />
 
-              <a
-                href={`https://www.google.com/maps?q=${jobDetails.latitude},${jobDetails.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-block px-4 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition"
-              >
-                Track on Google Maps
-              </a>
-            </>
-          )}
+            <a
+              href={`https://www.google.com/maps?q=${jobDetails.latitude},${jobDetails.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block px-4 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 text-center"
+            >
+              Track on Google Maps
+            </a>
+          </>
+        )}
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ import BackButton from "../components/Buttons/BackButton";
 import useIsMobile from "../utils/Hooks/useIsMobile";
 import { useSocket } from "../utils/context/SocketContext";
 import { useConversation } from "../utils/context/CoversationContext";
-// import { useUserInfo } from "../utils/context/UserInfoContext";
+
 import { useSelector } from "react-redux";
 import useMessageFetcher from "../utils/Hooks/useMessageFetcher";
 
@@ -31,7 +31,7 @@ type Message = {
 const Chat = ({ verified = true }: ChatProps) => {
   const { id } = useParams();
   const { conversations } = useConversation();
-  // const { userData } = useUserInfo();
+
   const userData = useSelector((s: any) => s.user.userData);
   const currentConversation = conversations.find((conv) => conv.id === id);
   const user = currentConversation?.participant;
@@ -345,7 +345,7 @@ const Chat = ({ verified = true }: ChatProps) => {
   // JSX
   // -------------------------
   return (
-    <div className="w-full h-full flex flex-col bg-gray-50">
+    <div className="w-full h-dvh flex flex-col bg-gray-50">
       {/* Header */}
       <div className="h-16 bg-gray-100 flex items-center gap-4 shadow-sm px-4 z-10">
         <BackButton
