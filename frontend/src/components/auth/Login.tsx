@@ -3,9 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../../utils/context/AuthContext";
 import { useDispatch } from "react-redux";
-import { setAuthenticated } from "../../features/auth/authSlice";
+import { setAuthenticated, setToken } from "../../features/auth/authSlice";
 import BackButton from "../Buttons/BackButton";
 import { useConversation } from "../../utils/context/CoversationContext";
+import { saveToken } from "../../utils/tokenDB";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -64,6 +65,8 @@ const Login = () => {
         toast.success(data.message || "Login successful!");
         await checkAuth();
         dispatch(setAuthenticated());
+        dispatch(setToken(data.data));
+        saveToken(data.data);
         await fetchConversations();
 
         navigate("/explore");

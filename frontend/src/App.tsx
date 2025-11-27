@@ -8,12 +8,21 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetProfileQuery } from "./services/api/userApi";
 import { setUser } from "./features/user/userSlice";
+import { setToken } from "./features/auth/authSlice";
+import { loadToken } from "./utils/tokenDB";
 
 function App() {
   const [showSplash, setShowSplash] = useState(false);
   const [fadeSplash, setFadeSplash] = useState(false);
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((s: any) => s.auth.isAuthenticated);
+  const token = useSelector((s: any) => s.auth.token);
+
+  window.addEventListener("load", async () => {
+    const token = await loadToken();
+    console.log("Loaded saved token:", token);
+    dispatch(setToken(token));
+  });
 
   const { data, isLoading } = useGetProfileQuery(undefined, {
     skip: !isAuthenticated,

@@ -6,6 +6,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { useSelector } from "react-redux";
+
 // Environment variable
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -52,6 +54,7 @@ interface ConversationProviderProps {
 }
 
 const ConversationProvider = ({ children }: ConversationProviderProps) => {
+  const token = useSelector((s: any) => s.auth.token);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -63,6 +66,7 @@ const ConversationProvider = ({ children }: ConversationProviderProps) => {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -74,9 +78,7 @@ const ConversationProvider = ({ children }: ConversationProviderProps) => {
 
       setConversations(data?.data || []);
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error("Error fetching conversations:", error);
-      }
+      console.error("Error fetching conversations:", error);
     } finally {
       setLoading(false);
     }

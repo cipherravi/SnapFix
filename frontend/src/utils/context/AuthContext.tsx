@@ -5,6 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useSelector } from "react-redux";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -25,11 +26,15 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = loading
+  const token = useSelector((s: any) => s.auth.token);
 
   const checkAuth = async () => {
     try {
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/check-auth`, {
         credentials: "include", // Send cookies
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       setIsLoggedIn(res?.ok || false);
@@ -43,6 +48,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await fetch(`${VITE_API_BASE_URL}/api/v1/auth/logout`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       setIsLoggedIn(false);

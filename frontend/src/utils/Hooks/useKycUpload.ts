@@ -1,9 +1,12 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const useKycUpload = () => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const [uploading, setUploading] = useState(false);
 
   const uploadKyc = async ({
@@ -33,7 +36,10 @@ const useKycUpload = () => {
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/kyc/submit`, {
         method: "POST",
         body: formData,
-        credentials: "include",
+        // credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const data = await response.json();

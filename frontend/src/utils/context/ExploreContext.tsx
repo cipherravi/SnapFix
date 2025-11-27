@@ -7,6 +7,7 @@ import {
 } from "react";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import useJobFetcher from "../Hooks/useJobFetcher";
+import { useSelector } from "react-redux";
 
 interface Asset {
   id: number;
@@ -53,6 +54,8 @@ interface ExploreContextType {
 const ExploreContext = createContext<ExploreContextType | undefined>(undefined);
 
 export const ExploreProvider = ({ children }: ExploreProviderProps) => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const [jobs, setJobs] = useState<Job[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [jobsLoading, setJobsLoading] = useState(true);
@@ -66,7 +69,10 @@ export const ExploreProvider = ({ children }: ExploreProviderProps) => {
       const res = await fetch(
         `${VITE_API_BASE_URL}/api/v1/jobs?offset=${offset}`,
         {
-          credentials: "include",
+          // credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       const data = await res.json();
@@ -99,7 +105,10 @@ export const ExploreProvider = ({ children }: ExploreProviderProps) => {
     setCategoriesLoading(true);
     try {
       const res = await fetch(`${VITE_API_BASE_URL}/api/v1/categories`, {
-        credentials: "include",
+        // credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       const data = await res.json();
       setCategories(data?.data || []);

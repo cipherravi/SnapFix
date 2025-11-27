@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { io, Socket } from "socket.io-client";
+import { useSelector } from "react-redux";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -16,12 +17,17 @@ type SocketProviderProps = {
 };
 
 const SocketProvider = ({ children }: SocketProviderProps) => {
+  const token = useSelector((s: any) => s.auth.token);
+
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     const newSocket = io(VITE_API_BASE_URL, {
       transports: ["websocket"],
-      withCredentials: true,
+      // withCredentials: true,
+      extraHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     setSocket(newSocket);
 

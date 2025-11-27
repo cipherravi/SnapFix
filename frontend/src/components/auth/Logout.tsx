@@ -2,8 +2,10 @@ import { useAuth } from "../../utils/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { clearUser } from "../../features/user/userSlice";
-import { setUnauthenticated } from "../../features/auth/authSlice";
+import { setUnauthenticated, removeToken } from "../../features/auth/authSlice";
 import { api } from "../../services/api/api";
+import { clearToken } from "../../utils/tokenDB";
+
 const Logout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -14,8 +16,9 @@ const Logout = () => {
       onClick={async () => {
         dispatch(clearUser());
         dispatch(setUnauthenticated());
+        dispatch(removeToken());
         dispatch(api.util.resetApiState());
-
+        clearToken();
         await logout();
         await checkAuth();
         navigate("/login");
