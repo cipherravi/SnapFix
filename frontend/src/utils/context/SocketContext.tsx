@@ -25,8 +25,8 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     const newSocket = io(VITE_API_BASE_URL, {
       transports: ["websocket"],
       // withCredentials: true,
-      extraHeaders: {
-        Authorization: `Bearer ${token}`,
+      auth: {
+        token,
       },
     });
     setSocket(newSocket);

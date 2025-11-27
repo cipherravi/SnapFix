@@ -28,11 +28,7 @@ function setupSocket(server, allowedOrigins) {
   // Middleware: Authenticate using cookies
   io.use((socket, next) => {
     try {
-      const rawCookie = socket.handshake.headers.cookie;
-      if (!rawCookie) return next(new Error("No cookies provided"));
-
-      const parsed = cookie.parse(rawCookie);
-      const token = parsed.token;
+      const token = socket.handshake.auth.token;
 
       if (!token) return next(new Error("Token missing"));
 
@@ -40,7 +36,7 @@ function setupSocket(server, allowedOrigins) {
       socket.user = user;
       next();
     } catch (err) {
-      next(new Error("Invalid authentication"));
+      next(new Error("Invalid Token"));
     }
   });
 
