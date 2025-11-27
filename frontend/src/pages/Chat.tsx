@@ -74,11 +74,11 @@ const Chat = ({ verified = true }: ChatProps) => {
     const peer = new RTCPeerConnection({
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
-        {
-          urls: "turn:openrelay.metered.ca:80",
-          username: "openrelayproject",
-          credential: "openrelayproject",
-        },
+        // {
+        //   urls: "turn:openrelay.metered.ca:80",
+        //   username: "openrelayproject",
+        //   credential: "openrelayproject",
+        // },
       ],
     });
 
@@ -387,7 +387,7 @@ const Chat = ({ verified = true }: ChatProps) => {
 
       {/* Incoming Call Popup */}
       {incomingCall && (
-        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white shadow-xl p-5 rounded-2xl text-center w-80">
+        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white shadow-xl p-5 rounded-2xl text-center w-80 z-100">
           <p className="text-lg font-medium mb-3">📞 Incoming Call…</p>
           <div className="flex gap-4 justify-center">
             <button

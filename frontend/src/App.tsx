@@ -21,7 +21,6 @@ function App() {
 
   window.addEventListener("load", async () => {
     const token = await loadToken();
-    console.log("Loaded saved token:", token);
     dispatch(setToken(token));
   });
 
