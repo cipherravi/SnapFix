@@ -77,7 +77,7 @@ function App() {
   return showSplash ? (
     <Splash fadeOut={fadeSplash} />
   ) : (
-    <div className="h-dvh w-full">
+    <div className="min-h-svh w-full">
       <ScrollToTop />
       <Outlet />
 

@@ -9,12 +9,15 @@ const Tabs = () => {
 
   return (
     <div
-      className={`w-full h-14  bottom-0 flex justify-center fixed z-9999 ${
-        isIOS ? "pb-[env(safe-area-inset-bottom)] mb-2" : ""
-      }
-`}
+      className={`w-full bottom-0 flex justify-center fixed z-9999
+  ${isIOS ? "pb-[env(safe-area-inset-bottom)] mb-2" : "h-14"}`}
     >
-      <div className="w-[95%] h-full rounded-full bg-[#F4F4F4] flex justify-around items-center">
+      <div
+        className="w-[95%] h-14 rounded-full
+  bg-white/20 backdrop-blur-xl
+  border border-white/30 shadow-lg
+  flex justify-around items-center"
+      >
         <img
           src="/svg/home.svg"
           alt="Home"
