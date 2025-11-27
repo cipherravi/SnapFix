@@ -6,7 +6,10 @@ const useJobFetcher = () => {
 
   const fetchMyJobs = async () => {
     const res = await fetch(`${VITE_API_BASE_URL}/api/v1/jobs/me`, {
-      credentials: "include",
+      // credentials: "include",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     const data = await res.json();
 
