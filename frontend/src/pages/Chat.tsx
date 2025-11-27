@@ -178,10 +178,10 @@ const Chat = ({ verified = true }: ChatProps) => {
   useEffect(() => {
     if (!socket) return;
 
-    // socket.on("incoming-call", ({ from }) => {
-    //   setRemoteUserId(from);
-    //   setIncomingCall(true);
-    // });
+    socket.on("incoming-call", ({ from }) => {
+      setRemoteUserId(from);
+      setIncomingCall(true);
+    });
 
     socket.on("call-offer", async ({ offer, from }) => {
       // if this offer is from me → ignore
@@ -369,11 +369,17 @@ const Chat = ({ verified = true }: ChatProps) => {
 
         {/* Call Button */}
         {!inCall ? (
-          <button className="ml-auto bg-green-500 hover:bg-green-600 transition-colors text-white px-4 py-2 rounded-full shadow-sm">
+          <button
+            className="ml-auto bg-green-500 hover:bg-green-600 transition-colors text-white px-4 py-2 rounded-full shadow-sm"
+            onClick={startCall}
+          >
             📞 Call
           </button>
         ) : (
-          <button className="ml-auto bg-red-500 hover:bg-red-600 transition-colors text-white px-4 py-2 rounded-full shadow-sm">
+          <button
+            className="ml-auto bg-red-500 hover:bg-red-600 transition-colors text-white px-4 py-2 rounded-full shadow-sm"
+            onClick={endCall}
+          >
             🔴 End
           </button>
         )}
@@ -384,10 +390,16 @@ const Chat = ({ verified = true }: ChatProps) => {
         <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white shadow-xl p-5 rounded-2xl text-center w-80">
           <p className="text-lg font-medium mb-3">📞 Incoming Call…</p>
           <div className="flex gap-4 justify-center">
-            <button className="bg-green-500 hover:bg-green-600 transition-colors text-white px-6 py-2 rounded-full shadow">
+            <button
+              className="bg-green-500 hover:bg-green-600 transition-colors text-white px-6 py-2 rounded-full shadow"
+              onClick={acceptCall}
+            >
               Accept
             </button>
-            <button className="bg-red-500 hover:bg-red-600 transition-colors text-white px-6 py-2 rounded-full shadow">
+            <button
+              className="bg-red-500 hover:bg-red-600 transition-colors text-white px-6 py-2 rounded-full shadow"
+              onClick={declineCall}
+            >
               Decline
             </button>
           </div>
