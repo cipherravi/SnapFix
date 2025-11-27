@@ -10,6 +10,7 @@ import { useGetProfileQuery } from "./services/api/userApi";
 import { setUser } from "./features/user/userSlice";
 import { setToken } from "./features/auth/authSlice";
 import { loadToken } from "./utils/tokenDB";
+import { Analytics } from "@vercel/analytics/next";
 
 function App() {
   const [showSplash, setShowSplash] = useState(false);
@@ -82,7 +83,7 @@ function App() {
       <Outlet />
 
       {shouldShowTabs && <Tabs />}
-
+      <Analytics />
       <Toaster position="top-right" />
     </div>
   );
