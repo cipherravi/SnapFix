@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useConversation } from "../utils/context/CoversationContext";
 import ChatCard from "../components/ChatCard";
 import { formatTime } from "../utils/formatTime";
-import ConversationsListShimmer from "../components/shimmer/ConversationsLIstShimmer";
+import ConversationsListShimmer from "../components/shimmer/ConversationsListShimmer";
 const Conversations = () => {
   const [search, setSearch] = useState("");
   const [firstLoad, setFirstLoad] = useState(false);
