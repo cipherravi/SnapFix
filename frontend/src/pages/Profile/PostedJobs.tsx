@@ -3,6 +3,7 @@ import BackButton from "../../components/Buttons/BackButton";
 import useJobFetcher from "../../utils/Hooks/useJobFetcher";
 import JobCard from "../../components/profile/JobCard";
 import useProfilesFetcher from "../../utils/Hooks/useProfilesFetcher";
+import JobsRefetchShimmer from "../../components/shimmer/JobsRefetchShimmer";
 
 interface MyJob {
   id: number;
@@ -20,6 +21,7 @@ const PostedJobs = () => {
   const { fetchMyJobs } = useJobFetcher();
   const [myJobs, setMyJobs] = useState<MyJob[]>([]);
   const [workerProfiles, setWorkerProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const fetchWorkerProfiles = useProfilesFetcher();
 
   const workerMap = useMemo(() => {
@@ -28,29 +30,28 @@ const PostedJobs = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true); // start loading
       const fetchedMyJobs = await fetchMyJobs();
       setMyJobs(fetchedMyJobs);
-    };
-    fetchData();
-  }, []);
 
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      //  Extract Unique workerIds
-      const workerIds = Array.from(
-        new Set(myJobs.map((job) => job.workerId).filter((id) => id != null))
+      // Fetch worker profiles
+      const workerIds: number[] = Array.from(
+        new Set(
+          fetchedMyJobs
+            .map((job: MyJob) => job.workerId)
+            .filter((id: number | null | undefined): id is number => id != null)
+        )
       );
 
       if (workerIds.length > 0) {
         const fetchedWorkerProfiles = await fetchWorkerProfiles({ workerIds });
         setWorkerProfiles(fetchedWorkerProfiles);
       }
-    };
 
-    if (myJobs.length > 0) {
-      fetchProfiles();
-    }
-  }, [myJobs]);
+      setLoading(false); // finished loading
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col bg-white px-4 sm:px-6 md:px-10 py-6">
@@ -82,7 +83,9 @@ const PostedJobs = () => {
       {/* Job Cards */}
       <div className="flex-1 overflow-y-auto">
         <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
-          {myJobs.length > 0 ? (
+          {loading ? (
+            <JobsRefetchShimmer />
+          ) : myJobs.length > 0 ? (
             myJobs.map((job) => {
               const worker = workerMap[job.workerId];
               return (

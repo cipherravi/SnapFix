@@ -46,6 +46,11 @@ import JobsShimmer from "../components/shimmer/JobsShimmer";
 import AccountShimmer from "../components/shimmer/AccountShimmer";
 import ConversationsShimmer from "../components/shimmer/ConversationsShimmer";
 import KycShimmer from "../components/shimmer/KycShimmer";
+import ProfileShimmer from "../components/shimmer/ProfileShimmer";
+import CreateJobShimmer from "../components/shimmer/CreateJobShimmer";
+import AddressShimmer from "../components/shimmer/AddressShimmer";
+import CreateAddressShimmer from "../components/shimmer/CreateAddressShimmer";
+import EditAddressShimmer from "../components/shimmer/EditAddressShimmer";
 
 const router = createBrowserRouter([
   {
@@ -145,16 +150,31 @@ const router = createBrowserRouter([
           },
           {
             path: "addresses",
-            element: <Addresses />,
+            element: (
+              <Suspense fallback={<AddressShimmer />}>
+                <Addresses />
+              </Suspense>
+            ),
             children: [
-              { index: true, element: <AddressMain /> },
+              {
+                index: true,
+                element: <AddressMain />,
+              },
               {
                 path: "edit/:id",
-                element: <EditAddress />,
+                element: (
+                  <Suspense fallback={<EditAddressShimmer />}>
+                    <EditAddress />
+                  </Suspense>
+                ),
               },
               {
                 path: "create",
-                element: <CreateAddress />,
+                element: (
+                  <Suspense fallback={<CreateAddressShimmer />}>
+                    <CreateAddress />
+                  </Suspense>
+                ),
               },
             ],
           },
@@ -183,7 +203,11 @@ const router = createBrowserRouter([
       },
       {
         path: "create",
-        element: <Create />,
+        element: (
+          <Suspense fallback={<CreateJobShimmer />}>
+            <Create />
+          </Suspense>
+        ),
       },
       {
         path: `jobs/:id/:title`,

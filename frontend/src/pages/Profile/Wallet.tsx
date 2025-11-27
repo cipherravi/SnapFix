@@ -17,7 +17,7 @@ const Wallet = () => {
   const userData = useSelector((s: any) => s.user.userData);
   const { data, error, loading, refetch } = useWalletFetcher();
   console.log(loading);
-  const [balance, setBalance] = useState<number>(0);
+  const [balance, setBalance] = useState<number | null>(null);
   const [amount, setAmount] = useState<number>(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] =
@@ -68,7 +68,7 @@ const Wallet = () => {
   async function confirmWithdawal() {
     setHandling(true);
     try {
-      if (amount <= 0 || amount > balance)
+      if (balance === null || amount <= 0 || amount > balance)
         return toast.error("Enter valid amount");
       if (amount < 200) return toast.error("Minimum ₹200 withdrawal allowed");
 
@@ -231,16 +231,16 @@ const Wallet = () => {
                 ₹
               </span>
 
-              {loading ? (
+              {loading || balance === null ? (
                 <div className="w-32 h-10 bg-white/30 rounded-xl animate-pulse"></div>
               ) : (
                 <span
                   className={`
             text-5xl font-extrabold tracking-tight drop-shadow-xl
-            ${balance > 0 ? "text-green-300" : "text-red-300"}
+            ${(balance ?? 0) > 0 ? "text-green-300" : "text-red-300"}
           `}
                 >
-                  {balance}
+                  {balance ?? 0}
                 </span>
               )}
             </div>
@@ -256,14 +256,16 @@ const Wallet = () => {
                 className={`
             h-full rounded-full 
             transition-all duration-700 ease-out
-            ${balance > 0 ? "bg-green-400/90" : "bg-red-400/90"}
+            ${(balance ?? 0) > 0 ? "bg-green-400/90" : "bg-red-400/90"}
           `}
-                style={{ width: `${Math.min((balance / 2000) * 100, 100)}%` }}
+                style={{
+                  width: `${Math.min(((balance ?? 0) / 2000) * 100, 100)}%`,
+                }}
               />
             </div>
 
             <p className="text-white/70 text-xs mt-1">
-              {balance > 0 ? "Healthy balance" : "Balance below zero"}
+              {(balance ?? 0) > 0 ? "Healthy balance" : "Balance below zero"}
             </p>
           </div>
         </div>
@@ -282,7 +284,7 @@ const Wallet = () => {
           </button>
 
           {/* Withdraw / Pay */}
-          {balance > 0 && userData?.role === "Worker" ? (
+          {(balance ?? 0) > 0 && userData?.role === "Worker" ? (
             <button
               onClick={() => setIsWithdrawalModalOpen(true)}
               className="backdrop-blur-xl bg-white/20 hover:bg-white/30 
@@ -295,13 +297,13 @@ const Wallet = () => {
           ) : (
             <button
               onClick={() => {
-                if (balance >= 0) return;
+                if ((balance ?? 0) >= 0) return;
                 if (!handling) confirmPay();
               }}
               className={`
           px-7 py-3 rounded-3xl flex items-center gap-2 shadow-xl active:scale-95 backdrop-blur-xl
           ${
-            balance >= 0
+            (balance ?? 0) >= 0
               ? "bg-white/10 opacity-60 text-white"
               : "bg-green-400 text-white"
           }

@@ -142,12 +142,6 @@ const CreateAddress = () => {
     }
   };
 
-  const inputProps = {
-    className:
-      "bg-[#F4F4F4] rounded-lg text-lg h-12 w-full pl-4 pr-4 border focus:ring",
-    maxLength: 30,
-  };
-
   return (
     <div className="w-full min-h-screen flex flex-col bg-white items-center px-4 sm:px-6 md:px-10 py-6">
       {/* Header */}

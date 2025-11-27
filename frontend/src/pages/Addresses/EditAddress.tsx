@@ -6,6 +6,7 @@ import BackButton from "../../components/Buttons/BackButton";
 import MapPicker from "../../components/map/MapPicker";
 import { useAddressContext } from "../..//utils/context/AddressContext";
 import type { Address } from "../../../types";
+import EditAddressShimmer from "../../components/shimmer/EditAddressShimmer";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -94,17 +95,9 @@ const EditAddress = () => {
   const readOnlyStyle =
     "bg-[#F4F4F4] rounded-lg text-xl h-12 w-full pl-4 pr-4 border opacity-50";
 
-  // Show loading while data isn't ready
-  // Build better shimmer
-  if (!address || !coords) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-xl">
-        Loading address...
-      </div>
-    );
-  }
-
-  return (
+  return coords === null || address === null ? (
+    <EditAddressShimmer />
+  ) : (
     <div className="w-full min-h-screen flex flex-col bg-white items-center px-4 sm:px-6 md:px-10 py-6">
       {/* Header */}
       <div className="w-full max-w-3xl flex flex-col gap-2">

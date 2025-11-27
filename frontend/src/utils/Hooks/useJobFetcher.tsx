@@ -6,6 +6,7 @@ const useJobFetcher = () => {
       credentials: "include",
     });
     const data = await res.json();
+
     return data?.data || [];
   };
   const fetchJobByIdForPublic = async (id: string) => {

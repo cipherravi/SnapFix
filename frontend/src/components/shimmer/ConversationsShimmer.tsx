@@ -17,7 +17,7 @@ const ConversationsShimmer = () => {
       </div>
 
       {/* Conversations List */}
-      <div className="w-full flex-1 relative flex flex-col gap-4 mt-2">
+      <div className="w-full flex-1 relative flex flex-col gap-4 ">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}

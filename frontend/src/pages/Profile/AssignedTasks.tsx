@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import BackButton from "../../components/Buttons/BackButton";
 import useTaskFetcher from "../../utils/Hooks/useTaskFetcher";
 import TaskCard from "../../components/profile/TaskCard";
+import JobsRefetchShimmer from "../../components/shimmer/JobsRefetchShimmer";
 
-type PaymentMethod = "cod" | "online";
+type PaymentMethod = "cod" | "online" | "wallet";
 interface Payment {
   id: number;
   amount: number;
@@ -33,11 +34,14 @@ interface Task {
 const AssignedTasks = () => {
   const { fetchMyTasks } = useTaskFetcher();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const fetchedTasks = await fetchMyTasks();
       setTasks(fetchedTasks);
+      setLoading(false);
     };
     fetchData();
   }, []);
@@ -72,7 +76,9 @@ const AssignedTasks = () => {
       {/* Task Cards List */}
       <div className="flex-1 overflow-y-auto">
         <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
-          {tasks.length > 0 ? (
+          {loading ? (
+            <JobsRefetchShimmer />
+          ) : tasks.length > 0 ? (
             tasks.map((task) => (
               <TaskCard
                 key={task.id}

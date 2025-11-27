@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useConversation } from "../utils/context/CoversationContext";
 import ChatCard from "../components/ChatCard";
 import { formatTime } from "../utils/formatTime";
-
+import ConversationsListShimmer from "../components/shimmer/ConversationsLIstShimmer";
 const Conversations = () => {
   const [search, setSearch] = useState("");
   const [firstLoad, setFirstLoad] = useState(false);
@@ -67,7 +67,9 @@ const Conversations = () => {
 
       {/* Chats */}
       <div className="w-full flex-1 relative">
-        {conversations.length > 0 ? (
+        {conversations.length == 0 ? (
+          <ConversationsListShimmer />
+        ) : conversations.length > 0 ? (
           conversations.map((conv) => (
             <ChatCard
               id={conv.id}
