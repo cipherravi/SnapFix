@@ -1,19 +1,24 @@
 @import "tailwindcss";
 
 html,
-body,
-#root {
+body {
   height: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  /* overflow: hidden; ✅ Prevents body scroll */
+  overflow: hidden; /*  ✅ Prevents body scroll */
   touch-action: manipulation; /* ✅ Better for UX */
   overscroll-behavior: contain; /* ✅ Prevents bounce scroll */
   -webkit-overflow-scrolling: touch; /* ✅ Smooth scrolling on iOS */
   background-color: #ffffff;
   /* background-color: transparent; */
   /* background-color: #6b6b6b; */
+}
+
+/* Allow page scroll but hide scrollbars */
+body {
+  overflow-y: scroll; /* Enables scroll but browser treats it like hidden scrollbar */
+  scrollbar-width: none;
 }
 
 .hide-scrollbar::-webkit-scrollbar {

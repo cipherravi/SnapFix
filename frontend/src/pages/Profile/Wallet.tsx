@@ -232,14 +232,14 @@ const Wallet = () => {
     useGetTransactionsQuery(filterParams);
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-linear-to-b from-[#0F8DD8] to-[#0C6FB0] relative overflow-hidden">
+    <div className="w-full min-h-screen flex flex-col bg-linear-to-b from-[#0F8DD8] to-[#0C6FB0] relative overflow-hidden ">
       {/* Back Button */}
       <div className="absolute top-4 left-3 z-50  bg-white/10 rounded-full invert shadow-lg">
         <BackButton navigateTo="/profile" />
       </div>
 
       {/* HEADER + BALANCE CARD */}
-      <div className="pt-28 px-6 text-white w-full flex flex-col items-center">
+      <div className="pt-28 px-6 text-white w-full flex flex-col items-center ">
         {/* === ULTRA PREMIUM BALANCE CARD === */}
         <div
           className="
@@ -400,7 +400,7 @@ const Wallet = () => {
         </div>
 
         {/* Transactions List*/}
-        <div className="overflow-y-scroll max-h-[55vh] pr-1">
+        <div className="overflow-y-scroll max-h-[55vh] pr-1 hide-scrollbar">
           {isLoading ? (
             <>Loading...</>
           ) : Array.isArray(transactions) && transactions.length > 0 ? (
