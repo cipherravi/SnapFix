@@ -32,6 +32,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{ts,css,html,svg}"],
+        navigateFallbackDenylist: [/^\/images\//],
       },
     }),
   ],
