@@ -55,6 +55,8 @@ import CreateAddressShimmer from "../components/shimmer/CreateAddressShimmer";
 import EditAddressShimmer from "../components/shimmer/EditAddressShimmer";
 import JobPosterShimmer from "../components/shimmer/JobPosterShimmer";
 import WalletTransactionShimmer from "../components/shimmer/WalletTransactionShimmer";
+import About from "../pages/About";
+import Contact from "../pages/Contact";
 
 const router = createBrowserRouter([
   {
@@ -248,6 +250,14 @@ const router = createBrowserRouter([
       {
         path: "wallet-success",
         element: <WalletSuccess />,
+      },
+      {
+        path: "about",
+        element: <About />,
+      },
+      {
+        path: "contact",
+        element: <Contact />,
       },
     ],
   },

@@ -10,30 +10,69 @@ import { formatTime } from "../utils/formatTime";
 import ConversationsListShimmer from "../components/shimmer/ConversationsListShimmer";
 import { RootState } from "../app/store";
 
+// Types based on your API
+interface Participant {
+  id: number;
+  name: string;
+  profilePic: string | null;
+}
+
+interface LastMessage {
+  text: string;
+  sender: number;
+  createdAt: string;
+}
+
+interface Conversation {
+  id: string;
+  active: boolean;
+  jobId: number;
+  participant: Participant;
+  lastMessage: LastMessage;
+  unreadCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const Conversations = () => {
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
 
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
+
   const conversations = useSelector(
     (s: RootState) => s.conversation.conversations
   );
-  console.log(conversations);
+
   const { data: initialConversations = [], isLoading } =
     useGetConversationsQuery(undefined, {
       skip: !isAuthenticated,
       refetchOnMountOrArgChange: true,
     });
 
+  // Normalize data and store in Redux
   useEffect(() => {
-    if (initialConversations.length === 0) return;
+    if (!initialConversations.length) return;
 
-    // Only dispatch if server data is different from slice
+    const normalized: Conversation[] = initialConversations.map((conv) => ({
+      ...conv,
+      participant: conv.participant ?? {
+        id: 0,
+        name: "Unknown",
+        profilePic: null,
+      },
+      lastMessage: conv.lastMessage ?? {
+        text: "Say Hello 👋",
+        sender: 0,
+        createdAt: new Date().toISOString(),
+      },
+    }));
+
     const isDifferent =
-      JSON.stringify(initialConversations) !== JSON.stringify(conversations);
+      JSON.stringify(normalized) !== JSON.stringify(conversations);
 
     if (isDifferent) {
-      dispatch(setConversations(initialConversations));
+      dispatch(setConversations(normalized));
     }
   }, [initialConversations, conversations, dispatch]);
 
@@ -41,10 +80,11 @@ const Conversations = () => {
     dispatch(markConversationRead(id));
   };
 
+  // Filter safely
   const filtered = conversations.filter((c) =>
     c.participant.name.toLowerCase().includes(search.toLowerCase())
   );
-  console.log(filtered);
+
   return (
     <div className="w-full h-full flex flex-col gap-6 bg-white pt-4 px-4 sm:px-6 md:px-8">
       <div className="w-full flex flex-col gap-3 max-w-3xl md:max-w-full">
@@ -71,12 +111,12 @@ const Conversations = () => {
         ) : filtered.length > 0 ? (
           filtered.map((conv) => (
             <ChatCard
-              id={conv.id}
-              lastMessage={conv.lastMessage.text ?? "Say Hello 👋"}
-              lastMessageTime={formatTime(conv.lastMessage.createdAt)}
-              name={conv.participant.name}
-              unreadCount={conv.unreadCount}
               key={conv.id}
+              id={conv.id}
+              lastMessage={conv.lastMessage.text || "Say Hello 👋"}
+              lastMessageTime={formatTime(conv.lastMessage.createdAt)}
+              name={conv.participant.name || "Unknown"}
+              unreadCount={conv.unreadCount}
               markAsRead={markAsRead}
             />
           ))
