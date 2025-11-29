@@ -1,11 +1,13 @@
 import BackButton from "../../components/Buttons/BackButton";
 import ManageFundsModal from "../../components/modals/ManageFundsModal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import useWalletFetcher from "../../utils/Hooks/useWalletFetcher";
+import { useGetTransactionsQuery } from "../../services/api/transactionApi";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 import { useSelector } from "react-redux";
+import TransactionCard from "../../components/profile/TransactionCard";
 
 declare global {
   interface Window {
@@ -13,12 +15,28 @@ declare global {
   }
 }
 
+interface Transaction {
+  amount: number;
+  createdAt: string;
+  id: number;
+  new_balance: number;
+  previous_balance: number;
+  purpose: string;
+  reference: string;
+  status: string;
+  transaction_type: string;
+  updatedAt: string;
+  walletId: number;
+}
+
+const FILTERS = ["Recent", "Last Week", "Last Month"];
+
 const Wallet = () => {
   const token = useSelector((s: any) => s.auth.token);
 
   const userData = useSelector((s: any) => s.user.userData);
   const { data, error, loading, refetch } = useWalletFetcher();
-  console.log(loading);
+
   const [balance, setBalance] = useState<number | null>(null);
   const [amount, setAmount] = useState<number>(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -194,8 +212,27 @@ const Wallet = () => {
     setAmount(0);
   };
 
+  const [activeFilter, setActiveFilter] = useState("Recent");
+
+  const filterParams = useMemo(() => {
+    const now = new Date();
+
+    switch (activeFilter) {
+      case "Last Week":
+        return { startDate: new Date(now.getTime() - 7 * 86400000) };
+      case "Last Month":
+        return { startDate: new Date(now.getTime() - 30 * 86400000) };
+      case "Recent":
+      default:
+        return { sortBy: "createdAt", sortOrder: "DESC", limit: 10 };
+    }
+  }, [activeFilter]);
+
+  const { data: transactions, isLoading } =
+    useGetTransactionsQuery(filterParams);
+
   return (
-    <div className="w-full h-screen flex flex-col bg-linear-to-b from-[#0F8DD8] to-[#0C6FB0] relative overflow-hidden">
+    <div className="w-full min-h-screen flex flex-col bg-linear-to-b from-[#0F8DD8] to-[#0C6FB0] relative overflow-hidden">
       {/* Back Button */}
       <div className="absolute top-4 left-3 z-50  bg-white/10 rounded-full invert shadow-lg">
         <BackButton navigateTo="/profile" />
@@ -331,25 +368,50 @@ const Wallet = () => {
       </div>
 
       {/* TRANSACTIONS SECTION */}
-      <div className="mt-10 bg-white rounded-t-3xl p-6 h-full overflow-y-auto">
+      <div className="mt-10 bg-white rounded-t-3xl p-6  overflow-hidden ">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
           Transactions
         </h2>
 
-        <div className="flex gap-3 mb-4">
-          {["Recent", "Last Week", "Custom"].map((item) => (
-            <button
-              key={item}
-              className="px-4 py-2 bg-gray-200 rounded-2xl text-gray-700 font-medium hover:bg-gray-300"
-            >
-              {item}
-            </button>
-          ))}
+        <div className="w-full overflow-x-auto flex gap-3 px-2 py-1 mb-4 hide-scrollbar">
+          {FILTERS.map((item) => {
+            const isActive = item === activeFilter;
+            return (
+              <button
+                key={item}
+                onClick={() => {
+                  setActiveFilter(item);
+                }}
+                className={`
+                  px-4 py-1.5 rounded-2xl text-sm font-medium transition-all
+                  backdrop-blur-md border shadow-sm whitespace-nowrap
+                
+                  ${
+                    isActive
+                      ? "bg-gray-900 text-white border-gray-700 shadow-md scale-[1.04]"
+                      : "bg-white/40 text-gray-700 border-gray-300 hover:bg-white/60"
+                  }
+                `}
+              >
+                {item}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Transactions List — You can integrate actual data here */}
-        <div className="text-gray-500 text-center mt-20">
-          No transactions found
+        {/* Transactions List*/}
+        <div className="overflow-y-scroll max-h-[55vh] pr-1">
+          {isLoading ? (
+            <>Loading...</>
+          ) : Array.isArray(transactions) && transactions.length > 0 ? (
+            transactions.map((txn: Transaction, i) => (
+              <TransactionCard key={txn.id} {...txn} />
+            ))
+          ) : (
+            <div className="text-gray-500 text-center mt-20">
+              No transactions found
+            </div>
+          )}
         </div>
       </div>
 

@@ -66,4 +66,30 @@ async function withdrawMoney(req, res) {
   }
 }
 
-module.exports = { getBalance, withdrawMoney };
+async function getAllTransactions(req, res) {
+  try {
+    const userId = req.user.id;
+    const filters = req.query;
+
+    const response = await WalletService.getAllTransactions(userId, filters);
+
+    SuccessResponse.data = response;
+    SuccessResponse.message = "Successfully fetched wallet transactions";
+    res.status(StatusCodes.OK).json(SuccessResponse);
+  } catch (error) {
+    logger.error(error.stack || error.message);
+    const statusCode =
+      error instanceof AppError
+        ? error.statusCode
+        : StatusCodes.INTERNAL_SERVER_ERROR;
+    const message =
+      error instanceof AppError
+        ? error.message
+        : "Failed to fetch  wallet balance";
+    ErrorResponse.error = error;
+    ErrorResponse.message = message;
+    return res.status(statusCode).json(ErrorResponse);
+  }
+}
+
+module.exports = { getBalance, withdrawMoney, getAllTransactions };

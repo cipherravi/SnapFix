@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import useImageFetcher from "../../utils/Hooks/useImageFetcher";
+import { RootState } from "../../app/store";
 
 const Info = () => {
-  const userData = useSelector((store: any) => store.user.userData);
+  const userData = useSelector((store: RootState) => store.user.userData);
+
   const { fetchPublicImage } = useImageFetcher();
   const [profilePicUrl, setProfilePicUrl] = useState("/svg/profile.svg");
 
@@ -29,7 +31,7 @@ const Info = () => {
           className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
         />
         <h2 className="text-2xl inter-semibold mt-1">
-          {userData.name || "User"}
+          {userData?.name || "User"}
         </h2>
       </div>
 

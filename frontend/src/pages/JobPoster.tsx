@@ -17,6 +17,7 @@ const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import type { Job } from "../../types";
 import ApplyJobModal from "../components/modals/ApplyJobModal";
 import { useSelector } from "react-redux";
+import JobPosterShimmer from "../components/shimmer/JobPosterShimmer";
 
 const JobPoster = () => {
   const token = useSelector((s: any) => s.auth.token);
@@ -32,12 +33,19 @@ const JobPoster = () => {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchJobDetails = async () => {
-      if (!id) return;
-      const data = await fetchJobByIdForPublic(id);
-      setJobDetails(data);
+      try {
+        if (!id) return;
+        const data = await fetchJobByIdForPublic(id);
+        setJobDetails(data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchJobDetails();
@@ -93,7 +101,9 @@ const JobPoster = () => {
     }
   };
 
-  return (
+  return loading ? (
+    <JobPosterShimmer />
+  ) : (
     <div className="w-full min-h-screen flex flex-col bg-white relative">
       {/* Back Button */}
       <div className="absolute top-4 left-0 right-0 z-20 flex justify-start">

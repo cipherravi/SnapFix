@@ -17,41 +17,111 @@ interface MyJob {
   userId: number;
 }
 
+const JOB_STATUS = {
+  INITIATED: "initiated",
+  POSTED: "posted",
+  ASSIGNED: "assigned",
+  STARTED: "started",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  APPROVED: "approved",
+  CANCELLED: "cancelled",
+  EXPIRED: "expired",
+} as const;
+
+type FilterType = "all" | "active" | "completed" | "failed";
+
 const PostedJobs = () => {
   const { fetchMyJobs } = useJobFetcher();
   const [myJobs, setMyJobs] = useState<MyJob[]>([]);
   const [workerProfiles, setWorkerProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // DEFAULT FILTER = "active"
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>("active");
+
   const fetchWorkerProfiles = useProfilesFetcher();
 
-  const workerMap = useMemo(() => {
-    return Object.fromEntries(workerProfiles.map((user) => [user?.id, user]));
-  }, [workerProfiles]);
+  const workerMap = useMemo(
+    () => Object.fromEntries(workerProfiles.map((u) => [u?.id, u])),
+    [workerProfiles]
+  );
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true); // start loading
+      setLoading(true);
+
       const fetchedMyJobs = await fetchMyJobs();
       setMyJobs(fetchedMyJobs);
 
-      // Fetch worker profiles
-      const workerIds: number[] = Array.from(
+      const workerIds = Array.from(
         new Set(
           fetchedMyJobs
             .map((job: MyJob) => job.workerId)
-            .filter((id: number | null | undefined): id is number => id != null)
+            .filter((id: number | null): id is number => id != null)
         )
       );
 
       if (workerIds.length > 0) {
-        const fetchedWorkerProfiles = await fetchWorkerProfiles({ workerIds });
+        const fetchedWorkerProfiles = await fetchWorkerProfiles({
+          workerIds: workerIds as number[],
+        });
         setWorkerProfiles(fetchedWorkerProfiles);
       }
 
-      setLoading(false); // finished loading
+      setLoading(false);
     };
+
     fetchData();
   }, []);
+
+  // ---------------------------
+  // FILTER LOGIC
+  // ---------------------------
+  const filteredJobs = useMemo(() => {
+    switch (selectedFilter) {
+      case "all":
+        return myJobs;
+
+      case "active":
+        return myJobs.filter(
+          (job) =>
+            ![
+              JOB_STATUS.APPROVED,
+              JOB_STATUS.CANCELLED,
+              JOB_STATUS.EXPIRED,
+            ].includes(
+              job.status as
+                | typeof JOB_STATUS.APPROVED
+                | typeof JOB_STATUS.CANCELLED
+                | typeof JOB_STATUS.EXPIRED
+            ) // ACTIVE includes completed now
+        );
+
+      case "completed":
+        return myJobs.filter((job) => job.status === JOB_STATUS.APPROVED);
+
+      case "failed":
+        return myJobs.filter((job) =>
+          [JOB_STATUS.CANCELLED, JOB_STATUS.EXPIRED].includes(
+            job.status as
+              | typeof JOB_STATUS.CANCELLED
+              | typeof JOB_STATUS.EXPIRED
+          )
+        );
+
+      default:
+        return myJobs;
+    }
+  }, [myJobs, selectedFilter]);
+
+  // Button label mapping
+  const filters: { key: FilterType; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "active", label: "Active" },
+    { key: "completed", label: "Completed" },
+    { key: "failed", label: "Failed" },
+  ];
 
   return (
     <div className="w-full h-full flex flex-col bg-white px-4 sm:px-6 md:px-10 py-6">
@@ -66,18 +136,20 @@ const PostedJobs = () => {
 
       {/* Filters */}
       <div className="w-full max-w-3xl mx-auto flex gap-2 overflow-x-auto hide-scrollbar mb-4">
-        <button className="bg-[#0385C2] text-white px-4 py-1 rounded-2xl inter-medium">
-          All
-        </button>
-        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
-          Active
-        </button>
-        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
-          Completed
-        </button>
-        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
-          Failed
-        </button>
+        {filters.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setSelectedFilter(key)}
+            className={`px-4 py-1 rounded-2xl inter-medium transition-all
+            ${
+              selectedFilter === key
+                ? "bg-[#0385C2] text-white"
+                : "bg-[#515252] text-white"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Job Cards */}
@@ -85,8 +157,8 @@ const PostedJobs = () => {
         <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
           {loading ? (
             <JobsRefetchShimmer />
-          ) : myJobs.length > 0 ? (
-            myJobs.map((job) => {
+          ) : filteredJobs.length > 0 ? (
+            filteredJobs.map((job) => {
               const worker = workerMap[job.workerId];
               return (
                 <JobCard

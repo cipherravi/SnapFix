@@ -52,6 +52,7 @@ const Create = () => {
     const loadOptions = async () => {
       const fetchedCategories = await fetchCategories();
       setCategoryOptions(sortByName(fetchedCategories));
+
       const fetchedAddresses = await fetchAddresses();
       if (!fetchedAddresses || fetchedAddresses.length === 0) {
         setShowAddressModal(true);
@@ -96,20 +97,18 @@ const Create = () => {
       if (coords?.[1]) formData.append("longitude", String(coords[1]));
 
       setCreating(true);
+
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/jobs`, {
         method: "POST",
         body: formData,
-        // credentials: "include",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
       if (response.ok) navigate(`/payments/${data?.data?.id}`);
       else toast.error(data?.message);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       toast.error("Something went wrong!");
     } finally {
       setCreating(false);
@@ -117,20 +116,36 @@ const Create = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-white pt-4 flex flex-col gap-8 pb-20 px-4 sm:px-6 md:px-10">
-      {/* Heading aligned with form */}
+    <div
+      className="w-full min-h-screen bg-white pt-4 flex flex-col gap-8 pb-20 px-4 sm:px-6 md:px-10"
+      role="main"
+    >
+      {/* Heading */}
       <div className="flex flex-col gap-2 w-full max-w-3xl mx-auto">
-        <h1 className="text-2xl md:text-3xl poppins-semibold text-left">
+        <h1
+          className="text-2xl md:text-3xl poppins-semibold text-left"
+          id="create-job-title"
+        >
           Create Job
         </h1>
-        <p className="inter-extralight text-sm md:text-base text-left">
+        <p
+          className="inter-extralight text-sm md:text-base text-left"
+          aria-describedby="form-description"
+          id="form-description"
+        >
           Get your work done by creating a job and leave rest on us
         </p>
       </div>
 
-      {/* Form */}
-      <div className="flex flex-col gap-5 w-full max-w-3xl mx-auto">
+      {/* FORM SECTION */}
+      <div
+        className="flex flex-col gap-5 w-full max-w-3xl mx-auto"
+        role="form"
+        aria-labelledby="create-job-title"
+      >
+        {/* CATEGORY DROPDOWN */}
         <DropDownOptions
+          aria-label="Select category"
           selected={selectedCategory}
           setSelected={setSelectedCategory}
           options={categoryOptions}
@@ -138,16 +153,20 @@ const Create = () => {
           placeholder="Select Category"
         />
 
+        {/* JOB TITLE */}
         <input
           type="text"
+          aria-label="Job title"
           value={jobTitle}
           onChange={(e) => setJobTitle(e.target.value)}
           placeholder="Job Title"
-          className="bg-[#F4F4F4] rounded-lg h-12 w-full text-xl border shadow px-4"
+          className="bg-[#F4F4F4] rounded-lg h-12 w-full text-xl border shadow px-4 focus:outline-none focus:ring-2 focus:ring-[#0385C2]"
         />
 
+        {/* JOB BUDGET */}
         <input
           type="tel"
+          aria-label="Budget amount"
           value={jobBudget}
           onChange={(e) => {
             const sanitized = sanitizeBudgetInput(e.target.value);
@@ -159,23 +178,29 @@ const Create = () => {
             if (sanitizeBudgetInput(paste) === "") e.preventDefault();
           }}
           placeholder="Budget"
-          className="bg-[#F4F4F4] rounded-lg h-12 w-full text-xl border shadow px-4"
+          className="bg-[#F4F4F4] rounded-lg h-12 w-full text-xl border shadow px-4 focus:outline-none focus:ring-2 focus:ring-[#0385C2]"
         />
 
+        {/* ADDRESS DROPDOWN OR NOTICE */}
         {showAddressModal ? (
-          <div className="w-full border bg-[#FFF0F0] rounded-lg p-4 shadow text-center">
+          <div
+            className="w-full border bg-[#FFF0F0] rounded-lg p-4 shadow text-center"
+            role="alert"
+          >
             <p className="text-sm text-red-600 mb-2">
               🚫 No address found. Please add one before continuing.
             </p>
             <button
+              aria-label="Add address"
               onClick={() => navigate("/profile/addresses/create")}
-              className="px-4 py-2 rounded bg-blue-500 text-white text-sm"
+              className="px-4 py-2 rounded bg-blue-500 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               Add Address
             </button>
           </div>
         ) : (
           <DropDownOptions
+            aria-label="Select address"
             selected={selectedAddress}
             setSelected={setSelectedAddress}
             options={addresses}
@@ -184,23 +209,32 @@ const Create = () => {
           />
         )}
 
+        {/* DESCRIPTION */}
         <textarea
+          aria-label="Job description"
           placeholder="Tell us more about your work"
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          className="bg-[#F4F4F4] rounded-lg min-h-24 max-h-48 w-full text-md border shadow px-4 py-2 resize-none focus:outline-none"
+          className="bg-[#F4F4F4] rounded-lg min-h-24 max-h-48 w-full text-md border shadow px-4 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#0385C2]"
         />
 
+        {/* IMAGES */}
         <ImageCapturer
           photos={jobPhotos}
           setPhotos={setJobPhotos}
           photoLimit={3}
+          aria-label="Add job photos"
         />
 
+        {/* SUBMIT */}
         <button
           onClick={handleSubmit}
           disabled={creating}
-          className="w-full sm:w-1/2 h-12 bg-[#0385C2] text-white rounded-3xl text-xl sm:text-2xl inter-medium mx-auto cursor-pointer"
+          aria-busy={creating}
+          aria-label="Continue to next step"
+          className={`w-full sm:w-1/2 h-12 bg-[#0385C2] text-white rounded-3xl text-xl sm:text-2xl inter-medium mx-auto cursor-pointer
+            focus:outline-none focus:ring-2 focus:ring-[#0385C2]
+            ${creating ? "opacity-60 cursor-not-allowed" : ""}`}
         >
           {creating ? "Processing" : "Continue"}
         </button>

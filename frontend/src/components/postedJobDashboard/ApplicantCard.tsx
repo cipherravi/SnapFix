@@ -2,8 +2,11 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-import { useConversation } from "../../utils/context/CoversationContext";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setConversations } from "../../features/conversation/conversationSlice";
+import { useRefetchConversationsMutation } from "../../services/api/conversationApi";
+
+import { RootState } from "../../app/store";
 
 interface Application {
   id: number;
@@ -30,10 +33,16 @@ const ApplicantCard = ({
   onReject,
   onAssign,
 }: ApplicantCardProps) => {
-  const token = useSelector((s: any) => s.auth.token);
+  const token = useSelector((s: RootState) => s.auth.token);
 
   const navigate = useNavigate();
-  const { fetchConversations } = useConversation();
+  const dispatch = useDispatch();
+  const conversations = useSelector(
+    (s: RootState) => s.conversation.conversations
+  );
+
+  const [refetchConversations] = useRefetchConversationsMutation();
+
   const [isAssigning, setIsAssigning] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -64,7 +73,11 @@ const ApplicantCard = ({
               : prev
           );
           // refresh conversations
-          fetchConversations();
+          refetchConversations().then((res) => {
+            if (res.data) {
+              dispatch(setConversations(res.data));
+            }
+          });
         } else {
           toast.error(data?.message);
         }
@@ -106,7 +119,7 @@ const ApplicantCard = ({
   const chatHandler = async () => {
     try {
       const response = await fetch(
-        `${VITE_API_BASE_URL}/api/v1/conversations/${applicant.jobId}`,
+        `${VITE_API_BASE_URL}/api/v1/conversations/by-job?jobId=${applicant.jobId}`,
         {
           // credentials: "include",
           headers: {
@@ -116,6 +129,7 @@ const ApplicantCard = ({
         }
       );
       const data = await response.json();
+      console.log(data);
       if (data?.data?.id) navigate(`/conversation/${data.data.id}`);
     } catch (error) {
       console.error("Failed to fetch conversation Id", error);

@@ -6,10 +6,14 @@ const {
   getAllUserConversations,
   getConversationIdByJobId,
   getConversationMessages,
+  getUnreadCountOfUser,
+  getConversationById,
 } = ConversationController;
 
 router.get("/", verifyUser, getAllUserConversations);
-router.get("/:jobId", verifyUser, getConversationIdByJobId);
+router.get("/unread-count", verifyUser, getUnreadCountOfUser);
+router.get("/by-job", verifyUser, getConversationIdByJobId);
+router.get("/:id", verifyUser, getConversationById);
 router.get("/:conversationId/messages", verifyUser, getConversationMessages);
 
 module.exports = router;

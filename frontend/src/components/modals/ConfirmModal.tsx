@@ -7,6 +7,7 @@ interface ConfirmModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   message?: string;
+  confirmButtonName?: string;
 }
 
 const ConfirmModal = ({
@@ -14,6 +15,7 @@ const ConfirmModal = ({
   onConfirm,
   onCancel,
   message = "Are you sure?",
+  confirmButtonName = "Delete",
 }: ConfirmModalProps) => {
   const [show, setShow] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -78,7 +80,7 @@ const ConfirmModal = ({
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 cursor-pointer"
             onClick={onConfirm}
           >
-            Delete
+            {confirmButtonName}
           </button>
         </div>
       </div>

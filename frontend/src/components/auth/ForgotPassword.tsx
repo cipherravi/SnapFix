@@ -33,7 +33,7 @@ const ForgotPassword = () => {
             <input
               type="tel"
               placeholder="Enter Phone number"
-              className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none"
+              className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring-2 ring-[#0385C2]"
             />
           </div>
 
@@ -47,7 +47,7 @@ const ForgotPassword = () => {
             <input
               type="tel"
               placeholder="Enter OTP"
-              className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none"
+              className="bg-[#F4F4F4] rounded-full h-14 w-full pl-12 pr-4 focus:outline-none focus:ring-2 ring-[#0385C2]"
             />
           </div>
         </div>

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import BackButton from "../../components/Buttons/BackButton";
 import useTaskFetcher from "../../utils/Hooks/useTaskFetcher";
 import TaskCard from "../../components/profile/TaskCard";
 import JobsRefetchShimmer from "../../components/shimmer/JobsRefetchShimmer";
 
 type PaymentMethod = "cod" | "online" | "wallet";
+
 interface Payment {
   id: number;
   amount: number;
@@ -12,6 +13,7 @@ interface Payment {
   method: PaymentMethod;
   status: string;
 }
+
 interface Task {
   id: number;
   title: string;
@@ -31,10 +33,27 @@ interface Task {
   activePayment: Payment;
 }
 
+const TASK_STATUS = {
+  INITIATED: "initiated",
+  POSTED: "posted",
+  ASSIGNED: "assigned",
+  STARTED: "started",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  APPROVED: "approved",
+  CANCELLED: "cancelled",
+  EXPIRED: "expired",
+} as const;
+
+type FilterType = "all" | "active" | "completed" | "failed";
+
 const AssignedTasks = () => {
   const { fetchMyTasks } = useTaskFetcher();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // default = active
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>("active");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +64,91 @@ const AssignedTasks = () => {
     };
     fetchData();
   }, []);
+
+  // ---------------------------
+  // FILTER LOGIC (same as jobs)
+  // ---------------------------
+  const filteredTasks = useMemo(() => {
+    switch (selectedFilter) {
+      case "all":
+        return tasks;
+
+      case "active":
+        return tasks.filter(
+          (task) =>
+            ![
+              TASK_STATUS.APPROVED,
+              TASK_STATUS.CANCELLED,
+              TASK_STATUS.EXPIRED,
+            ].includes(
+              task.status as
+                | typeof TASK_STATUS.APPROVED
+                | typeof TASK_STATUS.CANCELLED
+                | typeof TASK_STATUS.EXPIRED
+            )
+        );
+
+      case "completed":
+        return tasks.filter((task) => task.status === TASK_STATUS.APPROVED);
+
+      case "failed":
+        return tasks.filter((task) =>
+          [TASK_STATUS.CANCELLED, TASK_STATUS.EXPIRED].includes(
+            task.status as
+              | typeof TASK_STATUS.CANCELLED
+              | typeof TASK_STATUS.EXPIRED
+          )
+        );
+
+      default:
+        return tasks;
+    }
+  }, [tasks, selectedFilter]);
+  // ---------------------------
+  // COUNTS FOR BADGES
+  // ---------------------------
+  const counts = useMemo(() => {
+    return {
+      all: tasks.length,
+      active: tasks.filter(
+        (task) =>
+          ![
+            TASK_STATUS.APPROVED,
+            TASK_STATUS.CANCELLED,
+            TASK_STATUS.EXPIRED,
+          ].includes(
+            task.status as
+              | typeof TASK_STATUS.APPROVED
+              | typeof TASK_STATUS.CANCELLED
+              | typeof TASK_STATUS.EXPIRED
+          )
+      ).length,
+      completed: tasks.filter((task) => task.status === TASK_STATUS.APPROVED)
+        .length,
+      failed: tasks.filter((task) =>
+        [TASK_STATUS.CANCELLED, TASK_STATUS.EXPIRED].includes(
+          task.status as
+            | typeof TASK_STATUS.CANCELLED
+            | typeof TASK_STATUS.EXPIRED
+        )
+      ).length,
+    };
+  }, [tasks]);
+
+  // Filter button config
+  const filters: { key: FilterType; label: string; count: number }[] = [
+    { key: "all", label: "All", count: counts.all },
+    { key: "active", label: "Active", count: counts.active },
+    { key: "completed", label: "Completed", count: counts.completed },
+    { key: "failed", label: "Failed", count: counts.failed },
+  ];
+  // Animation state
+  const [animateKey, setAnimateKey] = useState(0);
+
+  const onFilterClick = (key: FilterType) => {
+    setSelectedFilter(key);
+    setAnimateKey((prev) => prev + 1); // re-trigger animation
+  };
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white px-4 sm:px-6 md:px-10 py-6">
@@ -59,27 +163,30 @@ const AssignedTasks = () => {
 
       {/* Filters */}
       <div className="w-full max-w-3xl mx-auto flex gap-2 overflow-x-auto hide-scrollbar mb-4">
-        <button className="bg-[#0385C2] text-white px-4 py-1 rounded-2xl inter-medium">
-          All
-        </button>
-        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
-          Active
-        </button>
-        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
-          Completed
-        </button>
-        <button className="bg-[#515252] text-white px-4 py-1 rounded-2xl inter-medium">
-          Failed
-        </button>
+        {filters.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setSelectedFilter(key)}
+            className={`px-4 py-1 rounded-2xl inter-medium transition-all
+              ${
+                selectedFilter === key
+                  ? "bg-[#0385C2] text-white"
+                  : "bg-[#515252] text-white"
+              }
+            `}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Task Cards List */}
+      {/* Task Cards */}
       <div className="flex-1 overflow-y-auto">
         <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
           {loading ? (
             <JobsRefetchShimmer />
-          ) : tasks.length > 0 ? (
-            tasks.map((task) => (
+          ) : filteredTasks.length > 0 ? (
+            filteredTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 id={task.id}

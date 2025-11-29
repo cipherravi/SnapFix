@@ -75,8 +75,58 @@ async function getConversationMessages(conversationId, before) {
   }
 }
 
+async function getUnreadCountOfUser(userId) {
+  try {
+    const unreadCount = await conversationRepository.getUnreadCountByUserId(
+      userId
+    );
+
+    return unreadCount || 0;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to fetch unread count",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
+async function getConversationById(userId, id) {
+  try {
+    const conversation = await conversationRepository.getConversationById(id);
+
+    if (!conversation) {
+      throw new AppError("Conversation not found", StatusCodes.NOT_FOUND);
+    }
+
+    if (conversation.active === false) {
+      throw new AppError("Conversation is expired", StatusCodes.BAD_REQUEST);
+    }
+    if (!conversation.participants.includes(userId)) {
+      throw new AppError(
+        "Conversation doesn't belong to you",
+        StatusCodes.UNAUTHORIZED
+      );
+    }
+
+    return conversation;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to fetch conversation",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
 module.exports = {
   getAllUserConversations,
   getConversationIdByJobId,
   getConversationMessages,
+  getUnreadCountOfUser,
+  getConversationById,
 };

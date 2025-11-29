@@ -3,9 +3,14 @@ import { useExploreContext } from "../utils/context/ExploreContext";
 import JobCard from "../components/home/JobCard";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../app/store";
+import { useGetUnreadCountQuery } from "../services/api/conversationApi";
+import { setUnreadCount } from "../features/conversation/conversationSlice";
 
 function Home() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const {
     jobs,
     jobsLoading,
@@ -15,15 +20,28 @@ function Home() {
     hasMore,
   } = useExploreContext();
 
+  const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
+
+  const { data: fetchedUnreadCount } = useGetUnreadCountQuery(undefined, {
+    skip: !isAuthenticated,
+    refetchOnMountOrArgChange: true,
+  });
+
+  useEffect(() => {
+    dispatch(setUnreadCount(fetchedUnreadCount));
+  }, [fetchedUnreadCount]);
+
+  const unreadCount = useSelector((s: RootState) => s.conversation.unreadCount);
+
   const [offset, setOffset] = useState(0);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   const { ref, inView } = useInView({
-    threshold: 0.1, // Trigger when the element is halfway visible
+    threshold: 0.1,
   });
 
-  // When the observer sees the "load more" div
+  /* Infinite Scrolling Logic */
   useEffect(() => {
     if (
       jobs.length > 6 &&
@@ -42,6 +60,7 @@ function Home() {
     }
   }, [inView, jobsLoading, hasMore, offset, isFetchingMore]);
 
+  /* Initial Load Complete */
   useEffect(() => {
     if (!jobsLoading) {
       setHasLoadedOnce(true);
@@ -50,64 +69,120 @@ function Home() {
 
   const categoryButtonStyle =
     "bg-[#F4F4F4] inter-medium px-2 py-1 text-nowrap rounded-xl";
+
   return (
-    <div className="w-full h-full flex flex-col bg-white">
-      <div className="w-full flex justify-between items-center px-5 py-7">
+    <div className="w-full h-full flex flex-col bg-white" role="main">
+      {/* HEADER */}
+      <div
+        className="w-full flex justify-between items-center px-5 py-7"
+        role="banner"
+      >
         <div className="flex items-center justify-center">
-          <h1 className="poppins-bold text-2xl">SnapFix</h1>{" "}
-          {/* <img src="/svg/snap.png" alt="Snapfix Snap logo" className="h-10" /> */}
+          <h1 className="poppins-bold text-2xl" aria-label="SnapFix Logo">
+            SnapFix
+          </h1>
         </div>
+
+        {/* NOTIFICATION + CHAT */}
         <div className="flex items-center justify-center gap-3">
-          <img src="/svg/notification.svg" alt="Notification" className="h-8" />
-          <img
-            src="/svg/message.svg"
-            alt="Message"
-            className="h-8"
+          <button
+            aria-label="Notifications"
+            className="focus:outline-none focus:ring-2 focus:ring-[#0385C2] rounded-full p-1"
+          >
+            <img src="/svg/notification.svg" alt="" className="h-8" />
+          </button>
+
+          <button
+            aria-label={`Messages (${unreadCount ?? 0} unread)`}
+            className="relative focus:outline-none focus:ring-2 focus:ring-[#0385C2] rounded-full p-1"
             onClick={() => navigate("/conversations")}
-          />
+          >
+            {(unreadCount ?? 0) > 0 && (
+              <span
+                aria-label={`${unreadCount} unread messages`}
+                className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] sm:text-xs 
+                min-w-4 h-4 sm:min-w-[18px] sm:h-[18px]
+                flex items-center justify-center rounded-full px-[3px] sm:px-[5px] shadow-md"
+              >
+                {(unreadCount ?? 0) > 99 ? "99+" : unreadCount ?? 0}
+              </span>
+            )}
+            <img src="/svg/message.svg" alt="" className="h-8 sm:h-9" />
+          </button>
         </div>
       </div>
-      {/* Dynamic */}
+
+      {/* DYNAMIC CONTENT */}
       <div className="w-full p-4 flex flex-col gap-3 shrink-0">
-        {/* Categories */}
-        <div className="w-full">
-          <h1 className="poppins-semibold text-xl">Categories</h1>
-          <div className="w-full flex gap-2 py-4 overflow-x-auto hide-scrollbar">
-            {categoriesLoading == true
+        {/* CATEGORIES SECTION */}
+        <section aria-labelledby="categories-heading">
+          <h1 id="categories-heading" className="poppins-semibold text-xl">
+            Categories
+          </h1>
+
+          <div
+            className="w-full flex gap-2 py-4 overflow-x-auto hide-scrollbar"
+            role="list"
+          >
+            {categoriesLoading
               ? Array.from({ length: 4 }).map((_, idx) => (
                   <div
                     key={idx}
                     className="h-7 w-24 rounded-full shimmer"
+                    aria-hidden="true"
                   ></div>
                 ))
-              : categories.length > 0
-              ? categories.map((category) => {
-                  return (
-                    <button className={categoryButtonStyle} key={category.id}>
-                      {category?.name}
-                    </button>
-                  );
-                })
-              : null}
+              : categories.length > 0 &&
+                categories.map((category) => (
+                  <button
+                    key={category.id}
+                    className={categoryButtonStyle}
+                    role="listitem"
+                    aria-label={`Category ${category.name}`}
+                  >
+                    {category?.name}
+                  </button>
+                ))}
           </div>
-        </div>
-        {/* Jobs */}
-        <div className="shrink">
-          <h1 className="poppins-semibold text-xl">Jobs near you</h1>
-          {/* Filter */}
-          <div className="w-full flex gap-3 py-4">
-            <button className={categoryButtonStyle}>Latest</button>
-            <button className={categoryButtonStyle}>Sort By</button>
-            <button className={categoryButtonStyle}>Filter</button>
+        </section>
+
+        {/* JOBS SECTION */}
+        <section aria-labelledby="jobs-heading">
+          <h1 id="jobs-heading" className="poppins-semibold text-xl">
+            Jobs near you
+          </h1>
+
+          {/* FILTER BUTTONS */}
+          <div
+            className="w-full flex gap-3 py-4"
+            role="group"
+            aria-label="Job filters"
+          >
+            <button
+              className={categoryButtonStyle}
+              aria-label="Show latest jobs"
+            >
+              Latest
+            </button>
+            <button className={categoryButtonStyle} aria-label="Sort jobs">
+              Sort By
+            </button>
+            <button className={categoryButtonStyle} aria-label="Filter jobs">
+              Filter
+            </button>
           </div>
 
-          {/* INITIAL SHIMMER — only before first load */}
+          {/* INITIAL SHIMMER */}
           {!hasLoadedOnce && jobsLoading && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 rounded-2xl pb-20">
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 rounded-2xl pb-20"
+              aria-live="polite"
+            >
               {Array.from({ length: 8 }).map((_, idx) => (
                 <div
                   key={idx}
                   className="min-h-56 w-full rounded-2xl shimmer"
+                  aria-hidden="true"
                 ></div>
               ))}
             </div>
@@ -115,7 +190,10 @@ function Home() {
 
           {/* JOB LIST */}
           {hasLoadedOnce && jobs.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 rounded-2xl pb-4 auto-rows-fr">
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 rounded-2xl pb-4 auto-rows-fr"
+              role="list"
+            >
               {jobs.map((job) => {
                 const mainAsset = job.assets.find(
                   (file) => file.filePosition === "thumbnail"
@@ -123,41 +201,50 @@ function Home() {
                 const mainUrl = mainAsset?.fileName || "";
 
                 return (
-                  <JobCard
-                    key={job.id}
-                    id={job.id}
-                    title={job.title}
-                    description={job.description}
-                    budget={job.budget}
-                    src={mainUrl}
-                    createdAt={job.createdAt}
-                  />
+                  <div role="listitem" key={job.id}>
+                    <JobCard
+                      id={job.id}
+                      title={job.title}
+                      description={job.description}
+                      budget={job.budget}
+                      src={mainUrl}
+                      createdAt={job.createdAt}
+                    />
+                  </div>
                 );
               })}
             </div>
           )}
 
-          {/* NO JOBS — only after first load completes */}
+          {/* NO JOBS FOUND */}
           {hasLoadedOnce && !jobsLoading && jobs.length === 0 && (
-            <div className="w-full  min-h-[calc(100vh-330px)] flex justify-center items-center">
+            <div
+              className="w-full min-h-[calc(100vh-330px)] flex justify-center items-center"
+              aria-live="polite"
+            >
               <p className="text-gray-500">No Jobs found !!</p>
             </div>
           )}
 
-          {/* PAGINATION SHIMMER — only after jobs exist */}
+          {/* PAGINATION SHIMMER */}
           {jobsLoading && jobs.length > 0 && (
-            <div className="grid grid-cols-2 gap-2 rounded-2xl pb-20">
+            <div
+              className="grid grid-cols-2 gap-2 rounded-2xl pb-20"
+              aria-live="polite"
+            >
               {Array.from({ length: 8 }).map((_, idx) => (
                 <div
                   key={idx}
                   className="min-h-56 w-full rounded-2xl shimmer"
+                  aria-hidden="true"
                 ></div>
               ))}
             </div>
           )}
 
-          <div ref={ref} style={{ height: "50px" }}></div>
-        </div>
+          {/* LOAD MORE TRIGGER (Intersection Observer Target) */}
+          <div ref={ref} style={{ height: "50px" }} aria-hidden="true"></div>
+        </section>
       </div>
     </div>
   );

@@ -116,4 +116,35 @@ async function withdrawMoney(userId, amount, purpose) {
   }
 }
 
-module.exports = { createWallet, getBalance, withdrawMoney };
+async function getAllTransactions(userId, filters = {}) {
+  try {
+    const wallet = await walletRepository.findWallet(userId);
+
+    if (!wallet) {
+      throw new AppError("Wallet not found, try again", StatusCodes.NOT_FOUND);
+    }
+
+    const transactions =
+      await walletTransactionRepository.getAllTransactionsByWalletId(
+        wallet.id,
+        filters
+      );
+    return transactions;
+  } catch (error) {
+    logger.error(`Failed to fetch wallet transactions of user- ${userId}`);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to fetch wallet transactions",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
+module.exports = {
+  createWallet,
+  getBalance,
+  withdrawMoney,
+  getAllTransactions,
+};

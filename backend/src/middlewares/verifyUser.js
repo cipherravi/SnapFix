@@ -8,11 +8,11 @@ const { SECRET_KEY } = serverConfig;
 async function userVerification(req, res, next) {
   try {
     // const token = req.headers["x-access-token"] || req.cookies.token;
-
     let token;
 
     // Read bearer token from header
     const authHeader = req.headers["authorization"];
+
     if (authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1]; // Extract actual token
     }

@@ -78,7 +78,7 @@ const ManageFundsModal = ({
         className={classNames(
           "relative w-[90%] max-w-md p-7 rounded-3xl",
           "bg-white/10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)]",
-          "border border-white/20 transition-all duration-300",
+          "border border-white/20 transition-all duration-300 animate-scaleIn",
           {
             "scale-100 opacity-100": isOpen,
             "scale-95 opacity-0": !isOpen,

@@ -3,11 +3,13 @@ import { useParams } from "react-router-dom";
 import BackButton from "../components/Buttons/BackButton";
 import useIsMobile from "../utils/Hooks/useIsMobile";
 import { useSocket } from "../utils/context/SocketContext";
-import { useConversation } from "../utils/context/CoversationContext";
-
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import useMessageFetcher from "../utils/Hooks/useMessageFetcher";
 import ChatShimmer from "../components/shimmer/ChatShimmer";
+import { useGetConversationByIdQuery } from "../services/api/conversationApi";
+import { updateSingleConversation } from "../features/conversation/conversationSlice";
+
+import { RootState } from "../app/store";
 
 type ChatProps = { verified?: boolean };
 type Message = {
@@ -30,10 +32,28 @@ const isIOSPWA = () => {
 
 const Chat = ({ verified = true }: ChatProps) => {
   const { id } = useParams();
-  const { conversations } = useConversation();
+  const dispatch = useDispatch();
+
+  const conversations = useSelector(
+    (s: RootState) => s.conversation.conversations
+  );
+
   const userData = useSelector((s: any) => s.user.userData);
   const currentConversation = conversations.find((conv) => conv.id === id);
-  const user = currentConversation?.participant;
+
+  const { data: conversation } = useGetConversationByIdQuery(id!, {
+    skip: !id || Boolean(currentConversation),
+  });
+
+  useEffect(() => {
+    if (conversation) {
+      dispatch(updateSingleConversation(conversation));
+    }
+  }, [conversation]);
+
+  // Use either local Redux OR API fallback
+  const effectiveConversation = currentConversation || conversation;
+  const user = effectiveConversation?.participant;
   const isMobile = useIsMobile();
   const socket = useSocket();
   const { fetchMessages, loading } = useMessageFetcher();

@@ -11,6 +11,7 @@ const {
   COMPLETED,
   APPROVED,
   CANCELLED,
+  EXPIRED,
 } = JOB_STATUS;
 const { ACTIVE } = ATTEMPT_STATUS;
 
@@ -79,7 +80,8 @@ module.exports = (sequelize, DataTypes) => {
           IN_PROGRESS,
           COMPLETED,
           APPROVED,
-          CANCELLED
+          CANCELLED,
+          EXPIRED
         ),
         allowNull: false,
         defaultValue: INITIATED,

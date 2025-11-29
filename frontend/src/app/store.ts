@@ -5,6 +5,9 @@ import storage from "redux-persist/lib/storage";
 import { api } from "../services/api/api";
 import userReducer from "../features/user/userSlice";
 import authReducer from "../features/auth/authSlice";
+import conversationReducer from "../features/conversation/conversationSlice";
+
+export type RootState = ReturnType<typeof store.getState>;
 
 const authPersistConfig = {
   key: "auth",
@@ -15,6 +18,7 @@ const authPersistConfig = {
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
   user: userReducer,
+  conversation: conversationReducer,
   [api.reducerPath]: api.reducer,
 });
 

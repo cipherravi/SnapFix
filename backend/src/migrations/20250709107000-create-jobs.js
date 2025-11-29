@@ -10,6 +10,7 @@ const {
   COMPLETED,
   APPROVED,
   CANCELLED,
+  EXPIRED,
 } = ENUM.JOB_STATUS;
 
 module.exports = {
@@ -38,7 +39,8 @@ module.exports = {
           IN_PROGRESS,
           COMPLETED,
           APPROVED,
-          CANCELLED
+          CANCELLED,
+          EXPIRED
         ),
         allowNull: false,
         defaultValue: INITIATED,

@@ -93,6 +93,38 @@ class ConversationRepository {
       throw error;
     }
   }
-}
 
+  async getUnreadCountByUserId(userId) {
+    try {
+      const conversations = await Conversation.find({
+        participants: userId,
+        active: true,
+      });
+
+      const unreadCounts = await Promise.all(
+        conversations.map(async (conv) => {
+          const lastRead = conv.lastReadMap.get(String(userId)) || new Date(0);
+
+          return Message.countDocuments({
+            conversationId: conv._id,
+            senderId: { $ne: userId },
+            createdAt: { $gt: lastRead },
+          });
+        })
+      );
+
+      return unreadCounts.reduce((sum, count) => sum + count, 0);
+    } catch (error) {
+      throw error;
+    }
+  }
+  getConversationById(id) {
+    try {
+      const conversation = Conversation.findById(id);
+      return conversation;
+    } catch (error) {
+      throw error;
+    }
+  }
+}
 module.exports = ConversationRepository;

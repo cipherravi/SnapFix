@@ -41,17 +41,20 @@ const Payment = lazy(() => import("../pages/Payment"));
 const CODSuccess = lazy(() => import("../pages/success/CODSuccess"));
 const WalletSuccess = lazy(() => import("../pages/success/WalletSuccess"));
 const Wallet = lazy(() => import("../pages/Profile/Wallet"));
+const WalletTransaction = lazy(
+  () => import("../pages/Profile/WalletTransaction")
+);
 import WalletShimmer from "../components/shimmer/WalletShimmer";
 import JobsShimmer from "../components/shimmer/JobsShimmer";
 import AccountShimmer from "../components/shimmer/AccountShimmer";
 import ConversationsShimmer from "../components/shimmer/ConversationsShimmer";
 import KycShimmer from "../components/shimmer/KycShimmer";
-import ProfileShimmer from "../components/shimmer/ProfileShimmer";
 import CreateJobShimmer from "../components/shimmer/CreateJobShimmer";
 import AddressShimmer from "../components/shimmer/AddressShimmer";
 import CreateAddressShimmer from "../components/shimmer/CreateAddressShimmer";
 import EditAddressShimmer from "../components/shimmer/EditAddressShimmer";
 import JobPosterShimmer from "../components/shimmer/JobPosterShimmer";
+import WalletTransactionShimmer from "../components/shimmer/WalletTransactionShimmer";
 
 const router = createBrowserRouter([
   {
@@ -148,6 +151,14 @@ const router = createBrowserRouter([
           {
             path: "tasks/:id",
             element: <AssignedTaskDashboard />,
+          },
+          {
+            path: "transactions",
+            element: (
+              <Suspense fallback={<WalletTransactionShimmer />}>
+                <WalletTransaction />
+              </Suspense>
+            ),
           },
           {
             path: "addresses",

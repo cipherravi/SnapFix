@@ -1,56 +1,71 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import Splash from "./components/Splash";
 import { Outlet, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+
+import Splash from "./components/Splash";
 import Tabs from "./components/Tabs";
 import { ScrollToTop } from "./components/ScrollToTop";
-import { useDispatch, useSelector } from "react-redux";
+
 import { useGetProfileQuery } from "./services/api/userApi";
+
 import { setUser } from "./features/user/userSlice";
 import { setToken } from "./features/auth/authSlice";
+
 import { loadToken } from "./utils/tokenDB";
 import { inject } from "@vercel/analytics";
 
 function App() {
+  const dispatch = useDispatch();
+  const location = useLocation();
+
+  const isAuthenticated = useSelector((s: any) => s.auth.isAuthenticated);
+
+  // ----------------------------------------------------------------------
+  // SPLASH SCREEN STATE
+  // ----------------------------------------------------------------------
   const [showSplash, setShowSplash] = useState(false);
   const [fadeSplash, setFadeSplash] = useState(false);
-  const dispatch = useDispatch();
-  const isAuthenticated = useSelector((s: any) => s.auth.isAuthenticated);
-  const token = useSelector((s: any) => s.auth.token);
 
-  window.addEventListener("load", async () => {
-    const token = await loadToken();
-    dispatch(setToken(token));
-  });
+  // ----------------------------------------------------------------------
+  // AUTH TOKEN LOAD (ONLY ONCE - on page load)
+  // ----------------------------------------------------------------------
+  useEffect(() => {
+    const loadStoredToken = async () => {
+      const token = await loadToken();
+      if (token) dispatch(setToken(token));
+    };
 
-  const { data, isLoading } = useGetProfileQuery(undefined, {
+    loadStoredToken();
+  }, []);
+
+  // ----------------------------------------------------------------------
+  // FETCH USER PROFILE
+  // ----------------------------------------------------------------------
+  const { data: userData } = useGetProfileQuery(undefined, {
     skip: !isAuthenticated,
   });
 
+  // ----------------------------------------------------------------------
+  // SYNC RTK QUERY → REDUX SLICE
+  // ----------------------------------------------------------------------
+
   useEffect(() => {
-    if (data) {
-      dispatch(setUser(data));
-    }
-  }, [data]);
+    if (userData) dispatch(setUser(userData));
+  }, [userData]);
 
-  const location = useLocation();
-
+  // ----------------------------------------------------------------------
+  // VERGEL ANALYTICS INIT (on mount)
+  // ----------------------------------------------------------------------
   useEffect(() => {
     inject();
   }, []);
 
-  //Show Tabs on few pages
-  const showTabsOn = [
-    "/explore",
-    "/profile",
-    "/create",
-    "/search",
-    "/conversations",
-  ];
-  const shouldShowTabs = showTabsOn.includes(location.pathname);
-
-  // Step 1: Show splash on first visit only
+  // ----------------------------------------------------------------------
+  // SPLASH SCREEN LOGIC
+  // Show splash only on first visit of the session
+  // ----------------------------------------------------------------------
   useEffect(() => {
     const hasVisited = sessionStorage.getItem("hasVisited");
 
@@ -60,29 +75,43 @@ function App() {
     }
   }, []);
 
-  // Step 2: Once splash is shown, trigger fade and remove
+  // Handle fade + removal
   useEffect(() => {
-    if (showSplash) {
-      const fadeTimer = setTimeout(() => {
-        setFadeSplash(true);
-      }, 2000);
+    if (!showSplash) return;
 
-      const removeTimer = setTimeout(() => {
-        setShowSplash(false);
-      }, 2100);
+    const fadeTimer = setTimeout(() => setFadeSplash(true), 2000);
+    const hideTimer = setTimeout(() => setShowSplash(false), 2100);
 
-      return () => {
-        clearTimeout(fadeTimer);
-        clearTimeout(removeTimer);
-      };
-    }
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
   }, [showSplash]);
 
-  return showSplash ? (
-    <Splash fadeOut={fadeSplash} />
-  ) : (
+  // ----------------------------------------------------------------------
+  // CONDITIONAL TABS
+  // ----------------------------------------------------------------------
+  const tabsVisibleRoutes = [
+    "/explore",
+    "/profile",
+    "/create",
+    "/search",
+    "/conversations",
+  ];
+
+  const shouldShowTabs = tabsVisibleRoutes.includes(location.pathname);
+
+  // ----------------------------------------------------------------------
+  // RENDER
+  // ----------------------------------------------------------------------
+  if (showSplash) {
+    return <Splash fadeOut={fadeSplash} />;
+  }
+
+  return (
     <div className="min-h-svh w-full">
       <ScrollToTop />
+
       <Outlet />
 
       {shouldShowTabs && <Tabs />}
