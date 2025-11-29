@@ -56,9 +56,9 @@ const WalletShimmer = () => {
 
         {/* Transaction Items */}
         <div className="flex flex-col gap-5 mt-5">
-          {[1, 2, 3, 4].map((i) => (
+          {Array.from({ length: 3 }).map((_, idx) => (
             <div
-              key={i}
+              key={idx}
               className="w-full h-16 bg-gray-200 rounded-2xl shimmer"
             ></div>
           ))}

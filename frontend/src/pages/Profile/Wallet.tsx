@@ -8,6 +8,7 @@ const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 import { useSelector } from "react-redux";
 import TransactionCard from "../../components/profile/TransactionCard";
+import TransactionCardShimmer from "../../components/shimmer/TransactionCardShimmer";
 
 declare global {
   interface Window {
@@ -228,8 +229,10 @@ const Wallet = () => {
     }
   }, [activeFilter]);
 
-  const { data: transactions, isLoading } =
-    useGetTransactionsQuery(filterParams);
+  const { data: transactions, isLoading } = useGetTransactionsQuery(
+    filterParams,
+    { refetchOnMountOrArgChange: true }
+  );
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-linear-to-b from-[#0F8DD8] to-[#0C6FB0] relative overflow-hidden ">
@@ -368,7 +371,7 @@ const Wallet = () => {
       </div>
 
       {/* TRANSACTIONS SECTION */}
-      <div className="h-[50vh] mt-10 bg-white rounded-t-3xl p-6  overflow-hidden ">
+      <div className="min-h-[50vh] mt-10 bg-white rounded-t-3xl p-6  overflow-hidden ">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
           Transactions
         </h2>
@@ -402,7 +405,11 @@ const Wallet = () => {
         {/* Transactions List*/}
         <div className="overflow-y-scroll max-h-[55vh] pr-1 hide-scrollbar">
           {isLoading ? (
-            <>Loading...</>
+            <div className="flex flex-col gap-4">
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <TransactionCardShimmer key={idx} />
+              ))}
+            </div>
           ) : Array.isArray(transactions) && transactions.length > 0 ? (
             transactions.map((txn: Transaction, i) => (
               <TransactionCard key={txn.id} {...txn} />

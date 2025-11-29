@@ -1,4 +1,5 @@
 import React from "react";
+import TransactionCardShimmer from "./TransactionCardShimmer";
 
 const WalletTransactionShimmer: React.FC = () => {
   const shimmerItems = Array.from({ length: 8 });
@@ -24,19 +25,7 @@ const WalletTransactionShimmer: React.FC = () => {
       {/* Transaction cards shimmer */}
       <div className="flex flex-col gap-4">
         {shimmerItems.map((_, idx) => (
-          <div
-            key={idx}
-            className="flex flex-col sm:flex-row justify-between gap-3 p-4 bg-gray-100 rounded-2xl shadow-sm"
-          >
-            <div className="flex-1 flex flex-col gap-2">
-              <div className="h-4 w-2/3 bg-gray-300 rounded-md shimmer animate-shimmerMove"></div>
-              <div className="h-3 w-1/3 bg-gray-200 rounded-md shimmer animate-shimmerMove"></div>
-            </div>
-            <div className="flex flex-col gap-2 items-end">
-              <div className="h-4 w-20 bg-gray-300 rounded-md shimmer animate-shimmerMove"></div>
-              <div className="h-3 w-16 bg-gray-200 rounded-md shimmer animate-shimmerMove"></div>
-            </div>
-          </div>
+          <TransactionCardShimmer key={idx} />
         ))}
       </div>
     </div>
