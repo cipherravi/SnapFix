@@ -368,7 +368,7 @@ const Wallet = () => {
       </div>
 
       {/* TRANSACTIONS SECTION */}
-      <div className="mt-10 bg-white rounded-t-3xl p-6  overflow-hidden ">
+      <div className="h-[50vh] mt-10 bg-white rounded-t-3xl p-6  overflow-hidden ">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
           Transactions
         </h2>
