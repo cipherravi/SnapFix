@@ -71,10 +71,10 @@ function Home() {
     "bg-[#F4F4F4] inter-medium px-2 py-1 text-nowrap rounded-xl";
 
   return (
-    <div className="w-full h-full flex flex-col bg-white" role="main">
+    <div className="w-full h-full flex flex-col bg-white relative" role="main">
       {/* HEADER */}
       <div
-        className="w-full flex justify-between items-center px-5 py-7"
+        className="w-full flex justify-between items-center px-5 py-3 sticky top-0 bg-white z-50"
         role="banner"
       >
         <div className="flex items-center justify-center">
@@ -166,9 +166,6 @@ function Home() {
             </button>
             <button className={categoryButtonStyle} aria-label="Sort jobs">
               Sort By
-            </button>
-            <button className={categoryButtonStyle} aria-label="Filter jobs">
-              Filter
             </button>
           </div>
 

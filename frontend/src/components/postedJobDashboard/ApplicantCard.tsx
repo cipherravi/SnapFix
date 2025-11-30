@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { useSelector, useDispatch } from "react-redux";
-import { setConversations } from "../../features/conversation/conversationSlice";
-import { useRefetchConversationsMutation } from "../../services/api/conversationApi";
 
 import { RootState } from "../../app/store";
+import { setConversations } from "../../features/conversation/conversationSlice";
+import { useRefetchConversationsMutation } from "../../services/api/conversationApi";
+import useImageFetcher from "../../utils/Hooks/useImageFetcher";
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Application {
   id: number;
@@ -28,62 +30,143 @@ interface ApplicantCardProps {
   onAssign: React.Dispatch<React.SetStateAction<Application[] | undefined>>;
 }
 
+/** -----------------------------
+ *  SMALL PRESENTATIONAL COMPONENTS
+ * ------------------------------*/
+
+const Avatar = ({
+  loading,
+  url,
+  hasProfile,
+}: {
+  loading: boolean;
+  url?: string;
+  hasProfile: boolean;
+}) => {
+  if (loading) {
+    return (
+      <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse shadow-inner" />
+    );
+  }
+  return (
+    <img
+      src={url}
+      className={`w-12 h-12 rounded-full object-cover shadow-sm ${
+        hasProfile ? "" : "p-1"
+      }`}
+    />
+  );
+};
+
+const ActionButton = ({
+  children,
+  onClick,
+  color = "primary",
+  disabled = false,
+}: {
+  children: any;
+  onClick: () => void;
+  color?: "primary" | "danger";
+  disabled?: boolean;
+}) => {
+  const styles =
+    color === "primary"
+      ? "bg-[#0385C2] hover:bg-[#0274a9]"
+      : "bg-[#da2424] hover:bg-[#c11f1f]";
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`text-white px-4 py-2 rounded-lg inter-regular transition-all duration-150 shadow-sm ${styles} ${
+        disabled ? "opacity-60 cursor-not-allowed" : ""
+      }`}
+    >
+      {children}
+    </button>
+  );
+};
+
+/** --------------------------------------------------
+ *                      MAIN CARD
+ * --------------------------------------------------*/
+
 const ApplicantCard = ({
   applicant,
   onReject,
   onAssign,
 }: ApplicantCardProps) => {
   const token = useSelector((s: RootState) => s.auth.token);
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const conversations = useSelector(
-    (s: RootState) => s.conversation.conversations
-  );
 
   const [refetchConversations] = useRefetchConversationsMutation();
+  const { fetchProfileImage } = useImageFetcher();
 
   const [isAssigning, setIsAssigning] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const [fullProfilePicUrl, setFullProfilePicUrl] = useState<string>();
+  const [loadingProfilePic, setLoadingProfilePic] = useState(true);
+
+  /** --------------------------------------------------
+   *                   LOAD PROFILE IMAGE
+   * --------------------------------------------------*/
+  useEffect(() => {
+    const load = async () => {
+      if (!applicant.worker.profilePicUrl) {
+        setFullProfilePicUrl("/svg/profile.svg");
+        setLoadingProfilePic(false);
+        return;
+      }
+
+      setLoadingProfilePic(true);
+      const url = await fetchProfileImage(applicant.worker.profilePicUrl);
+
+      setFullProfilePicUrl(url || "/svg/profile.svg");
+      setLoadingProfilePic(false);
+    };
+
+    load();
+  }, [applicant]);
+
+  /** --------------------------------------------------
+   *                        ACTIONS
+   * --------------------------------------------------*/
+
   const assignHandler = async () => {
     setIsAssigning(true);
     try {
-      if (applicant?.id) {
-        const response = await fetch(
-          `${VITE_API_BASE_URL}/api/v1/jobs/${applicant.jobId}/accept`,
-          {
-            method: "POST",
-            // credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ userId: applicant.userId }),
-          }
-        );
-        const data = await response.json();
-        if (response.ok) {
-          toast.success(data?.message);
-          onAssign((prev) =>
-            prev
-              ? prev.map((a) =>
-                  a.id === applicant.id ? { ...a, status: "selected" } : a
-                )
-              : prev
-          );
-          // refresh conversations
-          refetchConversations().then((res) => {
-            if (res.data) {
-              dispatch(setConversations(res.data));
-            }
-          });
-        } else {
-          toast.error(data?.message);
+      const response = await fetch(
+        `${VITE_API_BASE_URL}/api/v1/jobs/${applicant.jobId}/accept`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId: applicant.userId }),
         }
-      }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(data.message);
+
+        onAssign((prev) =>
+          prev
+            ? prev.map((a) =>
+                a.id === applicant.id ? { ...a, status: "selected" } : a
+              )
+            : prev
+        );
+
+        refetchConversations().then((res) => {
+          if (res.data) dispatch(setConversations(res.data));
+        });
+      } else toast.error(data.message);
     } catch (error) {
-      console.error("Failed to assign", error);
+      console.error("Assign error:", error);
     } finally {
       setIsAssigning(false);
     }
@@ -91,28 +174,24 @@ const ApplicantCard = ({
 
   const rejectHandler = async () => {
     try {
-      if (applicant?.id) {
-        const response = await fetch(
-          `${VITE_API_BASE_URL}/api/v1/jobs/${applicant.jobId}/applicants/${applicant.id}/reject`,
-          {
-            method: "POST",
-            // credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await response.json();
-        if (response.ok) {
-          toast.success(data?.message);
-          onReject(applicant.id);
-        } else {
-          toast.error(data?.message);
+      const response = await fetch(
+        `${VITE_API_BASE_URL}/api/v1/jobs/${applicant.jobId}/applicants/${applicant.id}/reject`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
-      }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(data.message);
+        onReject(applicant.id);
+      } else toast.error(data.message);
     } catch (error) {
-      console.error("Failed to assign", error);
+      console.error("Reject error:", error);
     }
   };
 
@@ -121,81 +200,79 @@ const ApplicantCard = ({
       const response = await fetch(
         `${VITE_API_BASE_URL}/api/v1/conversations/by-job?jobId=${applicant.jobId}`,
         {
-          // credentials: "include",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
       );
+
       const data = await response.json();
-      console.log(data);
       if (data?.data?.id) navigate(`/conversation/${data.data.id}`);
-    } catch (error) {
-      console.error("Failed to fetch conversation Id", error);
+    } catch (err) {
+      console.error("Chat fetch error:", err);
     }
   };
-  return (
-    <div className="flex justify-between items-center border px-3 py-4 gap-2 rounded-lg bg-[#f0f0f0]">
-      {/* Avatar */}
-      {applicant.worker.profilePicUrl && (
-        <img
-          src={applicant.worker.profilePicUrl}
-          alt="Applicant profile pic"
-          className="w-14 h-14 object-cover p-1 border rounded-full"
-        />
-      )}
 
-      {/* Info */}
-      <div className="flex-1">
+  /** --------------------------------------------------
+   *                        UI
+   * --------------------------------------------------*/
+
+  return (
+    <div className="flex gap-3 p-4 rounded-xl bg-white  shadow-sm hover:shadow-md transition-all">
+      {/* Avatar */}
+      <Avatar
+        loading={loadingProfilePic}
+        url={fullProfilePicUrl}
+        hasProfile={!!applicant.worker.profilePicUrl}
+      />
+
+      {/* INFO */}
+      <div className="flex-1 flex flex-col gap-1">
         <h1 className="text-lg inter-semibold">{applicant.worker.name}</h1>
         <p className="text-sm text-gray-600 capitalize">
           {applicant.worker.gender}
         </p>
-        <p className="inter-medium text-sm">Status: {applicant.status}</p>
+
+        <p className="inter-medium text-sm mt-1">
+          <span className="font-semibold">Status:</span> {applicant.status}
+        </p>
+
         {applicant.message && (
           <div
-            className={`inter-light text-sm max-w-[90%] cursor-pointer transition-all duration-300 ${
+            className={`text-sm text-gray-700 cursor-pointer transition-all duration-200 ${
               isExpanded ? "" : "line-clamp-2"
             }`}
-            onClick={() => setIsExpanded((prev) => !prev)}
+            onClick={() => setIsExpanded((p) => !p)}
           >
             <strong>Message:</strong> {applicant.message}
-            <span className="block text-xs text-blue-600">
+            <span className="block text-xs text-blue-500 mt-1">
               {isExpanded ? "Show less" : "Show more"}
             </span>
           </div>
         )}
       </div>
-      {/* Buttons */}
-      {applicant.status == "selected" ? (
-        <div className="flex flex-col gap-3">
-          <button
-            className="bg-[#0385C2] text-white py-2 rounded-lg inter-regular"
-            onClick={chatHandler}
-          >
-            Chat
-          </button>
-          <button className="bg-[#da2424] text-white px-3 py-2 rounded-lg inter-regular">
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-col justify-between gap-3">
-          <button
-            className="bg-[#0385C2] text-white px-3 py-2 rounded-lg inter-regular"
-            onClick={assignHandler}
-          >
-            {isAssigning ? "Assigning" : "Assign"}
-          </button>
-          <button
-            className="bg-[#da2424] text-white px-3 py-2 rounded-lg inter-regular"
-            onClick={rejectHandler}
-          >
-            Reject
-          </button>
-        </div>
-      )}
+
+      {/* ACTIONS */}
+      <div className="flex flex-col justify-center gap-2 min-w-[90px]">
+        {applicant.status === "selected" ? (
+          <>
+            <ActionButton onClick={chatHandler}>Chat</ActionButton>
+            <ActionButton onClick={() => {}} color="danger">
+              Cancel
+            </ActionButton>
+          </>
+        ) : (
+          <>
+            <ActionButton onClick={assignHandler} disabled={isAssigning}>
+              {isAssigning ? "Assigning…" : "Assign"}
+            </ActionButton>
+
+            <ActionButton onClick={rejectHandler} color="danger">
+              Reject
+            </ActionButton>
+          </>
+        )}
+      </div>
     </div>
   );
 };

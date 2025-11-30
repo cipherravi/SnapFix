@@ -10,6 +10,7 @@ import { useGetConversationByIdQuery } from "../services/api/conversationApi";
 import { updateSingleConversation } from "../features/conversation/conversationSlice";
 
 import { RootState } from "../app/store";
+import useImageFetcher from "../utils/Hooks/useImageFetcher";
 
 type ChatProps = { verified?: boolean };
 type Message = {
@@ -335,16 +336,49 @@ const Chat = ({ verified = true }: ChatProps) => {
   };
 
   // -------------------------
+
+  const { fetchProfileImage } = useImageFetcher();
+  const [profilePicUrl, setProfilePicUrl] = useState<string>();
+  const [loadingProfilePic, setLoadingProfilePic] = useState(true);
+
+  useEffect(() => {
+    const loadProfilePic = async () => {
+      if (!user?.profilePic) {
+        // user has no profile pic → show default avatar
+        setProfilePicUrl("/svg/profile.svg");
+        setLoadingProfilePic(false);
+        return;
+      }
+
+      // user has a profile pic → start shimmering
+      setLoadingProfilePic(true);
+
+      const url = await fetchProfileImage(user.profilePic);
+
+      setProfilePicUrl(url || "/svg/profile.svg");
+      setLoadingProfilePic(false);
+    };
+
+    loadProfilePic();
+  }, [user]);
+
   return (
     <div className="relative w-full h-dvh flex flex-col bg-gray-50">
       {/* Header */}
       <div className="h-16 bg-gray-100 flex items-center gap-4 shadow-sm px-4 z-10">
         <BackButton navigateTo="/conversations" bgColor="transparent" />
-        <img
-          src="/svg/profile.svg"
-          alt="Profile Pic"
-          className="w-10 h-10 p-1 rounded-full border border-gray-300 bg-white object-cover"
-        />
+
+        {loadingProfilePic ? (
+          <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse shadow-md shimmer" />
+        ) : (
+          <img
+            src={profilePicUrl}
+            alt="User Pic"
+            className={`w-12 h-12 rounded-full object-cover ${
+              user?.profilePic ? "" : "outline-1 p-1"
+            }`}
+          />
+        )}
         <h1 className="text-xl font-medium text-gray-800 truncate max-w-[50%]">
           {user?.name}
         </h1>

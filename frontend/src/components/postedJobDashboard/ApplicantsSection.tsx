@@ -22,19 +22,17 @@ interface Application {
 
 const ApplicantsSection = ({ id }: ApplicantsSectionProps) => {
   const fetchApplicants = useApplicantsFetcher();
-  const [applicants, setApplicants] = useState<Application[] | undefined>(
-    undefined
-  );
+  const [applicants, setApplicants] = useState<Application[] | undefined>();
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (id) {
-        const fetchedApplicants = await fetchApplicants(id);
+    const load = async () => {
+      if (!id) return;
 
-        setApplicants(fetchedApplicants);
-      }
+      const fetched = await fetchApplicants(id);
+      setApplicants(fetched);
     };
-    fetchData();
+
+    load();
   }, [id]);
 
   const removeApplicant = (applicantId: number) => {
@@ -43,24 +41,46 @@ const ApplicantsSection = ({ id }: ApplicantsSectionProps) => {
     );
   };
 
+  const nonRejected = applicants?.filter(
+    (applicant) => applicant.status !== "rejected"
+  );
+
   return (
     <div className="w-full h-full flex flex-col p-4">
-      {/* Card */}
-      {applicants && applicants.length > 0 ? (
+      {/* Section Title */}
+      <h2 className="text-2xl inter-semibold mb-3 text-gray-800">Applicants</h2>
+
+      {/* If applicants available */}
+      {nonRejected && nonRejected.length > 0 ? (
         <div className="flex flex-col gap-4">
-          {applicants
-            .filter((applicant) => applicant.status !== "rejected")
-            .map((applicant) => (
+          {nonRejected.map((applicant) => (
+            <div
+              key={applicant.id}
+              className="
+                bg-white rounded-xl shadow-sm 
+                hover:shadow-md 
+                transition-all duration-200 
+              "
+            >
               <ApplicantCard
-                key={applicant.id}
                 applicant={applicant}
                 onReject={removeApplicant}
                 onAssign={setApplicants}
               />
-            ))}
+            </div>
+          ))}
         </div>
       ) : (
-        <p className="text-center text-gray-500 mt-24">No applicants found.</p>
+        /* BEAUTIFUL EMPTY STATE */
+        <div className="flex flex-col items-center justify-center mt-10 text-center">
+          <img src="/svg/empty.svg" alt="Empty" className="w-36 opacity-70" />
+          <p className="text-gray-500 mt-3 text-lg font-semibold">
+            No applicants yet.
+          </p>
+          <p className="text-gray-400 text-sm">
+            When workers apply to your job, they will appear here.
+          </p>
+        </div>
       )}
     </div>
   );

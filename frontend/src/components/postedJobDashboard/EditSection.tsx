@@ -1,6 +1,6 @@
 import { useState } from "react";
-
 import MapPicker from "../map/MapPicker";
+import MapDisplay from "../map/MapDisplay";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
@@ -11,9 +11,6 @@ interface EditSectionProps {
   budget: number;
   description: string;
   title: string;
-  addressId?: number;
-  categoryId: number;
-  cityId: number;
   latitude: string;
   longitude: string;
 }
@@ -29,22 +26,20 @@ const EditSection = ({
   const token = useSelector((s: any) => s.auth.token);
 
   const [jobTitle, setJobTitle] = useState(title);
-  const [jobBudget, setJobBudget] = useState(budget.toString());
+  const [jobBudget] = useState(budget.toString());
   const [jobDescription, setJobDescription] = useState(description);
   const [coords, setCoords] = useState<[number, number]>([
     +latitude,
     +longitude,
   ]);
-  const [updating, setUpdating] = useState(false);
-
   const [canEdit, setCanEdit] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   async function handleSubmit() {
     setUpdating(true);
     try {
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/jobs/${id}`, {
         method: "PATCH",
-        // credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -57,13 +52,14 @@ const EditSection = ({
         }),
       });
       const data = await response.json();
+
       if (response.ok) {
         toast.success(data.message || "Job details updated successfully");
       } else {
         toast.error(data.message || "Failed to update job details");
       }
     } catch (error) {
-      toast.error("Something went wrong while updating job details");
+      toast.error("Error updating job");
     } finally {
       setUpdating(false);
       setCanEdit(false);
@@ -72,77 +68,88 @@ const EditSection = ({
 
   const handleCancel = () => {
     setJobTitle(title);
-    setJobBudget(budget.toString());
     setJobDescription(description);
     setCoords([+latitude, +longitude]);
-
     setCanEdit(false);
   };
 
   return (
-    <div className="flex flex-col gap-4 items-center py-4">
-      <input
-        type="text"
-        value={jobTitle}
-        onChange={(e) => setJobTitle(e.target.value)}
-        placeholder="Job Title"
-        className={`bg-[#F4F4F4] rounded-lg h-12 w-11/12 text-xl border shadow px-4 ${
-          !canEdit ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        disabled={!canEdit}
-      />
-      <input
-        type="tel"
-        value={jobBudget}
-        readOnly
-        placeholder="Budget"
-        className="bg-[#F4F4F4] rounded-lg h-12 w-11/12 text-xl border shadow px-4 opacity-50 cursor-not-allowed"
-      />
-      <textarea
-        placeholder="Tell us more about your work"
-        className={`bg-[#F4F4F4] rounded-lg min-h-24 max-h-48 w-11/12 text-md border shadow px-4 py-2 resize-none focus:outline-none ${
-          !canEdit ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        value={jobDescription}
-        onChange={(e) => setJobDescription(e.target.value)}
-        disabled={!canEdit}
-      />
-      <MapPicker
-        onLocationSelect={(coords) => setCoords(coords)}
-        location={coords}
-        zoom={13}
-        type="edit"
-        editable={canEdit}
-      />
+    <div className="flex flex-col gap-6 px-4 pb-6">
+      {/* Header */}
+      <h2 className="text-xl font-semibold text-gray-700 mb-2">
+        Edit Job Details
+      </h2>
 
-      <div className="w-full flex justify-around ">
+      {/* Title */}
+      <div className="flex flex-col gap-1">
+        <label className="text-gray-600 text-sm font-medium">Job Title</label>
+        <input
+          type="text"
+          value={jobTitle}
+          onChange={(e) => setJobTitle(e.target.value)}
+          disabled={!canEdit}
+          className={`w-full h-12 px-4 rounded-xl text-[17px] bg-gray-100 border border-gray-300 transition-all duration-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 ${
+            !canEdit ? "opacity-60 cursor-not-allowed" : "bg-white shadow-sm"
+          }`}
+        />
+      </div>
+
+      {/* Budget (Locked) */}
+      <div className="flex flex-col gap-1">
+        <label className="text-gray-600 text-sm font-medium">Budget (₹)</label>
+        <input
+          type="text"
+          value={jobBudget}
+          readOnly
+          className="w-full h-12 px-4 rounded-xl bg-gray-100 border border-gray-300 text-[17px] opacity-60 cursor-not-allowed"
+        />
+      </div>
+
+      {/* Description */}
+      <div className="flex flex-col gap-1">
+        <label className="text-gray-600 text-sm font-medium">Description</label>
+        <textarea
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+          placeholder="Explain the job in detail..."
+          disabled={!canEdit}
+          className={`w-full min-h-28 max-h-48 px-4 py-3 rounded-xl bg-gray-100 border border-gray-300 text-[15px] resize-none transition-all duration-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 leading-relaxed ${
+            !canEdit ? "opacity-60 cursor-not-allowed" : "bg-white shadow-sm"
+          }`}
+        />
+      </div>
+
+      {/* Map Picker */}
+      <div>
+        <p className="text-gray-600 text-sm font-medium mb-1">Job Location</p>
+        <MapPicker
+          onLocationSelect={(coords) => setCoords(coords)}
+          location={coords}
+          zoom={13}
+          type="edit"
+          editable={canEdit}
+        />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex justify-center gap-10 mt-4">
+        {/* Cancel */}
         {canEdit && (
           <button
-            className="w-2/5 h-12 bg-[#5b5b5b] text-white rounded-3xl text-2xl inter-medium"
-            onClick={() => handleCancel()}
+            onClick={handleCancel}
+            className="w-[45%] h-12 rounded-2xl text-lg font-medium bg-gray-600 text-white shadow-sm active:scale-[0.98] transition-all duration-100"
           >
             Cancel
           </button>
         )}
 
+        {/* Edit / Submit */}
         <button
-          className="w-2/5 h-12 bg-[#0385C2] text-white rounded-3xl text-2xl inter-medium"
-          onClick={() => {
-            if (canEdit) {
-              handleSubmit();
-              console.log({
-                title: jobTitle,
-                budget: jobBudget,
-                description: jobDescription,
-                coords,
-              });
-            } else {
-              setCanEdit(true);
-            }
-          }}
           disabled={updating}
+          onClick={() => (canEdit ? handleSubmit() : setCanEdit(true))}
+          className="w-[45%] h-12 rounded-2xl text-lg font-medium bg-blue-600 text-white shadow-sm active:scale-[0.98] transition-all duration-100 disabled:opacity-60"
         >
-          {canEdit ? "Submit" : "Edit"}
+          {updating ? "Saving..." : canEdit ? "Save" : "Edit"}
         </button>
       </div>
     </div>

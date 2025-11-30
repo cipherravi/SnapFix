@@ -23,26 +23,21 @@ interface JobDetails extends Job {
   };
 }
 
-// Define as const to get literal types
 export const TabIndex = {
   INFO: 0,
   APPLICANTS: 1,
   EDIT: 2,
 } as const;
 
-// Define a union type of the values
 type TabIndex = (typeof TabIndex)[keyof typeof TabIndex];
 
 const PostedJobDashboard = () => {
   const { id } = useParams();
   const { fetchJobByIdForClient } = useJobFetcher();
   const { getImageUrl } = useImageFetcher();
-  const [jobDetails, setJobDetails] = useState<JobDetails | undefined>(
-    undefined
-  );
 
+  const [jobDetails, setJobDetails] = useState<JobDetails | undefined>();
   const [mapAnimated, setMapAnimated] = useState(false);
-
   const [activeTab, setActiveTab] = useState<TabIndex>(TabIndex.INFO);
 
   useEffect(() => {
@@ -69,82 +64,94 @@ const PostedJobDashboard = () => {
     activeTab === tab ? "bg-white text-black" : "bg-transparent text-white";
 
   const TabButtonStyle = "px-6 py-2 rounded-2xl text-lg inter-medium";
+
   return (
-    <div className="w-full min-h-screen flex flex-col relative bg-[#fafafa]">
-      <div className="shrink-0 pt-4 px-3 flex flex-col gap-4 absolute z-10">
-        <BackButton navigateTo="/profile/jobs" />
-      </div>
-      {/* Banner Swiper */}
-      <div className="h-60 rounded-b-4xl overflow-hidden">
-        {imageUrls.length > 1 ? (
-          <Swiper
-            modules={[Autoplay, Pagination]}
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            pagination={{ clickable: true }}
-            loop
-            className="w-full h-full"
-          >
-            {imageUrls.map((src, index) => (
-              <SwiperSlide key={index}>
+    <div className="w-full min-h-screen bg-[#fafafa] flex justify-center">
+      {/* Centered max-width wrapper */}
+      <div className="w-full max-w-3xl flex flex-col relative pb-6">
+        {/* Banner Swiper */}
+        <div className="h-60 overflow-hidden bg-black/10 relative">
+          {/* Back Button */}
+          <div className="absolute pt-4 px-4 z-50">
+            <BackButton navigateTo="/profile/jobs" />
+          </div>
+          {/* Banner Swiper */}
+          <div className="h-60  overflow-hidden">
+            {imageUrls.length > 1 ? (
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                autoplay={{ delay: 3000, disableOnInteraction: false }}
+                pagination={{ clickable: true }}
+                loop
+                className="w-full h-full"
+              >
+                {imageUrls.map((src, index) => (
+                  <SwiperSlide key={index}>
+                    <img
+                      src={src}
+                      alt={`Job Image ${index + 1}`}
+                      className="w-full h-full object-contain"
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            ) : imageUrls.length === 1 ? (
+              imageUrls.map((src, index) => (
                 <img
+                  key={index}
                   src={src}
-                  alt={`Job Image ${index + 1}`}
+                  alt="Job Image"
                   className="w-full h-full object-contain"
                 />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        ) : imageUrls.length == 1 ? (
-          imageUrls.map((src, index) => (
-            <img
-              key={index}
-              src={src}
-              alt={`Job Image`}
-              className="w-full h-full object-contain"
-            />
-          ))
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-            No images available
+              ))
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                No images available
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      {/* Tabs */}
-      <div className="flex justify-between bg-[#282727] p-4 gap-2 text-white">
-        <button
-          className={`${TabButtonStyle} ${isActive(TabIndex.INFO)}`}
-          onClick={() => setActiveTab(TabIndex.INFO)}
-        >
-          Info
-        </button>
-        <button
-          className={`${TabButtonStyle} ${isActive(TabIndex.APPLICANTS)}`}
-          onClick={() => setActiveTab(TabIndex.APPLICANTS)}
-        >
-          Applicants
-        </button>
-        <button
-          className={`${TabButtonStyle} ${isActive(TabIndex.EDIT)}`}
-          onClick={() => setActiveTab(TabIndex.EDIT)}
-        >
-          Edit
-        </button>
-      </div>
-      {/* Dynamic  */}
-      <div className="shrink w-full h-full">
-        {activeTab === TabIndex.INFO && jobDetails && (
-          <InfoSection
-            {...jobDetails}
-            mapAnimated={mapAnimated}
-            setMapAnimated={setMapAnimated}
-          />
-        )}
-        {activeTab === TabIndex.APPLICANTS && id && (
-          <ApplicantsSection id={id} />
-        )}
-        {activeTab === TabIndex.EDIT && jobDetails && (
-          <EditSection {...jobDetails} />
-        )}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex justify-between bg-[#282727] p-4 gap-2 text-white rounded-b-2xl">
+          <button
+            className={`${TabButtonStyle} ${isActive(TabIndex.INFO)}`}
+            onClick={() => setActiveTab(TabIndex.INFO)}
+          >
+            Info
+          </button>
+          <button
+            className={`${TabButtonStyle} ${isActive(TabIndex.APPLICANTS)}`}
+            onClick={() => setActiveTab(TabIndex.APPLICANTS)}
+          >
+            Applicants
+          </button>
+          <button
+            className={`${TabButtonStyle} ${isActive(TabIndex.EDIT)}`}
+            onClick={() => setActiveTab(TabIndex.EDIT)}
+          >
+            Edit
+          </button>
+        </div>
+
+        {/* Dynamic Content */}
+        <div className=" mx-2 mt-8 bg-white rounded-3xl shadow-[0_6px_25px_rgba(0,0,0,0.08)] p-5">
+          {activeTab === TabIndex.INFO && jobDetails && (
+            <InfoSection
+              {...jobDetails}
+              mapAnimated={mapAnimated}
+              setMapAnimated={setMapAnimated}
+            />
+          )}
+
+          {activeTab === TabIndex.APPLICANTS && id && (
+            <ApplicantsSection id={id} />
+          )}
+
+          {activeTab === TabIndex.EDIT && jobDetails && (
+            <EditSection {...jobDetails} />
+          )}
+        </div>
       </div>
     </div>
   );

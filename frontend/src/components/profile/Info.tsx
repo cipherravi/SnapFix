@@ -6,30 +6,45 @@ import { RootState } from "../../app/store";
 const Info = () => {
   const userData = useSelector((store: RootState) => store.user.userData);
 
-  const { fetchPublicImage } = useImageFetcher();
-  const [profilePicUrl, setProfilePicUrl] = useState("/svg/profile.svg");
+  const { fetchProfileImage } = useImageFetcher();
+  const [profilePicUrl, setProfilePicUrl] = useState<string>();
+  const [loadingProfilePic, setLoadingProfilePic] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (userData?.profilePicUrl) {
-        const url = await fetchPublicImage(
-          userData?.profilePicUrl ?? "user.svg"
-        );
-        setProfilePicUrl(url);
+    const loadProfilePic = async () => {
+      if (!userData?.profilePicUrl) {
+        // user has no profile pic → show default avatar
+        setProfilePicUrl("/svg/profile.svg");
+        setLoadingProfilePic(false);
+        return;
       }
+
+      // user has a profile pic → start shimmering
+      setLoadingProfilePic(true);
+
+      const url = await fetchProfileImage(userData.profilePicUrl);
+
+      setProfilePicUrl(url || "/svg/profile.svg");
+      setLoadingProfilePic(false);
     };
-    fetchData();
+
+    loadProfilePic();
   }, [userData]);
 
   return (
     <div className="w-full flex flex-col items-center  rounded-2xl p-4 gap-4">
       {/* Profile Image */}
       <div className="flex flex-col items-center gap-3">
-        <img
-          src={profilePicUrl}
-          alt="profile"
-          className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
-        />
+        {loadingProfilePic ? (
+          <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse border-4 border-white shadow-md shimmer" />
+        ) : (
+          <img
+            src={profilePicUrl}
+            alt="profile"
+            className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
+          />
+        )}
+
         <h2 className="text-2xl inter-semibold mt-1">
           {userData?.name || "User"}
         </h2>

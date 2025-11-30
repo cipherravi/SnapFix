@@ -98,7 +98,7 @@ export default function MapPicker({
   animateOnLoad = false,
 }: MapPickerProps) {
   return (
-    <div className="w-full h-full rounded-xl overflow-hidden">
+    <div className="w-full h-52 rounded-xl overflow-hidden">
       <MapContainer
         center={location}
         zoom={zoom}

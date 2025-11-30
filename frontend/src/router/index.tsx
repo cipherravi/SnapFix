@@ -57,6 +57,8 @@ import JobPosterShimmer from "../components/shimmer/JobPosterShimmer";
 import WalletTransactionShimmer from "../components/shimmer/WalletTransactionShimmer";
 import About from "../pages/About";
 import Contact from "../pages/Contact";
+import PostedJobDashboardShimmer from "../components/shimmer/PostedJobDashboardShimmer";
+import AssignedTaskDashboardShimmer from "../components/shimmer/AssignedTaskDashboardShimmer";
 
 const router = createBrowserRouter([
   {
@@ -141,7 +143,14 @@ const router = createBrowserRouter([
               </Suspense>
             ),
           },
-          { path: "jobs/:id", element: <PostedJobDashboard /> },
+          {
+            path: "jobs/:id",
+            element: (
+              <Suspense fallback={<PostedJobDashboardShimmer />}>
+                <PostedJobDashboard />
+              </Suspense>
+            ),
+          },
           {
             path: "tasks",
             element: (
@@ -152,7 +161,12 @@ const router = createBrowserRouter([
           },
           {
             path: "tasks/:id",
-            element: <AssignedTaskDashboard />,
+
+            element: (
+              <Suspense fallback={<AssignedTaskDashboardShimmer />}>
+                <AssignedTaskDashboard />
+              </Suspense>
+            ),
           },
           {
             path: "transactions",

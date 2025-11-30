@@ -20,6 +20,19 @@ const useImageFetcher = () => {
     const data = await res.json();
     return data?.publicUrl;
   };
+  const fetchProfileImage = async (fileName: string) => {
+    const res = await fetch(
+      `${VITE_API_BASE_URL}/api/v1/assets/public/profiles/${fileName}`,
+      {
+        // credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await res.json();
+    return data?.publicUrl;
+  };
   const fetchPrivateImage = async (fileName: string) => {
     const res = await fetch(
       `${VITE_API_BASE_URL}/api/v1/assets/private/image/${fileName}`,
@@ -41,7 +54,12 @@ const useImageFetcher = () => {
     return `${VITE_SUPABASE_PUBLIC_BASE_URL}${folder}/${fileName}`;
   }
 
-  return { fetchPublicImage, fetchPrivateImage, getImageUrl };
+  return {
+    fetchPublicImage,
+    fetchPrivateImage,
+    getImageUrl,
+    fetchProfileImage,
+  };
 };
 
 export default useImageFetcher;

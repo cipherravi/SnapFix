@@ -1,23 +1,52 @@
 import { useEffect, useState } from "react";
 import BackButton from "../../components/Buttons/BackButton";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setUserProfilePicUrl } from "../../features/user/userSlice";
 import useImageFetcher from "../../utils/Hooks/useImageFetcher";
 import toLocalISODate from "../../utils/toLocalISODate";
 import toast from "react-hot-toast";
+import UploadProfileImage from "../../components/modals/UploadProfileImage";
+import compressImage from "../../utils/compressImage";
+import { RootState } from "../../app/store";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Account = () => {
-  const token = useSelector((s: any) => s.auth.token);
+  const token = useSelector((s: RootState) => s.auth.token);
 
-  const userData = useSelector((s: any) => s.user.userData);
+  const userData = useSelector((s: RootState) => s.user.userData);
+  const dispatch = useDispatch();
+  const { fetchProfileImage } = useImageFetcher();
 
-  const { fetchPublicImage } = useImageFetcher();
-
+  const [profilePhoto, setProfilePhoto] = useState<File[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [openPhotoModal, setOpenPhotoModal] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loadingProfilePic, setLoadingProfilePic] = useState(true);
 
-  const [profilePicUrl, setProfilePicUrl] = useState("/svg/profile.svg");
+  const [profilePicUrl, setProfilePicUrl] = useState<string>();
+
+  useEffect(() => {
+    const loadProfilePic = async () => {
+      if (!userData?.profilePicUrl) {
+        // user has no profile pic → show default avatar
+        setProfilePicUrl("/svg/profile.svg");
+        setLoadingProfilePic(false);
+        return;
+      }
+
+      // user has a profile pic → start shimmering
+      setLoadingProfilePic(true);
+
+      const url = await fetchProfileImage(userData.profilePicUrl);
+
+      setProfilePicUrl(url || "/svg/profile.svg");
+      setLoadingProfilePic(false);
+    };
+
+    loadProfilePic();
+  }, [userData]);
 
   // Actual form fields
   const [name, setName] = useState("");
@@ -61,11 +90,23 @@ const Account = () => {
     });
   }, [userData]);
 
+  useEffect(() => {
+    if (profilePhoto.length === 0) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(profilePhoto[0]);
+    setPreviewUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [profilePhoto]);
+
   // FETCH PROFILE PIC
   useEffect(() => {
     const fetchData = async () => {
       if (userData?.profilePicUrl) {
-        const url = await fetchPublicImage(userData.profilePicUrl);
+        const url = await fetchProfileImage(userData.profilePicUrl);
         setProfilePicUrl(url);
       }
     };
@@ -165,6 +206,61 @@ const Account = () => {
     }
   }
 
+  async function handleProfileUpload() {
+    try {
+      setUploading(true);
+
+      if (!profilePhoto[0]) {
+        toast.error("Please select an image first.");
+        return;
+      }
+
+      const compressed = await compressImage.mainImage(profilePhoto[0]);
+
+      // Form
+      const formData = new FormData();
+
+      if (compressed) formData.append("profile", compressed, `profile.webp`);
+
+      const response = await fetch(
+        `${VITE_API_BASE_URL}/api/v1/assets/upload/profile`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      console.log(data);
+      if (response.ok) {
+        toast.success(data.message || "Profile uploaded successfully");
+
+        // fetch url and set it in User slice
+        // update local UI
+        const fullUrl = data.url;
+
+        const fileName = fullUrl.split("/").pop();
+
+        setProfilePicUrl(fileName);
+        dispatch(setUserProfilePicUrl(fileName));
+
+        // clear temp preview
+        setProfilePhoto([]);
+        setPreviewUrl(null);
+        setOpenPhotoModal(false);
+      } else {
+        toast.error(data.message || "Profile upload failed, try again");
+      }
+    } catch (error) {
+      toast.error("Upload failed. Try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   // -----------------------------
   // CANCEL → RESTORE BACKUP
   // -----------------------------
@@ -174,6 +270,8 @@ const Account = () => {
     setPhone(backup.phone);
     setGender(backup.gender);
     setDateOfBirth(backup.dateOfBirth);
+    setPreviewUrl(null);
+    setProfilePhoto([]);
 
     setCanEdit(false);
   }
@@ -192,12 +290,37 @@ const Account = () => {
         {/* PROFILE + INFO CARD */}
         <div className="w-full flex flex-col items-center mt-4">
           {/* Profile Image */}
-          <div className="flex flex-col items-center gap-3">
-            <img
-              src={profilePicUrl}
-              alt="profile"
-              className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
-            />
+          <div className="flex flex-col items-center gap-3 ">
+            <div
+              className="relative group w-28 h-28 cursor-pointer"
+              onClick={() => setOpenPhotoModal(true)}
+            >
+              {loadingProfilePic ? (
+                <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse border-4 border-white shadow-md shimmer" />
+              ) : (
+                <img
+                  src={previewUrl || profilePicUrl}
+                  alt="profile"
+                  className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
+                />
+              )}
+
+              {canEdit && (
+                <div className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4">
+                  {/* <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="white"
+                      className="w-6 h-6"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 8.5a4 4 0 110 8 4 4 0 010-8zm6.5-3.5h-2l-.8-1.5A2.5 2.5 0 0013.6 2H10.4a2.5 2.5 0 00-2.1 1.5L7.5 5H5.5A3.5 3.5 0 002 8.5v8A3.5 3.5 0 005.5 20h13a3.5 3.5 0 003.5-3.5v-8A3.5 3.5 0 0018.5 5z" />
+                    </svg>
+                  </div> */}
+                </div>
+              )}
+            </div>
+
             <h2 className="text-2xl inter-semibold mt-1">{name || "User"}</h2>
           </div>
 
@@ -284,7 +407,7 @@ const Account = () => {
               <div className="mt-2">
                 <p className="text-gray-600 inter-medium">KYC:</p>
                 <p className="text-lg inter-regular capitalize">
-                  {userData.kyc.status}
+                  {userData?.kyc?.status}
                 </p>
               </div>
             )}
@@ -318,6 +441,18 @@ const Account = () => {
           </div>
         </div>
       </div>
+      {openPhotoModal && (
+        <UploadProfileImage
+          handleProfileUpload={handleProfileUpload}
+          previewUrl={previewUrl}
+          profilePhoto={profilePhoto}
+          profilePicUrl={profilePicUrl}
+          setOpenPhotoModal={setOpenPhotoModal}
+          setPreviewUrl={setPreviewUrl}
+          setProfilePhoto={setProfilePhoto}
+          uploading={uploading}
+        />
+      )}
     </div>
   );
 };

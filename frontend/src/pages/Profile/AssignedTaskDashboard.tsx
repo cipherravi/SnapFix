@@ -39,48 +39,53 @@ const AssignedTaskDashboard = () => {
       .map((file) => getImageUrl(file.fileName, "jobAssets")) || [];
 
   return (
-    <div className="w-full min-h-screen flex flex-col relative bg-[#fafafa]">
-      <div className="shrink-0 pt-4 px-4 sm:px-6 flex flex-col gap-4 absolute z-10">
-        <BackButton navigateTo="/profile/tasks" />
-      </div>
-      {/* Banner Swiper */}
-      <div className="h-60 rounded-b-4xl overflow-hidden">
-        {imageUrls.length > 1 ? (
-          <Swiper
-            modules={[Autoplay, Pagination]}
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            pagination={{ clickable: true }}
-            loop
-            className="w-full h-full"
-          >
-            {imageUrls.map((src, index) => (
-              <SwiperSlide key={index}>
-                <img
-                  src={src}
-                  alt={`Job Image ${index + 1}`}
-                  className="w-full h-full object-contain"
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        ) : imageUrls.length == 1 ? (
-          imageUrls.map((src, index) => (
-            <img
-              key={index}
-              src={src}
-              alt={`Job Image`}
-              className="w-full h-full object-contain"
-            />
-          ))
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-            No images available
-          </div>
-        )}
-      </div>
+    <div className="w-full min-h-screen flex justify-center relative bg-[#fafafa]">
+      {/* Centered max-width wrapper */}
+      <div className="w-full max-w-3xl flex flex-col relative pb-6">
+        <div className="absolute pt-4 px-4 z-50">
+          <BackButton navigateTo="/profile/tasks" />
+        </div>
+        {/* Banner Swiper */}
+        <div className="h-60  overflow-hidden">
+          {imageUrls.length > 1 ? (
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              pagination={{ clickable: true }}
+              loop
+              className="w-full h-full"
+            >
+              {imageUrls.map((src, index) => (
+                <SwiperSlide key={index}>
+                  <img
+                    src={src}
+                    alt={`Job Image ${index + 1}`}
+                    className="w-full h-full object-contain"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : imageUrls.length == 1 ? (
+            imageUrls.map((src, index) => (
+              <img
+                key={index}
+                src={src}
+                alt={`Job Image`}
+                className="w-full h-full object-contain"
+              />
+            ))
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+              No images available
+            </div>
+          )}
+        </div>
 
-      {/* Dynamic  */}
-      {taskDetails && <InfoSection {...taskDetails} />}
+        {/* Dynamic Content */}
+        <div className=" mx-2 mt-8 bg-white rounded-3xl shadow-[0_6px_25px_rgba(0,0,0,0.08)] p-5">
+          {taskDetails && <InfoSection {...taskDetails} />}
+        </div>
+      </div>
     </div>
   );
 };

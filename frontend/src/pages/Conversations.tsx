@@ -10,7 +10,7 @@ import { formatTime } from "../utils/formatTime";
 import ConversationsListShimmer from "../components/shimmer/ConversationsListShimmer";
 import { RootState } from "../app/store";
 
-// Types based on your API
+// Types
 interface Participant {
   id: number;
   name: string;
@@ -118,6 +118,7 @@ const Conversations = () => {
               name={conv.participant.name || "Unknown"}
               unreadCount={conv.unreadCount}
               markAsRead={markAsRead}
+              profilePic={conv.participant.profilePic}
             />
           ))
         ) : (

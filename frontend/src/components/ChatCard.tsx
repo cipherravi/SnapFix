@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-
+import useImageFetcher from "../utils/Hooks/useImageFetcher";
+import { useEffect, useState } from "react";
 type ChatCardProps = {
   id: string;
   name: string;
@@ -7,6 +8,7 @@ type ChatCardProps = {
   lastMessageTime: string;
   unreadCount: number;
   markAsRead: (id: string) => void;
+  profilePic: string;
 };
 
 const ChatCard = ({
@@ -16,9 +18,33 @@ const ChatCard = ({
   lastMessageTime,
   unreadCount,
   markAsRead,
+  profilePic,
 }: ChatCardProps) => {
   const navigate = useNavigate();
+  const { fetchProfileImage } = useImageFetcher();
+  const [profilePicUrl, setProfilePicUrl] = useState<string>();
+  const [loadingProfilePic, setLoadingProfilePic] = useState(true);
 
+  useEffect(() => {
+    const loadProfilePic = async () => {
+      if (!profilePic) {
+        // user has no profile pic → show default avatar
+        setProfilePicUrl("/svg/profile.svg");
+        setLoadingProfilePic(false);
+        return;
+      }
+
+      // user has a profile pic → start shimmering
+      setLoadingProfilePic(true);
+
+      const url = await fetchProfileImage(profilePic);
+
+      setProfilePicUrl(url || "/svg/profile.svg");
+      setLoadingProfilePic(false);
+    };
+
+    loadProfilePic();
+  }, [profilePic]);
   return (
     <div
       className="w-full h-18 flex items-center justify-between gap-4 px-3 relative"
@@ -26,11 +52,17 @@ const ChatCard = ({
         navigate(`/conversation/${id}`), markAsRead(id);
       }}
     >
-      <img
-        src="/svg/profile.svg"
-        alt="User Pic"
-        className="w-10 rounded-full outline-1 p-1"
-      />
+      {loadingProfilePic ? (
+        <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse shadow-md shimmer" />
+      ) : (
+        <img
+          src={profilePicUrl}
+          alt="User Pic"
+          className={`w-12 h-12 rounded-full object-cover ${
+            profilePic ? "" : "outline-1 p-1"
+          }`}
+        />
+      )}
       <div className=" w-full h-full border-b border-b-gray-300  flex-1 ">
         <p className="pt-3 text-xl inter-semibold">{name}</p>
         <p className="">{lastMessage}</p>
