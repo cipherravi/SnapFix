@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-
+import { calculateUnread } from "../../utils/Hooks/calulateUnread";
 interface Participant {
   id: number;
   name: string;
@@ -52,11 +52,8 @@ const conversationSlice = createSlice({
         conv.unreadCount = 0;
       }
 
-      // Optionally update total unread count
-      state.unreadCount = state.conversations.reduce(
-        (sum, c) => sum + c.unreadCount,
-        0
-      );
+      // update total unread count
+      calculateUnread(state);
     },
 
     setUnreadCount: (state, action) => {
@@ -81,6 +78,40 @@ const conversationSlice = createSlice({
         state.conversations.push(updated);
       }
     },
+    setNewMessage: (state, action) => {
+      const { conversationId, senderId, text, createdAt } = action.payload;
+
+      const index = state.conversations.findIndex(
+        (c) => c.id == action.payload.conversationId
+      );
+
+      if (index === -1) return;
+
+      const conversation = state.conversations[index];
+
+      // update last message
+      const updatedConversation = {
+        ...conversation,
+        lastMessage: {
+          sender: senderId,
+          text,
+          createdAt: createdAt || new Date().toISOString(),
+        },
+        unreadCount: (conversation.unreadCount || 0) + 1,
+      };
+
+      // increment unread
+      conversation.unreadCount = (conversation.unreadCount || 0) + 1;
+
+      // update total unread count
+      calculateUnread(state);
+
+      // reorder: move to top
+      state.conversations = [
+        updatedConversation,
+        ...state.conversations.filter((c) => c.id !== conversationId),
+      ];
+    },
   },
 });
 
@@ -91,5 +122,6 @@ export const {
   clearUnreadCount,
   markConversationRead,
   updateSingleConversation,
+  setNewMessage,
 } = conversationSlice.actions;
 export default conversationSlice.reducer;

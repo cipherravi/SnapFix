@@ -4,11 +4,13 @@ import { useGetConversationsQuery } from "../services/api/conversationApi";
 import {
   setConversations,
   markConversationRead,
+  setNewMessage,
 } from "../features/conversation/conversationSlice";
 import ChatCard from "../components/ChatCard";
 import { formatTime } from "../utils/formatTime";
 import ConversationsListShimmer from "../components/shimmer/ConversationsListShimmer";
 import { RootState } from "../app/store";
+import { useSocket } from "../utils/context/SocketContext";
 
 // Types
 interface Participant {
@@ -34,10 +36,20 @@ interface Conversation {
   updatedAt: string;
 }
 
+type Message = {
+  conversationId: string;
+  senderId: number;
+  text: string;
+  sentAt?: Date;
+  createdAt?: Date;
+  _id?: string;
+  localId?: string;
+};
+
 const Conversations = () => {
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
-
+  const socket = useSocket();
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
 
   const conversations = useSelector(
@@ -46,35 +58,16 @@ const Conversations = () => {
 
   const { data: initialConversations = [], isLoading } =
     useGetConversationsQuery(undefined, {
-      skip: !isAuthenticated,
-      refetchOnMountOrArgChange: true,
+      skip: !isAuthenticated || conversations.length > 0,
+      refetchOnMountOrArgChange: false,
     });
 
-  // Normalize data and store in Redux
+  // store in Redux
   useEffect(() => {
-    if (!initialConversations.length) return;
+    if (!initialConversations || initialConversations.length === 0) return;
 
-    const normalized: Conversation[] = initialConversations.map((conv) => ({
-      ...conv,
-      participant: conv.participant ?? {
-        id: 0,
-        name: "Unknown",
-        profilePic: null,
-      },
-      lastMessage: conv.lastMessage ?? {
-        text: "Say Hello 👋",
-        sender: 0,
-        createdAt: new Date().toISOString(),
-      },
-    }));
-
-    const isDifferent =
-      JSON.stringify(normalized) !== JSON.stringify(conversations);
-
-    if (isDifferent) {
-      dispatch(setConversations(normalized));
-    }
-  }, [initialConversations, conversations, dispatch]);
+    dispatch(setConversations(initialConversations));
+  }, [initialConversations]);
 
   const markAsRead = (id: string) => {
     dispatch(markConversationRead(id));
@@ -84,6 +77,18 @@ const Conversations = () => {
   const filtered = conversations.filter((c) =>
     c.participant.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  useEffect(() => {
+    const handleReceiveMessage = (msg: Message) => {
+      dispatch(setNewMessage(msg));
+    };
+
+    socket.on("receiveMessage", handleReceiveMessage);
+
+    return () => {
+      socket.off("receiveMessage", handleReceiveMessage);
+    };
+  }, [socket]);
 
   return (
     <div className="w-full h-full flex flex-col gap-6 bg-white pt-4 px-4 sm:px-6 md:px-8">
@@ -106,9 +111,9 @@ const Conversations = () => {
       </div>
 
       <div className="w-full flex-1 relative">
-        {isLoading && conversations.length === 0 ? (
+        {isLoading && filtered.length === 0 ? (
           <ConversationsListShimmer />
-        ) : filtered.length > 0 ? (
+        ) : conversations.length > 0 ? (
           filtered.map((conv) => (
             <ChatCard
               key={conv.id}
