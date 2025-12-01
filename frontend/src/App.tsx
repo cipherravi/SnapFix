@@ -15,6 +15,7 @@ import { setToken } from "./features/auth/authSlice";
 
 import { loadToken } from "./utils/tokenDB";
 import { inject } from "@vercel/analytics";
+import { injectSpeedInsights } from "@vercel/speed-insights";
 
 function App() {
   const dispatch = useDispatch();
@@ -56,10 +57,11 @@ function App() {
   }, [userData]);
 
   // ----------------------------------------------------------------------
-  // VERGEL ANALYTICS INIT (on mount)
+  // VERGEL ANALYTICS & INSIGHTS INIT (on mount)
   // ----------------------------------------------------------------------
   useEffect(() => {
     inject();
+    injectSpeedInsights();
   }, []);
 
   // ----------------------------------------------------------------------

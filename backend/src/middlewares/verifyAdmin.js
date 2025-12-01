@@ -9,7 +9,15 @@ const { ADMIN } = USER_ROLE;
 
 async function adminVerification(req, res, next) {
   try {
-    const token = req.headers["x-access-token"] || req.cookies.token;
+    // const token = req.headers["x-access-token"] || req.cookies.token;
+    let token;
+
+    // Read bearer token from header
+    const authHeader = req.headers["authorization"];
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1]; // Extract actual token
+    }
 
     if (!token) {
       throw new AppError("Token not found", StatusCodes.BAD_REQUEST);

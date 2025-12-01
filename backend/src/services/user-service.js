@@ -192,6 +192,29 @@ async function updateUser(userId, updateData) {
   }
 }
 
+async function updateProfileImage(userId, fileName) {
+  try {
+    const user = await userRepository.getById(userId);
+    if (!user) {
+      throw new AppError(
+        "Failed to find user, try again",
+        StatusCodes.NOT_FOUND
+      );
+    }
+
+    const updateUser = await userRepository.update(userId, {
+      profilePicUrl: fileName,
+    });
+    return updateUser;
+  } catch (error) {
+    logger.error(`Update profile image failed by user - ${userId}`);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(UPDATE_FAILED, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+}
+
 module.exports = {
   signup,
   login,
@@ -199,4 +222,5 @@ module.exports = {
   getMyProfile,
   getProfiles,
   updateUser,
+  updateProfileImage,
 };
