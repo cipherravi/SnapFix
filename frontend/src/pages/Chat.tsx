@@ -7,7 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 import useMessageFetcher from "../utils/Hooks/useMessageFetcher";
 import ChatShimmer from "../components/shimmer/ChatShimmer";
 import { useGetConversationByIdQuery } from "../services/api/conversationApi";
-import { updateSingleConversation } from "../features/conversation/conversationSlice";
+import {
+  updateSingleConversation,
+  setOwnSentMessage,
+} from "../features/conversation/conversationSlice";
 
 import { RootState } from "../app/store";
 import useImageFetcher from "../utils/Hooks/useImageFetcher";
@@ -314,6 +317,15 @@ const Chat = ({ verified = true }: ChatProps) => {
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     socket.emit("sendMessage", newMsg);
+
+    dispatch(
+      setOwnSentMessage({
+        conversationId: id,
+        senderId: userData.id,
+        text: trimmed,
+        createdAt: new Date(),
+      })
+    );
   }, [input, socket, id, userData?.id]);
 
   useEffect(() => {

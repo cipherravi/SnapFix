@@ -112,6 +112,33 @@ const conversationSlice = createSlice({
         ...state.conversations.filter((c) => c.id !== conversationId),
       ];
     },
+    setOwnSentMessage: (state, action) => {
+      const { conversationId, senderId, text, createdAt } = action.payload;
+
+      const index = state.conversations.findIndex(
+        (c) => c.id == action.payload.conversationId
+      );
+
+      if (index === -1) return;
+
+      const conversation = state.conversations[index];
+
+      // update last message
+      const updatedConversation = {
+        ...conversation,
+        lastMessage: {
+          sender: senderId,
+          text,
+          createdAt: createdAt || new Date().toISOString(),
+        },
+      };
+
+      // reorder: move to top
+      state.conversations = [
+        updatedConversation,
+        ...state.conversations.filter((c) => c.id !== conversationId),
+      ];
+    },
   },
 });
 
@@ -123,5 +150,6 @@ export const {
   markConversationRead,
   updateSingleConversation,
   setNewMessage,
+  setOwnSentMessage,
 } = conversationSlice.actions;
 export default conversationSlice.reducer;
