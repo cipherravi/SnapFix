@@ -74,7 +74,7 @@ function Home() {
     <div className="w-full h-full flex flex-col bg-white relative" role="main">
       {/* HEADER */}
       <div
-        className="w-full flex justify-between items-center px-5 py-3 sticky top-0 bg-white z-50"
+        className="w-full flex justify-between items-center px-5 py-3 sticky top-0 bg-white z-30"
         role="banner"
       >
         <div className="flex items-center justify-center">

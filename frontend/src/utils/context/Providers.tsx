@@ -5,6 +5,7 @@ import SocketProvider from "./SocketContext";
 // import ConversationProvider from "./CoversationContext";
 import { ExploreProvider } from "./ExploreContext";
 import AddressProvider from "./AddressContext";
+import { NotificationQueueProvider } from "./NotificationQueueContext";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -13,13 +14,15 @@ interface ProvidersProps {
 function Providers({ children }: ProvidersProps) {
   return (
     <AuthProvider>
-      <AddressProvider>
-        <ExploreProvider>
-          {/* <ConversationProvider> */}
-          <SocketProvider>{children}</SocketProvider>
-          {/* </ConversationProvider> */}
-        </ExploreProvider>
-      </AddressProvider>
+      <NotificationQueueProvider>
+        <AddressProvider>
+          <ExploreProvider>
+            {/* <ConversationProvider> */}
+            <SocketProvider>{children}</SocketProvider>
+            {/* </ConversationProvider> */}
+          </ExploreProvider>
+        </AddressProvider>
+      </NotificationQueueProvider>
     </AuthProvider>
   );
 }

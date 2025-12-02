@@ -81,6 +81,7 @@ const Conversations = () => {
   useEffect(() => {
     const handleReceiveMessage = (msg: Message) => {
       dispatch(setNewMessage(msg));
+      console.log(msg);
     };
 
     socket.on("receiveMessage", handleReceiveMessage);
@@ -89,7 +90,7 @@ const Conversations = () => {
       socket.off("receiveMessage", handleReceiveMessage);
     };
   }, [socket]);
-
+  console.log(conversations);
   return (
     <div className="w-full h-full flex flex-col gap-6 bg-white pt-4 px-4 sm:px-6 md:px-8">
       <div className="w-full flex flex-col gap-3 max-w-3xl md:max-w-full">

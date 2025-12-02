@@ -17,6 +17,12 @@ import { loadToken } from "./utils/tokenDB";
 import { inject } from "@vercel/analytics";
 import { injectSpeedInsights } from "@vercel/speed-insights";
 
+import { useSocket } from "./utils/context/SocketContext";
+import { RootState } from "./app/store";
+import useImageFetcher from "./utils/Hooks/useImageFetcher";
+import { useNotificationQueue } from "./utils/context/NotificationQueueContext";
+import NewMessageNotification from "./components/modals/NewMessageNotificationModal";
+
 function App() {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -103,6 +109,59 @@ function App() {
 
   const shouldShowTabs = tabsVisibleRoutes.includes(location.pathname);
 
+  //-----------------------------------------------------------------------
+  // Show new message modal
+  const socket = useSocket();
+  const { fetchProfileImage } = useImageFetcher();
+  const conversations = useSelector(
+    (s: RootState) => s.conversation.conversations
+  );
+
+  // const [showMessageModal, setShowMessageModal] = useState(false);
+  // const [messageData, setMessageData] = useState<{
+  //   sender: string;
+  //   text: string;
+  //   profilePicUrl?: string;
+  //   conversationId: string;
+  // } | null>(null);
+
+  const { pushNotification } = useNotificationQueue();
+
+  const currentConversationId = location.pathname.startsWith("/conversation/")
+    ? location.pathname.split("/conversation/")[1]
+    : undefined;
+
+  useEffect(() => {
+    const handleReceiveMessage = async (msg: any) => {
+      const { conversationId, text, senderId } = msg;
+
+      const currentConversation = conversations.find(
+        (conv) => conv.id === conversationId
+      );
+      // resolve sender details however you already do it
+      const sender = currentConversation?.participant?.name ?? "Unknown";
+      let profilePicUrl = "/svg/profile.svg";
+      if (currentConversation?.participant?.profilePic) {
+        profilePicUrl = await fetchProfileImage(
+          currentConversation?.participant?.profilePic
+        );
+      }
+
+      pushNotification({
+        sender,
+        text,
+        profilePicUrl,
+        conversationId,
+        currentConversationId,
+      });
+    };
+
+    socket.on("receiveMessage", handleReceiveMessage);
+    return () => {
+      socket.off("receiveMessage", handleReceiveMessage);
+    };
+  }, [socket, conversations, currentConversationId]);
+
   // ----------------------------------------------------------------------
   // RENDER
   // ----------------------------------------------------------------------
@@ -110,8 +169,11 @@ function App() {
     return <Splash fadeOut={fadeSplash} />;
   }
 
+  //-----------------------------------------------------------------------
+
   return (
     <div className="min-h-svh w-full">
+      <NewMessageNotification />
       <ScrollToTop />
 
       <Outlet />
