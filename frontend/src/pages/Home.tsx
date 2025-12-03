@@ -24,14 +24,18 @@ function Home() {
 
   const { data: fetchedUnreadCount } = useGetUnreadCountQuery(undefined, {
     skip: !isAuthenticated,
-    refetchOnMountOrArgChange: true,
+    refetchOnMountOrArgChange: false,
+    refetchOnReconnect: false,
+    refetchOnFocus: false,
   });
 
-  useEffect(() => {
-    dispatch(setUnreadCount(fetchedUnreadCount));
-  }, [fetchedUnreadCount]);
-
   const unreadCount = useSelector((s: RootState) => s.conversation.unreadCount);
+
+  useEffect(() => {
+    if (fetchedUnreadCount !== undefined && unreadCount === undefined) {
+      dispatch(setUnreadCount(fetchedUnreadCount));
+    }
+  }, [fetchedUnreadCount, unreadCount]);
 
   const [offset, setOffset] = useState(0);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -93,18 +97,18 @@ function Home() {
           </button>
 
           <button
-            aria-label={`Messages (${unreadCount ?? 0} unread)`}
+            aria-label={`Messages (${unreadCount} unread)`}
             className="relative focus:outline-none focus:ring-2 focus:ring-[#0385C2] rounded-full p-1"
             onClick={() => navigate("/conversations")}
           >
-            {(unreadCount ?? 0) > 0 && (
+            {unreadCount > 0 && (
               <span
                 aria-label={`${unreadCount} unread messages`}
                 className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] sm:text-xs 
                 min-w-4 h-4 sm:min-w-[18px] sm:h-[18px]
                 flex items-center justify-center rounded-full px-[3px] sm:px-[5px] shadow-md"
               >
-                {(unreadCount ?? 0) > 99 ? "99+" : unreadCount ?? 0}
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
             <img src="/svg/message.svg" alt="" className="h-8 sm:h-9" />

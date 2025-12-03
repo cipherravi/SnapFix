@@ -10,6 +10,7 @@ import { useGetConversationByIdQuery } from "../services/api/conversationApi";
 import {
   updateSingleConversation,
   setOwnSentMessage,
+  markConversationRead,
 } from "../features/conversation/conversationSlice";
 
 import { RootState } from "../app/store";
@@ -54,6 +55,11 @@ const Chat = ({ verified = true }: ChatProps) => {
       dispatch(updateSingleConversation(conversation));
     }
   }, [conversation]);
+
+  // mark conversation as read
+  useEffect(() => {
+    dispatch(markConversationRead(id));
+  }, []);
 
   // Use either local Redux OR API fallback
   const effectiveConversation = currentConversation || conversation;

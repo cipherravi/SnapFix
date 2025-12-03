@@ -6,8 +6,11 @@ import {
   ReactNode,
   useEffect,
 } from "react";
+import { useDispatch } from "react-redux";
+import { setNewMessage } from "../../features/conversation/conversationSlice";
 
 export interface NotificationItem {
+  senderId: number;
   sender: string;
   text: string;
   profilePicUrl?: string;
@@ -28,6 +31,7 @@ const NotificationQueueContext = createContext<NotificationContextType | null>(
 export const NotificationQueueProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const dispatch = useDispatch();
   const [current, setCurrent] = useState<NotificationItem | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const AUTO_HIDE_MS = 3000;
@@ -43,13 +47,14 @@ export const NotificationQueueProvider: React.FC<{ children: ReactNode }> = ({
   // Push a new notification, replacing current immediately
   const pushNotification = (msg: NotificationItem) => {
     // Ignore if the message is from the same conversation user is currently viewing
-    console.log(msg.conversationId, msg.currentConversationId);
+
     if (
       msg.currentConversationId &&
       msg.currentConversationId === msg.conversationId
     )
       return;
     setCurrent(msg); // replace current
+    dispatch(setNewMessage(msg));
     vibrate();
     resetTimer();
   };

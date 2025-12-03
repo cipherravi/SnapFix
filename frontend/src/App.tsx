@@ -148,6 +148,7 @@ function App() {
       }
 
       pushNotification({
+        senderId,
         sender,
         text,
         profilePicUrl,

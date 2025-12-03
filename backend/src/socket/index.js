@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const cookie = require("cookie");
 const Message = require("../models/message");
 const Conversation = require("../models/conversation");
 const { SECRET_KEY } = require("../config/server-config");

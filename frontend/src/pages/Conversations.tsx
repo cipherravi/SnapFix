@@ -1,55 +1,15 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetConversationsQuery } from "../services/api/conversationApi";
-import {
-  setConversations,
-  markConversationRead,
-  setNewMessage,
-} from "../features/conversation/conversationSlice";
+import { setConversations } from "../features/conversation/conversationSlice";
 import ChatCard from "../components/ChatCard";
 import { formatTime } from "../utils/formatTime";
 import ConversationsListShimmer from "../components/shimmer/ConversationsListShimmer";
 import { RootState } from "../app/store";
-import { useSocket } from "../utils/context/SocketContext";
-
-// Types
-interface Participant {
-  id: number;
-  name: string;
-  profilePic: string | null;
-}
-
-interface LastMessage {
-  text: string;
-  sender: number;
-  createdAt: string;
-}
-
-interface Conversation {
-  id: string;
-  active: boolean;
-  jobId: number;
-  participant: Participant;
-  lastMessage: LastMessage;
-  unreadCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-type Message = {
-  conversationId: string;
-  senderId: number;
-  text: string;
-  sentAt?: Date;
-  createdAt?: Date;
-  _id?: string;
-  localId?: string;
-};
 
 const Conversations = () => {
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
-  const socket = useSocket();
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
 
   const conversations = useSelector(
@@ -69,28 +29,11 @@ const Conversations = () => {
     dispatch(setConversations(initialConversations));
   }, [initialConversations]);
 
-  const markAsRead = (id: string) => {
-    dispatch(markConversationRead(id));
-  };
-
   // Filter safely
   const filtered = conversations.filter((c) =>
     c.participant.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  useEffect(() => {
-    const handleReceiveMessage = (msg: Message) => {
-      dispatch(setNewMessage(msg));
-      console.log(msg);
-    };
-
-    socket.on("receiveMessage", handleReceiveMessage);
-
-    return () => {
-      socket.off("receiveMessage", handleReceiveMessage);
-    };
-  }, [socket]);
-  console.log(conversations);
   return (
     <div className="w-full h-full flex flex-col gap-6 bg-white pt-4 px-4 sm:px-6 md:px-8">
       <div className="w-full flex flex-col gap-3 max-w-3xl md:max-w-full">
@@ -123,7 +66,6 @@ const Conversations = () => {
               lastMessageTime={formatTime(conv.lastMessage.createdAt)}
               name={conv.participant.name || "Unknown"}
               unreadCount={conv.unreadCount}
-              markAsRead={markAsRead}
               profilePic={conv.participant.profilePic}
             />
           ))

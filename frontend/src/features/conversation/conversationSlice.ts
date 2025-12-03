@@ -25,12 +25,12 @@ interface Conversation {
 
 interface ConversationState {
   conversations: Conversation[];
-  unreadCount: number | null;
+  unreadCount: number;
 }
 
 const initialState: ConversationState = {
   conversations: [],
-  unreadCount: null,
+  unreadCount: 0,
 };
 
 const conversationSlice = createSlice({
@@ -40,28 +40,33 @@ const conversationSlice = createSlice({
     setConversations: (state, action) => {
       state.conversations = action.payload;
     },
+
     clearConversations: (state) => {
       state.conversations = [];
     },
+
     markConversationRead: (state, action) => {
       const conversationId = action.payload;
 
       const conv = state.conversations.find((c) => c.id === conversationId);
 
       if (conv) {
+        state.unreadCount -= conv.unreadCount;
         conv.unreadCount = 0;
       }
 
       // update total unread count
-      calculateUnread(state);
+      // calculateUnread(state);
     },
 
     setUnreadCount: (state, action) => {
       state.unreadCount = action.payload;
     },
+
     clearUnreadCount: (state) => {
-      state.unreadCount = null;
+      state.unreadCount = 0;
     },
+
     updateSingleConversation: (state, action) => {
       const updated = action.payload;
       const index = state.conversations.findIndex(
@@ -78,6 +83,7 @@ const conversationSlice = createSlice({
         state.conversations.push(updated);
       }
     },
+
     setNewMessage: (state, action) => {
       const { conversationId, senderId, text, createdAt } = action.payload;
 
@@ -97,14 +103,15 @@ const conversationSlice = createSlice({
           text,
           createdAt: createdAt || new Date().toISOString(),
         },
-        unreadCount: (conversation.unreadCount || 0) + 1,
+        unreadCount: conversation.unreadCount + 1,
       };
 
       // increment unread
-      conversation.unreadCount = (conversation.unreadCount || 0) + 1;
+
+      state.unreadCount += 1;
 
       // update total unread count
-      calculateUnread(state);
+      // calculateUnread(state);
 
       // reorder: move to top
       state.conversations = [
@@ -112,6 +119,7 @@ const conversationSlice = createSlice({
         ...state.conversations.filter((c) => c.id !== conversationId),
       ];
     },
+
     setOwnSentMessage: (state, action) => {
       const { conversationId, senderId, text, createdAt } = action.payload;
 

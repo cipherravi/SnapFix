@@ -7,7 +7,6 @@ type ChatCardProps = {
   lastMessage: string;
   lastMessageTime: string;
   unreadCount: number;
-  markAsRead: (id: string) => void;
   profilePic: string;
 };
 
@@ -17,7 +16,7 @@ const ChatCard = ({
   lastMessage,
   lastMessageTime,
   unreadCount,
-  markAsRead,
+
   profilePic,
 }: ChatCardProps) => {
   const navigate = useNavigate();
@@ -49,7 +48,7 @@ const ChatCard = ({
     <div
       className="w-full h-18 flex items-center justify-between gap-4 px-3 relative"
       onClick={() => {
-        navigate(`/conversation/${id}`), markAsRead(id);
+        navigate(`/conversation/${id}`);
       }}
     >
       {loadingProfilePic ? (

@@ -234,7 +234,7 @@ const Account = () => {
       );
 
       const data = await response.json();
-      console.log(data);
+
       if (response.ok) {
         toast.success(data.message || "Profile uploaded successfully");
 
