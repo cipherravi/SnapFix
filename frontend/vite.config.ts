@@ -27,7 +27,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,ts,css,html,svg,png,ico,json}"], // precache everything important
+        globPatterns: ["**/*.{js,css,html,svg,png}"], // precache everything Vite builds
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/images\//],
       },
