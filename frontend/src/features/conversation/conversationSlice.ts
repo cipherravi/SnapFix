@@ -119,7 +119,7 @@ const conversationSlice = createSlice({
       ];
     },
 
-    setOwnSentMessage: (state, action) => {
+    setLastMessage: (state, action) => {
       const { conversationId, senderId, text, createdAt } = action.payload;
 
       const index = state.conversations.findIndex(
@@ -157,6 +157,6 @@ export const {
   markConversationRead,
   updateSingleConversation,
   setNewMessage,
-  setOwnSentMessage,
+  setLastMessage,
 } = conversationSlice.actions;
 export default conversationSlice.reducer;

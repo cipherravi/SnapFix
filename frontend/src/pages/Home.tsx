@@ -30,11 +30,9 @@ function Home() {
   });
 
   const unreadCount = useSelector((s: RootState) => s.conversation.unreadCount);
-  console.log("home count", unreadCount);
+
   useEffect(() => {
-    console.log("entered in home useEffect");
     if (fetchedUnreadCount !== undefined && unreadCount === undefined) {
-      console.log("enter in if condition");
       dispatch(setUnreadCount(fetchedUnreadCount));
     }
   }, [fetchedUnreadCount, unreadCount]);

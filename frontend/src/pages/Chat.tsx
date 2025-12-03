@@ -9,7 +9,7 @@ import ChatShimmer from "../components/shimmer/ChatShimmer";
 import { useGetConversationByIdQuery } from "../services/api/conversationApi";
 import {
   updateSingleConversation,
-  setOwnSentMessage,
+  setLastMessage,
   markConversationRead,
 } from "../features/conversation/conversationSlice";
 
@@ -292,8 +292,10 @@ const Chat = ({ verified = true }: ChatProps) => {
 
     const handleReceiveMessage = (msg: Message) => {
       if (msg.conversationId !== id) return;
+
       setMessages((prev) => [...prev, msg]);
       setShouldScrollToBottom(true);
+      dispatch(setLastMessage(msg));
     };
 
     socket.on("receiveMessage", handleReceiveMessage);
@@ -325,7 +327,7 @@ const Chat = ({ verified = true }: ChatProps) => {
     socket.emit("sendMessage", newMsg);
 
     dispatch(
-      setOwnSentMessage({
+      setLastMessage({
         conversationId: id,
         senderId: userData.id,
         text: trimmed,
