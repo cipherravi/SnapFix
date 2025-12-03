@@ -32,7 +32,7 @@ const Conversations = () => {
 
   // Filter safely
   const filtered = conversations.filter((c) =>
-    c.participant.name.toLowerCase().includes(search.toLowerCase())
+    c.participant?.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -63,11 +63,11 @@ const Conversations = () => {
             <ChatCard
               key={conv.id}
               id={conv.id}
-              lastMessage={conv.lastMessage.text || "Say Hello 👋"}
+              lastMessage={conv.lastMessage?.text || "Say Hello 👋"}
               lastMessageTime={formatTime(conv.lastMessage.createdAt)}
-              name={conv.participant.name || "Unknown"}
+              name={conv.participant?.name || "Unknown"}
               unreadCount={conv.unreadCount}
-              profilePic={conv.participant.profilePic}
+              profilePic={conv.participant?.profilePic}
             />
           ))
         ) : (
