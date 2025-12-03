@@ -28,6 +28,5 @@ createRoot(document.getElementById("root")!).render(
         </Providers>
       </PersistGate>
     </Provider>
-    //{" "}
   </StrictMode>
 );
