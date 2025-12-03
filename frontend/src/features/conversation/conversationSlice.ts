@@ -25,12 +25,12 @@ interface Conversation {
 
 interface ConversationState {
   conversations: Conversation[];
-  unreadCount: number;
+  unreadCount: number | undefined;
 }
 
 const initialState: ConversationState = {
   conversations: [],
-  unreadCount: 0,
+  unreadCount: undefined,
 };
 
 const conversationSlice = createSlice({
@@ -51,7 +51,7 @@ const conversationSlice = createSlice({
       const conv = state.conversations.find((c) => c.id === conversationId);
 
       if (conv) {
-        state.unreadCount -= conv.unreadCount;
+        state.unreadCount = (state.unreadCount ?? 0) - conv.unreadCount;
         conv.unreadCount = 0;
       }
 
@@ -64,7 +64,7 @@ const conversationSlice = createSlice({
     },
 
     clearUnreadCount: (state) => {
-      state.unreadCount = 0;
+      state.unreadCount = undefined;
     },
 
     updateSingleConversation: (state, action) => {
@@ -107,7 +107,7 @@ const conversationSlice = createSlice({
       };
 
       // increment unread
-      state.unreadCount += 1;
+      state.unreadCount = (state.unreadCount ?? 0) + 1;
 
       // update total unread count
       // calculateUnread(state);

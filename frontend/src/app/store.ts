@@ -27,7 +27,7 @@ const persistedReducer = persistReducer(
   {
     key: "root",
     storage,
-    blacklist: [api.reducerPath], // don't persist RTK query cache
+    blacklist: [api.reducerPath, "conversation"], // don't persist RTK query cache
   },
   rootReducer
 );

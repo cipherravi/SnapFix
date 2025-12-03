@@ -101,14 +101,14 @@ function Home() {
             className="relative focus:outline-none focus:ring-2 focus:ring-[#0385C2] rounded-full p-1"
             onClick={() => navigate("/conversations")}
           >
-            {unreadCount > 0 && (
+            {(unreadCount ?? 0) > 0 && (
               <span
                 aria-label={`${unreadCount} unread messages`}
                 className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] sm:text-xs 
                 min-w-4 h-4 sm:min-w-[18px] sm:h-[18px]
                 flex items-center justify-center rounded-full px-[3px] sm:px-[5px] shadow-md"
               >
-                {unreadCount > 99 ? "99+" : unreadCount}
+                {(unreadCount ?? 0) > 99 ? "99+" : unreadCount}
               </span>
             )}
             <img src="/svg/message.svg" alt="" className="h-8 sm:h-9" />
