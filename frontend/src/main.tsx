@@ -9,26 +9,25 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./app/store";
 
-// if ("serviceWorker" in navigator) {
-//   let refreshing = false;
-//   navigator.serviceWorker.addEventListener("controllerchange", () => {
-//     if (!refreshing) {
-//       refreshing = true;
-//       window.location.reload();
-//     }
-//   });
-// }
+if ("serviceWorker" in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
-  // <StrictMode>
-
-  <Provider store={store}>
-    <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
-      <Providers>
-        <RouterProvider router={router} />
-      </Providers>
-    </PersistGate>
-  </Provider>
-
-  // </StrictMode>
+  <StrictMode>
+    <Provider store={store}>
+      <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+        <Providers>
+          <RouterProvider router={router} />
+        </Providers>
+      </PersistGate>
+    </Provider>
+    //{" "}
+  </StrictMode>
 );

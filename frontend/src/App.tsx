@@ -117,21 +117,11 @@ function App() {
     (s: RootState) => s.conversation.conversations
   );
 
-  // const [showMessageModal, setShowMessageModal] = useState(false);
-  // const [messageData, setMessageData] = useState<{
-  //   sender: string;
-  //   text: string;
-  //   profilePicUrl?: string;
-  //   conversationId: string;
-  // } | null>(null);
-
   const { pushNotification } = useNotificationQueue();
 
   const currentConversationId = location.pathname.startsWith("/conversation/")
     ? location.pathname.split("/conversation/")[1]
     : undefined;
-  const unread = useSelector((s: RootState) => s.conversation.unreadCount);
-  console.log(unread);
 
   useEffect(() => {
     const handleReceiveMessage = async (msg: any) => {

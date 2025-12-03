@@ -21,8 +21,7 @@ const Conversations = () => {
       skip: !isAuthenticated || conversations.length > 0,
       refetchOnMountOrArgChange: false,
     });
-  console.log("Redux conversation", conversations);
-  console.log("Rtx intial data", initialConversations);
+
   // store in Redux
   useEffect(() => {
     if (!initialConversations || initialConversations.length === 0) return;

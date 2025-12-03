@@ -107,9 +107,7 @@ const conversationSlice = createSlice({
       };
 
       // increment unread
-      console.log("before:", state.unreadCount);
       state.unreadCount += 1;
-      console.log("after:", state.unreadCount);
 
       // update total unread count
       // calculateUnread(state);
