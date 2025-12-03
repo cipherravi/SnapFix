@@ -130,6 +130,8 @@ function App() {
   const currentConversationId = location.pathname.startsWith("/conversation/")
     ? location.pathname.split("/conversation/")[1]
     : undefined;
+  const unread = useSelector((s: RootState) => s.conversation.unreadCount);
+  console.log(unread);
 
   useEffect(() => {
     const handleReceiveMessage = async (msg: any) => {
