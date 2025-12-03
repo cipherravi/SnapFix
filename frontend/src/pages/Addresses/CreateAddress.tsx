@@ -159,7 +159,7 @@ const CreateAddress = () => {
       </div>
 
       {/* Inputs and dropdowns */}
-      <div className="w-full max-w-3xl flex flex-col gap-3 mt-4">
+      <div className="w-full max-w-3xl flex flex-col gap-3 mt-4 z-50">
         <input
           className="bg-[#F4F4F4] rounded-lg text-lg h-12 w-full px-4 border focus:ring transition"
           type="text"
@@ -212,7 +212,7 @@ const CreateAddress = () => {
       </div>
 
       {/* Map */}
-      <div className="w-full max-w-3xl mt-6 rounded-xl overflow-hidden shadow-md h-56 sm:h-64 md:h-72">
+      <div className="w-full max-w-3xl mt-6 rounded-xl overflow-hidden shadow-md h-56 sm:h-64 md:h-72 z-10">
         <MapPicker
           onLocationSelect={(coords) => setCoords(coords)}
           location={
