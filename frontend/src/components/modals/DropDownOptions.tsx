@@ -117,7 +117,7 @@ const DropDownOptions = <T extends DropDownOptionType>({
       ref={dropdownRef}
       className={`w-full relative ${
         disabled ? "opacity-50 cursor-not-allowed" : ""
-      } focus-within:ring-2 focus-within:ring-[#0385C2] focus-within:ring-offset-0 rounded-lg`}
+      } focus-within:ring-2 focus-within:ring-[#0385C2] focus-within:ring-offset-0 rounded-lg z-50`}
     >
       <button
         ref={buttonRef}
