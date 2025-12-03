@@ -9,7 +9,11 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "service-worker.ts", // our custom SW
       registerType: "autoUpdate",
+      injectRegister: "auto",
       manifest: {
         name: "SnapFix",
         short_name: "SnapFix",
@@ -18,20 +22,13 @@ export default defineConfig({
         background_color: "#ffffff",
         theme_color: "#ffffff",
         icons: [
-          {
-            src: "icons/icon-192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "icons/icon-512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
+          { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{ts,css,html,svg}"],
+        globPatterns: ["**/*.{js,ts,css,html,svg,png,ico,json}"], // precache everything important
+        navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/images\//],
       },
     }),

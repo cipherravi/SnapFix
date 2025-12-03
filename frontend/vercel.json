@@ -27,7 +27,7 @@
     {
       "src": "/sw.js",
       "headers": {
-        "Cache-Control": "no-cache"
+        "Cache-Control": "no-cache, no-store, must-revalidate"
       }
     },
     {

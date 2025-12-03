@@ -9,6 +9,12 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./app/store";
 
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
+  });
+}
+
 createRoot(document.getElementById("root")!).render(
   // <StrictMode>
 
