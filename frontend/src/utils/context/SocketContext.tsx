@@ -34,7 +34,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     return () => {
       newSocket.disconnect();
     };
-  }, []);
+  }, [token]);
 
   return socket ? (
     <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>

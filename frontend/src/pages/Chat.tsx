@@ -6,7 +6,7 @@ import { useSocket } from "../utils/context/SocketContext";
 import { useDispatch, useSelector } from "react-redux";
 import useMessageFetcher from "../utils/Hooks/useMessageFetcher";
 import ChatShimmer from "../components/shimmer/ChatShimmer";
-import { useGetConversationByIdQuery } from "../services/api/conversationApi";
+import { useFetchProfileImageQuery } from "../services/api/assetApi";
 import {
   updateSingleConversation,
   setLastMessage,
@@ -14,7 +14,6 @@ import {
 } from "../features/conversation/conversationSlice";
 
 import { RootState } from "../app/store";
-import useImageFetcher from "../utils/Hooks/useImageFetcher";
 
 type ChatProps = { verified?: boolean };
 type Message = {
@@ -46,24 +45,12 @@ const Chat = ({ verified = true }: ChatProps) => {
   const userData = useSelector((s: any) => s.user.userData);
   const currentConversation = conversations.find((conv) => conv.id === id);
 
-  const { data: conversation } = useGetConversationByIdQuery(id!, {
-    skip: !id || Boolean(currentConversation),
-  });
-
-  useEffect(() => {
-    if (conversation) {
-      dispatch(updateSingleConversation(conversation));
-    }
-  }, [conversation]);
-
   // mark conversation as read
   useEffect(() => {
     dispatch(markConversationRead(id));
   }, []);
 
-  // Use either local Redux OR API fallback
-  const effectiveConversation = currentConversation || conversation;
-  const user = effectiveConversation?.participant;
+  const user = currentConversation?.participant;
   const isMobile = useIsMobile();
   const socket = useSocket();
   const { fetchMessages, loading } = useMessageFetcher();
@@ -357,30 +344,44 @@ const Chat = ({ verified = true }: ChatProps) => {
 
   // -------------------------
 
-  const { fetchProfileImage } = useImageFetcher();
   const [profilePicUrl, setProfilePicUrl] = useState<string>();
   const [loadingProfilePic, setLoadingProfilePic] = useState(true);
+  const profilePic = currentConversation?.participant?.profilePic;
 
+  const {
+    data: profileImageUrlFromApi,
+    isLoading: isImageLoading,
+    isFetching: isImageFetching,
+  } = useFetchProfileImageQuery(profilePic!, {
+    skip: !profilePic,
+  });
+
+  // ⬇️ Automatically update profile picture when RTK query finishes
   useEffect(() => {
     const loadProfilePic = async () => {
-      if (!user?.profilePic) {
-        // user has no profile pic → show default avatar
+      // Case 1: user has NO profile picture
+      if (!profilePic) {
         setProfilePicUrl("/svg/profile.svg");
         setLoadingProfilePic(false);
         return;
       }
 
-      // user has a profile pic → start shimmering
-      setLoadingProfilePic(true);
+      // Case 2: user HAS a profile picture → show shimmer until RTK Query resolves
+      setLoadingProfilePic(isImageLoading || isImageFetching);
 
-      const url = await fetchProfileImage(user.profilePic);
-
-      setProfilePicUrl(url || "/svg/profile.svg");
-      setLoadingProfilePic(false);
+      if (!isImageLoading && !isImageFetching) {
+        setProfilePicUrl(profileImageUrlFromApi);
+      }
     };
 
     loadProfilePic();
-  }, [user]);
+  }, [
+    userData,
+    isImageLoading,
+    isImageFetching,
+    profileImageUrlFromApi,
+    profilePic,
+  ]);
 
   return (
     <div className="relative w-full h-dvh flex flex-col bg-gray-50">

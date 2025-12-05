@@ -11,15 +11,18 @@ import { api } from "../../services/api/api";
 import { clearToken } from "../../utils/tokenDB";
 import { useState } from "react";
 import ConfirmModal from "../modals/ConfirmModal";
+import { useSocket } from "../../utils/context/SocketContext";
 
 const Logout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const socket = useSocket();
   const [isVisible, setIsVisible] = useState(false);
 
   const { logout, checkAuth } = useAuth();
 
   const confirmLogout = async () => {
+    socket.disconnect();
     dispatch(clearUser());
     dispatch(setUnauthenticated());
     dispatch(removeToken());

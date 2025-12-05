@@ -9,6 +9,7 @@ import Tabs from "./components/Tabs";
 import { ScrollToTop } from "./components/ScrollToTop";
 
 import { useGetProfileQuery } from "./services/api/userApi";
+import { useGetConversationsQuery } from "./services/api/conversationApi";
 
 import { setUser } from "./features/user/userSlice";
 import { setToken } from "./features/auth/authSlice";
@@ -19,9 +20,10 @@ import { injectSpeedInsights } from "@vercel/speed-insights";
 
 import { useSocket } from "./utils/context/SocketContext";
 import { RootState } from "./app/store";
-import useImageFetcher from "./utils/Hooks/useImageFetcher";
 import { useNotificationQueue } from "./utils/context/NotificationQueueContext";
 import NewMessageNotification from "./components/modals/NewMessageNotificationModal";
+import { setConversations } from "./features/conversation/conversationSlice";
+import { setUserCoords } from "./features/user/userSlice";
 
 function App() {
   const dispatch = useDispatch();
@@ -48,9 +50,12 @@ function App() {
   }, []);
 
   // ----------------------------------------------------------------------
-  // FETCH USER PROFILE
+  // FETCH USER PROFILE AND CONVERSATIONS
   // ----------------------------------------------------------------------
   const { data: userData } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const { data: conversationsData } = useGetConversationsQuery(undefined, {
     skip: !isAuthenticated,
   });
 
@@ -60,7 +65,8 @@ function App() {
 
   useEffect(() => {
     if (userData) dispatch(setUser(userData));
-  }, [userData]);
+    if (conversationsData) dispatch(setConversations(conversationsData));
+  }, [userData, conversationsData]);
 
   // ----------------------------------------------------------------------
   // VERGEL ANALYTICS & INSIGHTS INIT (on mount)
@@ -112,10 +118,25 @@ function App() {
   //-----------------------------------------------------------------------
   // Show new message modal
   const socket = useSocket();
-  const { fetchProfileImage } = useImageFetcher();
   const conversations = useSelector(
     (s: RootState) => s.conversation.conversations
   );
+
+  // NOTIFY NEW CONVERSATION CREATED AND ADD IT INTO CONVERSATION LIST
+  //--------------------
+  useEffect(() => {
+    const handleCreatedConversation = async (data: any) => {
+      console.log(data);
+    };
+
+    socket.on("conversationCreated", handleCreatedConversation);
+
+    return () => {
+      socket.off("conversationCreated", handleCreatedConversation);
+    };
+  }, [socket]);
+
+  //--------------------
 
   const { pushNotification } = useNotificationQueue();
 
@@ -132,12 +153,7 @@ function App() {
       );
       // resolve sender details however you already do it
       const sender = currentConversation?.participant?.name ?? "Unknown";
-      let profilePicUrl = "/svg/profile.svg";
-      if (currentConversation?.participant?.profilePic) {
-        profilePicUrl = await fetchProfileImage(
-          currentConversation?.participant?.profilePic
-        );
-      }
+      let profilePicUrl = currentConversation?.participant?.profilePic || "";
 
       pushNotification({
         senderId,
@@ -154,6 +170,31 @@ function App() {
       socket.off("receiveMessage", handleReceiveMessage);
     };
   }, [socket, conversations, currentConversationId]);
+
+  //---------------------------------------------------------
+  // FETCH USER LOCATION & SET IN USER SLICE
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          dispatch(
+            setUserCoords([position.coords.latitude, position.coords.longitude])
+          );
+        },
+        (error) => {
+          console.error("Failed to fetch coordinates", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    }
+  }, []);
+
+  //---------------------------------------------------------
 
   // ----------------------------------------------------------------------
   // RENDER

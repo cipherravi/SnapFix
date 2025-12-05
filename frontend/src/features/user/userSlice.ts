@@ -3,10 +3,12 @@ import { type User } from "../../../types";
 
 interface UserState {
   userData: User | null;
+  userCoords: [number, number] | null;
 }
 
 const initialState: UserState = {
   userData: null,
+  userCoords: null,
 };
 
 const userSlice = createSlice({
@@ -24,8 +26,12 @@ const userSlice = createSlice({
         state.userData.profilePicUrl = action.payload;
       }
     },
+    setUserCoords: (state, action) => {
+      state.userCoords = action.payload;
+    },
   },
 });
 
-export const { setUser, clearUser, setUserProfilePicUrl } = userSlice.actions;
+export const { setUser, clearUser, setUserProfilePicUrl, setUserCoords } =
+  userSlice.actions;
 export default userSlice.reducer;

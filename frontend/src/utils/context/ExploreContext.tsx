@@ -25,8 +25,8 @@ interface Job {
   cityId: number;
   addressId: number;
   initialAddress: string;
-  latitude: string;
-  longitude: string;
+  latitude: number;
+  longitude: number;
   createdAt: string;
   assets: Asset[];
 }

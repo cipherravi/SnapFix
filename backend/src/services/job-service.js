@@ -38,12 +38,15 @@ const { COD, ONLINE, WALLET } = PAYMENT_METHOD;
 const { PENDING, SUCCESS } = PAYMENT_STATUS;
 const { DEBIT, CREDIT } = TRANSACTION_TYPE;
 const { COMMISION, JOB_PAYMENT } = WALLET_TRANSACTION_PURPOSE;
-const { Op } = require("sequelize");
-const { sequelize, Address } = require("../models");
-const Conversation = require("../models/conversation");
-const formatAddress = require("../utils/formatAddress");
+
 const { RATES } = require("../utils/constants");
 const { JOB_COMMISSION_ON_COD, JOB_COMMISSION_ON_PAID } = RATES;
+
+const { Op } = require("sequelize");
+const { sequelize } = require("../models");
+const Conversation = require("../models/conversation");
+const formatAddress = require("../utils/formatAddress");
+const { getIO, userSockets } = require("../socket");
 
 const jobRepository = new JobRepository();
 const jobApplicationRepository = new JobApplicationRepository();
@@ -330,9 +333,19 @@ async function accept(userId, jobId, workerId) {
       );
     }
 
-    await transaction.commit();
-
     // Create conversation (if not exists) after assigning job
+
+    let newConversation = null;
+    const io = getIO();
+    if (!io) {
+      logger.error(
+        "Soket.io not initialized and got called in job-service for accept handler"
+      );
+      console.error("Socket.io not initialized");
+      return;
+    }
+
+    await transaction.commit();
 
     const conversationKey = `job_${jobId}_${[userId, workerId]
       .sort((a, b) => a - b)
@@ -342,13 +355,32 @@ async function accept(userId, jobId, workerId) {
       conversationKey,
     });
     if (!existingConversation) {
-      await Conversation.create({
+      newConversation = await Conversation.create({
         jobId: +jobId,
         participants: [+userId, +workerId].sort((a, b) => a - b),
         conversationKey, // to avoid creating duplicate conversation
         // lastMessage is left empty by default
         // active is left empty by default it is true
       });
+
+      const conversationRoom = `conv:${newConversation._id}`;
+
+      // Join both online users to this conversation
+      const usersToJoin = [+userId, +workerId];
+
+      usersToJoin.forEach((uid) => {
+        if (userSockets[uid]) {
+          userSockets[uid].forEach((sock) => {
+            sock.join(conversationRoom);
+            console.log(`🔗 Joined user ${uid} to ${conversationRoom}`);
+          });
+        }
+      });
+
+      // Notify both users conversation is created
+      const io = getIO();
+      io.to(`user:${userId}`).emit("conversationCreated", newConversation);
+      io.to(`user:${workerId}`).emit("conversationCreated", newConversation);
     }
 
     return assignToWorker;

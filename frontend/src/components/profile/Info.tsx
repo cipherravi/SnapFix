@@ -1,35 +1,41 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import useImageFetcher from "../../utils/Hooks/useImageFetcher";
+import { useFetchProfileImageQuery } from "../../services/api/assetApi";
 import { RootState } from "../../app/store";
 
 const Info = () => {
   const userData = useSelector((store: RootState) => store.user.userData);
 
-  const { fetchProfileImage } = useImageFetcher();
+  const {
+    data: profileImageUrlFromApi,
+    isLoading: isImageLoading,
+    isFetching: isImageFetching,
+  } = useFetchProfileImageQuery(userData?.profilePicUrl!, {
+    skip: !userData?.profilePicUrl,
+  });
   const [profilePicUrl, setProfilePicUrl] = useState<string>();
   const [loadingProfilePic, setLoadingProfilePic] = useState(true);
 
+  // ⬇️ Automatically update profile picture when RTK query finishes
   useEffect(() => {
     const loadProfilePic = async () => {
+      // Case 1: user has NO profile picture
       if (!userData?.profilePicUrl) {
-        // user has no profile pic → show default avatar
         setProfilePicUrl("/svg/profile.svg");
         setLoadingProfilePic(false);
         return;
       }
 
-      // user has a profile pic → start shimmering
-      setLoadingProfilePic(true);
+      // Case 2: user HAS a profile picture → show shimmer until RTK Query resolves
+      setLoadingProfilePic(isImageLoading || isImageFetching);
 
-      const url = await fetchProfileImage(userData.profilePicUrl);
-
-      setProfilePicUrl(url || "/svg/profile.svg");
-      setLoadingProfilePic(false);
+      if (!isImageLoading && !isImageFetching) {
+        setProfilePicUrl(profileImageUrlFromApi || "/svg/profile.svg");
+      }
     };
 
     loadProfilePic();
-  }, [userData]);
+  }, [userData, isImageLoading, isImageFetching, profileImageUrlFromApi]);
 
   return (
     <div className="w-full flex flex-col items-center  rounded-2xl p-4 gap-4">

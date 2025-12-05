@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import BackButton from "../../components/Buttons/BackButton";
 import { useSelector, useDispatch } from "react-redux";
 import { setUserProfilePicUrl } from "../../features/user/userSlice";
-import useImageFetcher from "../../utils/Hooks/useImageFetcher";
 import toLocalISODate from "../../utils/toLocalISODate";
 import toast from "react-hot-toast";
 import UploadProfileImage from "../../components/modals/UploadProfileImage";
 import compressImage from "../../utils/compressImage";
+import { useFetchProfileImageQuery } from "../../services/api/assetApi";
 import { RootState } from "../../app/store";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -16,7 +16,13 @@ const Account = () => {
 
   const userData = useSelector((s: RootState) => s.user.userData);
   const dispatch = useDispatch();
-  const { fetchProfileImage } = useImageFetcher();
+  const {
+    data: profileImageUrlFromApi,
+    isLoading: isImageLoading,
+    isFetching: isImageFetching,
+  } = useFetchProfileImageQuery(userData?.profilePicUrl!, {
+    skip: !userData?.profilePicUrl,
+  });
 
   const [profilePhoto, setProfilePhoto] = useState<File[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -27,26 +33,26 @@ const Account = () => {
 
   const [profilePicUrl, setProfilePicUrl] = useState<string>();
 
+  // ⬇️ Automatically update profile picture when RTK query finishes
   useEffect(() => {
     const loadProfilePic = async () => {
+      // Case 1: user has NO profile picture
       if (!userData?.profilePicUrl) {
-        // user has no profile pic → show default avatar
         setProfilePicUrl("/svg/profile.svg");
         setLoadingProfilePic(false);
         return;
       }
 
-      // user has a profile pic → start shimmering
-      setLoadingProfilePic(true);
+      // Case 2: user HAS a profile picture → show shimmer until RTK Query resolves
+      setLoadingProfilePic(isImageLoading || isImageFetching);
 
-      const url = await fetchProfileImage(userData.profilePicUrl);
-
-      setProfilePicUrl(url || "/svg/profile.svg");
-      setLoadingProfilePic(false);
+      if (!isImageLoading && !isImageFetching) {
+        setProfilePicUrl(profileImageUrlFromApi || "/svg/profile.svg");
+      }
     };
 
     loadProfilePic();
-  }, [userData]);
+  }, [userData, isImageLoading, isImageFetching, profileImageUrlFromApi]);
 
   // Actual form fields
   const [name, setName] = useState("");
@@ -102,16 +108,16 @@ const Account = () => {
     return () => URL.revokeObjectURL(url);
   }, [profilePhoto]);
 
-  // FETCH PROFILE PIC
-  useEffect(() => {
-    const fetchData = async () => {
-      if (userData?.profilePicUrl) {
-        const url = await fetchProfileImage(userData.profilePicUrl);
-        setProfilePicUrl(url);
-      }
-    };
-    fetchData();
-  }, [userData]);
+  // // FETCH PROFILE PIC
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     if (userData?.profilePicUrl) {
+  //       const url = await fetchProfileImage(userData.profilePicUrl);
+  //       setProfilePicUrl(url);
+  //     }
+  //   };
+  //   fetchData();
+  // }, [userData]);
 
   // -----------------------------
   // VALIDATOR
@@ -306,18 +312,7 @@ const Account = () => {
               )}
 
               {canEdit && (
-                <div className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4">
-                  {/* <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="white"
-                      className="w-6 h-6"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 8.5a4 4 0 110 8 4 4 0 010-8zm6.5-3.5h-2l-.8-1.5A2.5 2.5 0 0013.6 2H10.4a2.5 2.5 0 00-2.1 1.5L7.5 5H5.5A3.5 3.5 0 002 8.5v8A3.5 3.5 0 005.5 20h13a3.5 3.5 0 003.5-3.5v-8A3.5 3.5 0 0018.5 5z" />
-                    </svg>
-                  </div> */}
-                </div>
+                <div className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4"></div>
               )}
             </div>
 

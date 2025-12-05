@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../app/store";
 import { setConversations } from "../../features/conversation/conversationSlice";
 import { useRefetchConversationsMutation } from "../../services/api/conversationApi";
-import useImageFetcher from "../../utils/Hooks/useImageFetcher";
+import { useFetchProfileImageQuery } from "../../services/api/assetApi";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -101,34 +101,50 @@ const ApplicantCard = ({
   const dispatch = useDispatch();
 
   const [refetchConversations] = useRefetchConversationsMutation();
-  const { fetchProfileImage } = useImageFetcher();
+  const profilePic = applicant?.worker?.profilePicUrl;
+  const {
+    data: profileImageUrlFromApi,
+    isLoading: isImageLoading,
+    isFetching: isImageFetching,
+  } = useFetchProfileImageQuery(profilePic!, {
+    skip: !profilePic,
+  });
 
   const [isAssigning, setIsAssigning] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const [fullProfilePicUrl, setFullProfilePicUrl] = useState<string>();
+  const [profilePicUrl, setProfilePicUrl] = useState<string>();
   const [loadingProfilePic, setLoadingProfilePic] = useState(true);
 
   /** --------------------------------------------------
    *                   LOAD PROFILE IMAGE
    * --------------------------------------------------*/
+  // ⬇️ Automatically update profile picture when RTK query finishes
   useEffect(() => {
-    const load = async () => {
-      if (!applicant.worker.profilePicUrl) {
-        setFullProfilePicUrl("/svg/profile.svg");
+    const loadProfilePic = async () => {
+      // Case 1: user has NO profile picture
+      if (!profilePic) {
+        setProfilePicUrl("/svg/profile.svg");
         setLoadingProfilePic(false);
         return;
       }
 
-      setLoadingProfilePic(true);
-      const url = await fetchProfileImage(applicant.worker.profilePicUrl);
+      // Case 2: user HAS a profile picture → show shimmer until RTK Query resolves
+      setLoadingProfilePic(isImageLoading || isImageFetching);
 
-      setFullProfilePicUrl(url || "/svg/profile.svg");
-      setLoadingProfilePic(false);
+      if (!isImageLoading && !isImageFetching) {
+        setProfilePicUrl(profileImageUrlFromApi);
+      }
     };
 
-    load();
-  }, [applicant]);
+    loadProfilePic();
+  }, [
+    isImageLoading,
+    isImageFetching,
+    profileImageUrlFromApi,
+    profilePic,
+    applicant,
+  ]);
 
   /** --------------------------------------------------
    *                        ACTIONS
@@ -222,7 +238,7 @@ const ApplicantCard = ({
       {/* Avatar */}
       <Avatar
         loading={loadingProfilePic}
-        url={fullProfilePicUrl}
+        url={profilePicUrl}
         hasProfile={!!applicant.worker.profilePicUrl}
       />
 

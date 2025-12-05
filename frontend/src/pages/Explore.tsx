@@ -210,6 +210,8 @@ function Home() {
                       budget={job.budget}
                       src={mainUrl}
                       createdAt={job.createdAt}
+                      latitude={job.latitude}
+                      longitude={job.longitude}
                     />
                   </div>
                 );

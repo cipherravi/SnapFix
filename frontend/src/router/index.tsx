@@ -10,7 +10,7 @@ const Register = lazy(() => import("../components/auth/Register"));
 const Login = lazy(() => import("../components/auth/Login"));
 const ForgotPassword = lazy(() => import("../components/auth/ForgotPassword"));
 
-const Home = lazy(() => import("../pages/Home"));
+const Explore = lazy(() => import("../pages/Explore"));
 const Conversations = lazy(() => import("../pages/Conversations"));
 const Chat = lazy(() => import("../pages/Chat"));
 const Profile = lazy(() => import("../pages/Profile"));
@@ -96,7 +96,7 @@ const router = createBrowserRouter([
       },
       {
         path: "explore",
-        element: <Home />,
+        element: <Explore />,
       },
       {
         path: "conversations",

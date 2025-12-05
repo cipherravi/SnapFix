@@ -5,6 +5,7 @@ const { SECRET_KEY } = require("../config/server-config");
 const { Server } = require("socket.io");
 
 let ioInstance = null;
+const userSockets = {};
 
 function setupSocket(server, allowedOrigins) {
   const io = new Server(server, {
@@ -42,6 +43,10 @@ function setupSocket(server, allowedOrigins) {
   // Socket events
   io.on("connection", async (socket) => {
     const userId = socket.user.id;
+
+    // Save socket
+    if (!userSockets[userId]) userSockets[userId] = [];
+    userSockets[userId].push(socket);
 
     console.log(`🔌 User ${userId} connected (socket: ${socket.id})`);
 
@@ -123,6 +128,10 @@ function setupSocket(server, allowedOrigins) {
     });
 
     socket.on("disconnect", () => {
+      userSockets[userId] = userSockets[userId].filter(
+        (s) => s.id !== socket.id
+      );
+      if (userSockets[userId].length === 0) delete userSockets[userId];
       console.log(`❌ User ${userId} disconnected`);
     });
   });
@@ -135,4 +144,4 @@ function getIO() {
   return ioInstance;
 }
 
-module.exports = { setupSocket, getIO };
+module.exports = { setupSocket, getIO, userSockets };

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import useImageFetcher from "../utils/Hooks/useImageFetcher";
+import { useFetchProfileImageQuery } from "../services/api/assetApi";
 import { useEffect, useState } from "react";
 type ChatCardProps = {
   id: string;
@@ -16,34 +16,47 @@ const ChatCard = ({
   lastMessage,
   lastMessageTime,
   unreadCount,
-
   profilePic,
 }: ChatCardProps) => {
   const navigate = useNavigate();
-  const { fetchProfileImage } = useImageFetcher();
   const [profilePicUrl, setProfilePicUrl] = useState<string>();
   const [loadingProfilePic, setLoadingProfilePic] = useState(true);
 
+  const {
+    data: profileImageUrlFromApi,
+    isLoading: isImageLoading,
+    isFetching: isImageFetching,
+  } = useFetchProfileImageQuery(profilePic!, {
+    skip: !profilePic,
+  });
+
+  // ⬇️ Automatically update profile picture when RTK query finishes
   useEffect(() => {
     const loadProfilePic = async () => {
+      // Case 1: user has NO profile picture
       if (!profilePic) {
-        // user has no profile pic → show default avatar
         setProfilePicUrl("/svg/profile.svg");
         setLoadingProfilePic(false);
         return;
       }
 
-      // user has a profile pic → start shimmering
-      setLoadingProfilePic(true);
+      // Case 2: user HAS a profile picture → show shimmer until RTK Query resolves
+      setLoadingProfilePic(isImageLoading || isImageFetching);
 
-      const url = await fetchProfileImage(profilePic);
-
-      setProfilePicUrl(url || "/svg/profile.svg");
-      setLoadingProfilePic(false);
+      if (!isImageLoading && !isImageFetching) {
+        setProfilePicUrl(profileImageUrlFromApi);
+      }
     };
 
     loadProfilePic();
-  }, [profilePic]);
+  }, [
+    id,
+    profilePicUrl,
+    isImageLoading,
+    isImageFetching,
+    profileImageUrlFromApi,
+  ]);
+
   return (
     <div
       className="w-full h-18 flex items-center justify-between gap-4 px-3 relative"

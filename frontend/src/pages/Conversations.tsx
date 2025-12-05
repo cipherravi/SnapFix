@@ -1,33 +1,16 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useGetConversationsQuery } from "../services/api/conversationApi";
-import { setConversations } from "../features/conversation/conversationSlice";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+
 import ChatCard from "../components/ChatCard";
 import { formatTime } from "../utils/formatTime";
-import ConversationsListShimmer from "../components/shimmer/ConversationsListShimmer";
 import { RootState } from "../app/store";
 
 const Conversations = () => {
-  const dispatch = useDispatch();
   const [search, setSearch] = useState("");
-  const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
 
   const conversations = useSelector(
     (s: RootState) => s.conversation.conversations
   );
-
-  const { data: initialConversations = [], isLoading } =
-    useGetConversationsQuery(undefined, {
-      skip: !isAuthenticated || conversations.length > 0,
-      refetchOnMountOrArgChange: false,
-    });
-
-  // store in Redux
-  useEffect(() => {
-    if (!initialConversations || initialConversations.length === 0) return;
-
-    dispatch(setConversations(initialConversations));
-  }, [initialConversations]);
 
   // Filter safely
   const filtered = conversations.filter((c) =>
@@ -35,7 +18,7 @@ const Conversations = () => {
   );
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 bg-white pt-4 px-4 sm:px-6 md:px-8">
+    <div className="w-full min-h-screen flex flex-col gap-6 bg-white pt-4 px-4 sm:px-6 md:px-8">
       <div className="w-full flex flex-col gap-3 max-w-3xl md:max-w-full">
         <h1 className="text-2xl md:text-3xl poppins-semibold">Chats</h1>
 
@@ -55,9 +38,7 @@ const Conversations = () => {
       </div>
 
       <div className="w-full flex-1 relative">
-        {isLoading && filtered.length === 0 ? (
-          <ConversationsListShimmer />
-        ) : conversations.length > 0 ? (
+        {conversations.length > 0 ? (
           filtered.map((conv) => (
             <ChatCard
               key={conv.id}
@@ -70,7 +51,12 @@ const Conversations = () => {
             />
           ))
         ) : (
-          <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-500">
+          <p className="absolute  top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-500 flex flex-col items-center">
+            <img
+              src="/svg/conversation.svg"
+              alt="conversation"
+              className="w-30 md:w-40"
+            />
             No conversations yet
           </p>
         )}

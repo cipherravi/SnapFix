@@ -46,7 +46,7 @@ const ApplicantsSection = ({ id }: ApplicantsSectionProps) => {
   );
 
   return (
-    <div className="w-full h-full flex flex-col p-4">
+    <div className="w-full h-full flex flex-col ">
       {/* Section Title */}
       <h2 className="text-2xl inter-semibold mb-3 text-gray-800">Applicants</h2>
 

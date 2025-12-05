@@ -20,13 +20,13 @@ if ("serviceWorker" in navigator) {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <Provider store={store}>
-      <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
-        <Providers>
-          <RouterProvider router={router} />
-        </Providers>
-      </PersistGate>
-    </Provider>
-  </StrictMode>
+  // <StrictMode>
+  <Provider store={store}>
+    <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+      <Providers>
+        <RouterProvider router={router} />
+      </Providers>
+    </PersistGate>
+  </Provider>
+  // </StrictMode>
 );
