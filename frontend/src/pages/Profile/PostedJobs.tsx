@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import BackButton from "../../components/Buttons/BackButton";
-import useJobFetcher from "../../utils/Hooks/useJobFetcher";
 import JobCard from "../../components/profile/JobCard";
 import useProfilesFetcher from "../../utils/Hooks/useProfilesFetcher";
 import JobsRefetchShimmer from "../../components/shimmer/JobsRefetchShimmer";
+import { useFetchMyJobsQuery } from "../../services/api/jobApi";
 
 interface MyJob {
   id: number;
@@ -32,10 +32,8 @@ const JOB_STATUS = {
 type FilterType = "all" | "active" | "completed" | "failed";
 
 const PostedJobs = () => {
-  const { fetchMyJobs } = useJobFetcher();
   const [myJobs, setMyJobs] = useState<MyJob[]>([]);
   const [workerProfiles, setWorkerProfiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // DEFAULT FILTER = "active"
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("active");
@@ -47,33 +45,30 @@ const PostedJobs = () => {
     [workerProfiles]
   );
 
+  const { data: fetchedMyJobs, isLoading } = useFetchMyJobsQuery(undefined);
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    if (!fetchedMyJobs) return;
 
-      const fetchedMyJobs = await fetchMyJobs();
-      setMyJobs(fetchedMyJobs);
+    setMyJobs(fetchedMyJobs);
 
-      const workerIds = Array.from(
-        new Set(
-          fetchedMyJobs
-            .map((job: MyJob) => job.workerId)
-            .filter((id: number | null): id is number => id != null)
-        )
-      );
+    const workerIds = [
+      ...new Set(
+        fetchedMyJobs
+          .map((job: MyJob) => job.workerId)
+          .filter((id: number | null): id is number => id != null)
+      ),
+    ];
 
-      if (workerIds.length > 0) {
-        const fetchedWorkerProfiles = await fetchWorkerProfiles({
-          workerIds: workerIds as number[],
-        });
-        setWorkerProfiles(fetchedWorkerProfiles);
-      }
+    if (workerIds.length === 0) return;
 
-      setLoading(false);
-    };
-
-    fetchData();
-  }, []);
+    (async () => {
+      const profiles = await fetchWorkerProfiles({
+        workerIds: workerIds as number[],
+      });
+      setWorkerProfiles(profiles);
+    })();
+  }, [fetchedMyJobs]);
 
   // ---------------------------
   // FILTER LOGIC
@@ -155,7 +150,7 @@ const PostedJobs = () => {
       {/* Job Cards */}
       <div className="flex-1 overflow-y-auto">
         <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
-          {loading ? (
+          {isLoading ? (
             <JobsRefetchShimmer />
           ) : filteredJobs.length > 0 ? (
             filteredJobs.map((job) => {

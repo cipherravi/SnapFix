@@ -13,6 +13,8 @@ import { Autoplay, Pagination } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/pagination";
+import PostedJobDashboardShimmer from "../../components/shimmer/PostedJobDashboardShimmer";
+import { useFetchJobByIdForClientQuery } from "../../services/api/jobApi";
 
 interface JobDetails extends Job {
   workerId: number;
@@ -40,15 +42,23 @@ const PostedJobDashboard = () => {
   const [mapAnimated, setMapAnimated] = useState(false);
   const [activeTab, setActiveTab] = useState<TabIndex>(TabIndex.INFO);
 
+  const { data: fetchedJobDetails, isLoading } = useFetchJobByIdForClientQuery(
+    id!,
+    {
+      skip: !id,
+    }
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       if (id) {
-        const data = await fetchJobByIdForClient(id);
-        setJobDetails(data);
+        setJobDetails(fetchedJobDetails);
+        // const data = await fetchJobByIdForClient(id);
+        // setJobDetails(data);
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, fetchedJobDetails]);
 
   const imageUrls =
     jobDetails?.assets
@@ -65,7 +75,9 @@ const PostedJobDashboard = () => {
 
   const TabButtonStyle = "px-6 py-2 rounded-2xl text-lg inter-medium";
 
-  return (
+  return jobDetails === undefined ? (
+    <PostedJobDashboardShimmer />
+  ) : (
     <div className="w-full min-h-screen bg-[#fafafa] flex justify-center">
       {/* Centered max-width wrapper */}
       <div className="w-full max-w-3xl flex flex-col relative pb-6">

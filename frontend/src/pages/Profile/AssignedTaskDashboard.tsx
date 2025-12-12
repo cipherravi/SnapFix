@@ -11,6 +11,7 @@ import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import useImageFetcher from "../../utils/Hooks/useImageFetcher";
+import AssignedTaskDashboardShimmer from "../../components/shimmer/AssignedTaskDashboardShimmer";
 
 const AssignedTaskDashboard = () => {
   const { id } = useParams();
@@ -38,7 +39,9 @@ const AssignedTaskDashboard = () => {
       )
       .map((file) => getImageUrl(file.fileName, "jobAssets")) || [];
 
-  return (
+  return taskDetails === undefined ? (
+    <AssignedTaskDashboardShimmer />
+  ) : (
     <div className="w-full min-h-screen flex justify-center relative bg-[#fafafa]">
       {/* Centered max-width wrapper */}
       <div className="w-full max-w-3xl flex flex-col relative pb-6">

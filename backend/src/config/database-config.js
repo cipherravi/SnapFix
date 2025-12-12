@@ -11,10 +11,7 @@ const connectDB = async () => {
       process.env.NODE_ENV === "production"
         ? process.env.MONGO_URI
         : process.env.MONGO_LOCAL_URI;
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(mongoURI);
     console.log("MongoDB connected ✅");
   } catch (err) {
     console.warn(

@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import BackButton from "../../components/Buttons/BackButton";
-import useTaskFetcher from "../../utils/Hooks/useTaskFetcher";
 import TaskCard from "../../components/profile/TaskCard";
 import JobsRefetchShimmer from "../../components/shimmer/JobsRefetchShimmer";
+import { useFetchMyTasksQuery } from "../../services/api/jobApi";
 
 type PaymentMethod = "cod" | "online" | "wallet";
 
@@ -48,22 +48,17 @@ const TASK_STATUS = {
 type FilterType = "all" | "active" | "completed" | "failed";
 
 const AssignedTasks = () => {
-  const { fetchMyTasks } = useTaskFetcher();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // default = active
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("active");
 
+  const { data: fetchedTasks, isLoading } = useFetchMyTasksQuery(undefined);
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const fetchedTasks = await fetchMyTasks();
-      setTasks(fetchedTasks);
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
+    if (!fetchedTasks) return;
+    setTasks(fetchedTasks);
+  }, [fetchedTasks]);
 
   // ---------------------------
   // FILTER LOGIC (same as jobs)
@@ -104,51 +99,14 @@ const AssignedTasks = () => {
         return tasks;
     }
   }, [tasks, selectedFilter]);
-  // ---------------------------
-  // COUNTS FOR BADGES
-  // ---------------------------
-  const counts = useMemo(() => {
-    return {
-      all: tasks.length,
-      active: tasks.filter(
-        (task) =>
-          ![
-            TASK_STATUS.APPROVED,
-            TASK_STATUS.CANCELLED,
-            TASK_STATUS.EXPIRED,
-          ].includes(
-            task.status as
-              | typeof TASK_STATUS.APPROVED
-              | typeof TASK_STATUS.CANCELLED
-              | typeof TASK_STATUS.EXPIRED
-          )
-      ).length,
-      completed: tasks.filter((task) => task.status === TASK_STATUS.APPROVED)
-        .length,
-      failed: tasks.filter((task) =>
-        [TASK_STATUS.CANCELLED, TASK_STATUS.EXPIRED].includes(
-          task.status as
-            | typeof TASK_STATUS.CANCELLED
-            | typeof TASK_STATUS.EXPIRED
-        )
-      ).length,
-    };
-  }, [tasks]);
 
   // Filter button config
-  const filters: { key: FilterType; label: string; count: number }[] = [
-    { key: "all", label: "All", count: counts.all },
-    { key: "active", label: "Active", count: counts.active },
-    { key: "completed", label: "Completed", count: counts.completed },
-    { key: "failed", label: "Failed", count: counts.failed },
+  const filters: { key: FilterType; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "active", label: "Active" },
+    { key: "completed", label: "Completed" },
+    { key: "failed", label: "Failed" },
   ];
-  // Animation state
-  const [animateKey, setAnimateKey] = useState(0);
-
-  const onFilterClick = (key: FilterType) => {
-    setSelectedFilter(key);
-    setAnimateKey((prev) => prev + 1); // re-trigger animation
-  };
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white px-4 sm:px-6 md:px-10 py-6">
@@ -183,7 +141,7 @@ const AssignedTasks = () => {
       {/* Task Cards */}
       <div className="flex-1 overflow-y-auto">
         <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
-          {loading ? (
+          {isLoading ? (
             <JobsRefetchShimmer />
           ) : filteredTasks.length > 0 ? (
             filteredTasks.map((task) => (
