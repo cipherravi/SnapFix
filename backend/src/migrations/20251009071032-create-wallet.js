@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
         defaultValue: 0,
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         unique: true,
@@ -23,12 +23,12 @@ module.exports = {
           key: "id",
         },
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,

@@ -47,7 +47,17 @@ async function createWokerBankDetail(data) {
       userId: data.userId,
     });
 
-    const response = await workerBankDetailRepository.create(data);
+    const existingAccounts =
+      await workerBankDetailRepository.fetchAllBankDetailsOfWorker(data.userId);
+
+    const isFirstAccount = existingAccounts.length === 0;
+
+    const payload = {
+      ...data,
+      isPrimary: isFirstAccount, // ✅ first account = primary
+    };
+
+    const response = await workerBankDetailRepository.create(payload);
 
     logger.info("Service: Worker bank detail created - SUCCESS", {
       bankDetailId: response.id,

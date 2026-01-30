@@ -13,7 +13,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      jobId: {
+      job_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -22,24 +22,24 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      fileType: {
+      file_type: {
         type: Sequelize.ENUM(IMAGE, VIDEO),
         allowNull: false,
       },
-      fileName: {
+      file_name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      filePosition: {
+      file_position: {
         type: Sequelize.ENUM(MAIN, SECONDARY, THIRD, THUMBNAIL),
         defaultValue: MAIN,
         allowNull: false,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
@@ -48,10 +48,10 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("jobassets");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_jobassets_fileType";'
+      'DROP TYPE IF EXISTS "enum_jobassets_fileType";',
     );
     await queryInterface.sequelize.query(
-      `DROP TYPE IF EXISTS "enum_jobassets_filePosition";`
+      `DROP TYPE IF EXISTS "enum_jobassets_filePosition";`,
     );
   },
 };

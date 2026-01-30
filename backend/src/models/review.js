@@ -23,14 +23,17 @@ module.exports = (sequelize, DataTypes) => {
       jobId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: "job_id",
       },
       reviewerId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: "reviewer_id",
       },
       revieweeId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: "reviewee_id",
       },
       role: {
         type: DataTypes.ENUM(CLIENT, WORKER),
@@ -64,13 +67,14 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Review",
       tableName: "reviews",
       timestamps: true,
+      underscored: true,
       indexes: [
         {
           unique: true,
           fields: ["reviewerId", "revieweeId", "jobId"],
         },
       ],
-    }
+    },
   );
 
   return Review;

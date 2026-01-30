@@ -33,14 +33,17 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW,
+        field: "applied_at",
       },
       selectedAt: {
         type: DataTypes.DATE,
         allowNull: true,
+        field: "selected_at",
       },
       completedAt: {
         type: DataTypes.DATE,
         allowNull: true,
+        field: "completed_at",
       },
     },
     {
@@ -48,6 +51,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "JobApplication",
       tableName: "jobapplications",
       timestamps: true,
+      underscored: true,
+
       // ✅ Composite Unique Constraint
       indexes: [
         {
@@ -55,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
           fields: ["jobId", "userId"],
         },
       ],
-    }
+    },
   );
   return JobApplication;
 };

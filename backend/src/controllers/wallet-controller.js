@@ -36,15 +36,20 @@ async function withdrawMoney(req, res) {
     if (req.body == undefined) {
       throw new AppError("Missing amount field", StatusCodes.BAD_REQUEST);
     }
-    const { amount, purpose } = req.body;
-    console.log(req.body);
+    const { amount, purpose, bankAccountId } = req.body;
+
     if (amount < 200) {
       throw new AppError(
         "Minimum  ₹200 withdrawal allowed",
         StatusCodes.BAD_REQUEST
       );
     }
-    const response = await WalletService.withdrawMoney(userId, amount, purpose);
+    const response = await WalletService.withdrawMoney(
+      userId,
+      amount,
+      purpose,
+      bankAccountId
+    );
 
     SuccessResponse.data = response;
     SuccessResponse.message =

@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      cityId: {
+      city_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -30,11 +30,11 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 7),
         allowNull: false,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },

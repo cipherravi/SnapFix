@@ -20,16 +20,19 @@ module.exports = (sequelize, DataTypes) => {
       fileType: {
         type: DataTypes.ENUM(IMAGE, VIDEO),
         allowNull: false,
+        field: "file_type",
       },
       fileName: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: { len: [1, 100] },
+        field: "file_name",
       },
       filePosition: {
         type: DataTypes.ENUM(MAIN, SECONDARY, THIRD, THUMBNAIL),
         defaultValue: MAIN,
         allowNull: false,
+        field: "file_position",
       },
     },
     {
@@ -37,7 +40,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "JobAsset",
       tableName: "jobassets",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return JobAsset;
 };

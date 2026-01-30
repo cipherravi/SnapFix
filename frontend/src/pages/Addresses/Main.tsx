@@ -8,9 +8,9 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 
 const Main = () => {
+  const navigate = useNavigate();
   const token = useSelector((s: any) => s.auth.token);
 
-  const navigate = useNavigate();
   const { addresses, setAddresses } = useAddressContext();
 
   const [showConfirm, setShowConfirm] = useState(false);

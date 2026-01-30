@@ -23,20 +23,26 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         unique: true,
         allowNull: false,
+        field: "user_id",
       },
       status: {
         type: DataTypes.ENUM(PENDING, VERIFIED, REJECTED),
         defaultValue: PENDING,
         allowNull: false,
       },
-      verifiedBy: { type: DataTypes.INTEGER, allowNull: true },
+      verifiedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: "verified_by",
+      },
     },
     {
       sequelize,
       modelName: "Kyc",
       tableName: "kycs",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return Kyc;
 };

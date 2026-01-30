@@ -40,7 +40,7 @@ async function createOrder(amount, userId, purpose) {
   if (!wallet) {
     throw new AppError(
       "Something went wrong, could not find wallet",
-      StatusCodes.NOT_FOUND
+      StatusCodes.NOT_FOUND,
     );
   }
 
@@ -66,7 +66,7 @@ async function createOrder(amount, userId, purpose) {
         razorpay_order_id: order.id,
         purpose,
       },
-      { transaction }
+      { transaction },
     );
 
     // create transaction
@@ -82,7 +82,7 @@ async function createOrder(amount, userId, purpose) {
         reference: order.id,
         purpose,
       },
-      { transaction }
+      { transaction },
     );
 
     await transaction.commit();
@@ -96,7 +96,7 @@ async function createOrder(amount, userId, purpose) {
     }
     throw new AppError(
       "Failed to create Order",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -107,7 +107,7 @@ async function verifyPayment(
   amount,
   razorpay_order_id,
   razorpay_payment_id,
-  razorpay_signature
+  razorpay_signature,
 ) {
   const transaction = await sequelize.transaction();
   try {
@@ -119,7 +119,7 @@ async function verifyPayment(
     if (generated_signature !== razorpay_signature) {
       throw new AppError(
         "Payment verification failed",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -130,17 +130,16 @@ async function verifyPayment(
         razorpay_signature,
         status: SUCCESS,
       },
-      { transaction }
+      { transaction },
     );
 
     // fetch txn with reference
-    const walletTxn = await walletTransactionRepository.getByReference(
-      razorpay_order_id
-    );
+    const walletTxn =
+      await walletTransactionRepository.getByReference(razorpay_order_id);
     if (walletTxn.walletId !== walletId) {
       throw new AppError(
         "Wallet transaction mismatch",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
     await walletTransactionRepository.update(
@@ -148,7 +147,7 @@ async function verifyPayment(
       {
         status: SUCCESS,
       },
-      { transaction }
+      { transaction },
     );
     await walletRepository.incrementBalance(walletId, amount, { transaction });
     await transaction.commit();
@@ -161,7 +160,7 @@ async function verifyPayment(
     }
     throw new AppError(
       "Failed to verify payment",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -171,7 +170,7 @@ async function payDebt(userId, purpose) {
   if (!wallet) {
     throw new AppError(
       "Something went wrong, could not find wallet",
-      StatusCodes.NOT_FOUND
+      StatusCodes.NOT_FOUND,
     );
   }
   if (wallet.balance > 0) {
@@ -200,7 +199,7 @@ async function payDebt(userId, purpose) {
         razorpay_order_id: order.id,
         purpose,
       },
-      { transaction }
+      { transaction },
     );
 
     // create transaction
@@ -216,7 +215,7 @@ async function payDebt(userId, purpose) {
         reference: order.id,
         purpose,
       },
-      { transaction }
+      { transaction },
     );
 
     await transaction.commit();

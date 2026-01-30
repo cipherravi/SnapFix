@@ -24,7 +24,11 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         validate: { notEmpty: true, len: [1, 30] },
       },
-      districtId: { type: DataTypes.INTEGER, allowNull: false },
+      districtId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: "district_id",
+      },
       pincode: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -36,7 +40,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "City",
       tableName: "cities",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
 
   return City;

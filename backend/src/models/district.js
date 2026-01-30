@@ -18,14 +18,15 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         validate: { notEmpty: true, len: [1, 30] },
       },
-      stateId: { type: DataTypes.INTEGER, allowNull: false },
+      stateId: { type: DataTypes.INTEGER, allowNull: false, field: "state_id" },
     },
     {
       sequelize,
       modelName: "District",
       tableName: "districts",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return District;
 };

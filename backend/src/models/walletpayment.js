@@ -25,8 +25,12 @@ module.exports = (sequelize, DataTypes) => {
   }
   WalletPayment.init(
     {
-      userId: { type: DataTypes.INTEGER, allowNull: false },
-      walletId: { type: DataTypes.INTEGER, allowNull: false },
+      userId: { type: DataTypes.INTEGER, allowNull: false, field: "user_id" },
+      walletId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: "wallet_id",
+      },
       amount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
@@ -56,7 +60,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "WalletPayment",
       tableName: "wallet_payments",
-    }
+      timestamps: true,
+      underscored: true,
+    },
   );
   return WalletPayment;
 };

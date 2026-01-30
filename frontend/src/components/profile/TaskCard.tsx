@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import UpdateStatusModal from "../modals/UpdateStatusModal";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-// import { useUserInfo } from "../../utils/context/UserInfoContext";
 import { useSelector } from "react-redux";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -41,19 +40,26 @@ const TaskCard = ({
   const token = useSelector((s: any) => s.auth.token);
 
   const navigate = useNavigate();
-  // const { userData } = useUserInfo();
   const userData = useSelector((store: any) => store.user.userData);
 
   const [showModal, setShowModal] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState(status);
+  const [optimisticStatus, setOptimisticStatus] = useState<string | null>(null);
+  const displayStatus = optimisticStatus ?? status;
+
   const [submitting, setSubmitting] = useState(false);
   const [isWorker, setIsWorker] = useState(false);
+
+  useEffect(() => {
+    if (optimisticStatus && optimisticStatus === status) {
+      setOptimisticStatus(null);
+    }
+  }, [status, optimisticStatus]);
 
   useEffect(() => {
     if (userData?.id == workerId) {
       setIsWorker(true);
     }
-  }, []);
+  }, [userData?.id, workerId]);
 
   const handleStatusUpdate = async (newStatus: string) => {
     setSubmitting(true);
@@ -70,7 +76,7 @@ const TaskCard = ({
       const data = await res.json();
 
       if (res.ok) {
-        setCurrentStatus(newStatus);
+        setOptimisticStatus(newStatus);
       } else {
         toast.error(data.message);
       }
@@ -107,10 +113,10 @@ const TaskCard = ({
         className={`
         absolute top-4 right-4 text-xs px-3 py-1.5 rounded-full
         font-semibold tracking-wide shadow-sm backdrop-blur
-        ${getStatusColor(currentStatus)}
+        ${getStatusColor(displayStatus)}
       `}
       >
-        {currentStatus}
+        {displayStatus}
       </span>
 
       {/* LEFT SIDE */}
@@ -149,7 +155,7 @@ const TaskCard = ({
         )}
 
         {/* Update Button */}
-        {currentStatus !== "approved" && (
+        {displayStatus !== "approved" && (
           <button
             className="
             px-5 py-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-500 
@@ -170,7 +176,7 @@ const TaskCard = ({
         jobId={id}
         isOpen={showModal}
         isSubmitting={submitting}
-        currentStatus={currentStatus}
+        currentStatus={displayStatus}
         onCancel={() => setShowModal(false)}
         onConfirm={handleStatusUpdate}
         isWorker={isWorker}

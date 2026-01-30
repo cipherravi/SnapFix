@@ -360,14 +360,17 @@ const Chat = ({ verified = true }: ChatProps) => {
   useEffect(() => {
     const loadProfilePic = async () => {
       // Case 1: user has NO profile picture
-      if (!profilePic) {
+      if (!profilePic && currentConversation) {
+        console.log("first");
         setProfilePicUrl("/svg/profile.svg");
         setLoadingProfilePic(false);
         return;
       }
 
       // Case 2: user HAS a profile picture → show shimmer until RTK Query resolves
-      setLoadingProfilePic(isImageLoading || isImageFetching);
+      setLoadingProfilePic(
+        currentConversation === undefined || isImageLoading || isImageFetching
+      );
 
       if (!isImageLoading && !isImageFetching) {
         setProfilePicUrl(profileImageUrlFromApi);

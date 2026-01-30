@@ -18,7 +18,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -26,7 +26,7 @@ module.exports = {
           key: "id",
         },
       },
-      walletId: {
+      wallet_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -55,12 +55,12 @@ module.exports = {
         type: Sequelize.ENUM(ADD_BALANCE, WITHDRAWAL, REPAYMENT),
         allowNull: false,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
@@ -70,13 +70,13 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("wallet_payments");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_payments_status";'
+      'DROP TYPE IF EXISTS "enum_wallet_payments_status";',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_payments_purpose";'
+      'DROP TYPE IF EXISTS "enum_wallet_payments_purpose";',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_payments_method";'
+      'DROP TYPE IF EXISTS "enum_wallet_payments_method";',
     );
   },
 };

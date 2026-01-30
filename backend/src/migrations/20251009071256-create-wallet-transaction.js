@@ -27,7 +27,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      walletId: {
+      wallet_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -67,17 +67,17 @@ module.exports = {
           PENALTY,
           REFUND,
           WITHDRAWAL,
-          COMMISION
+          COMMISION,
         ),
         allowNull: true,
       },
 
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
@@ -92,13 +92,13 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("wallet_transactions");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_transactions_transaction_type";'
+      'DROP TYPE IF EXISTS "enum_wallet_transactions_transaction_type";',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_transactions_status";'
+      'DROP TYPE IF EXISTS "enum_wallet_transactions_status";',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_transactions_purpose";'
+      'DROP TYPE IF EXISTS "enum_wallet_transactions_purpose";',
     );
   },
 };

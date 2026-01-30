@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import getStatusColor from "../../utils/common/getStatusColor";
 import UpdateStatusModal from "../modals/UpdateStatusModal";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { useSelector } from "react-redux";
 
@@ -32,7 +32,10 @@ const JobCard = ({
 
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState(status);
+
+  const [optimisticStatus, setOptimisticStatus] = useState<string | null>(null);
+  const displayStatus = optimisticStatus ?? status;
+
   const [submitting, setSubmitting] = useState(false);
 
   const handleStatusUpdate = async (newStatus: string) => {
@@ -50,7 +53,7 @@ const JobCard = ({
       const data = await res.json();
 
       if (res.ok) {
-        setCurrentStatus(newStatus);
+        setOptimisticStatus(newStatus);
       } else {
         toast.error(data.message);
       }
@@ -65,6 +68,12 @@ const JobCard = ({
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (optimisticStatus && optimisticStatus === status) {
+      setOptimisticStatus(null);
+    }
+  }, [status, optimisticStatus]);
 
   return (
     <div
@@ -84,10 +93,10 @@ const JobCard = ({
         className={`
         absolute top-4 right-4 text-xs px-3 py-1.5 rounded-full
         font-semibold tracking-wide shadow-sm backdrop-blur
-        ${getStatusColor(currentStatus)}
+        ${getStatusColor(displayStatus)}
       `}
       >
-        {currentStatus}
+        {displayStatus}
       </span>
 
       {/* TITLE */}
@@ -127,7 +136,7 @@ const JobCard = ({
 
       {/* ACTION BUTTONS */}
       <div className="flex justify-end mt-2">
-        {currentStatus === "initiated" ? (
+        {displayStatus === "initiated" ? (
           <button
             className="px-6 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold
                      hover:bg-blue-700 active:scale-95 transition"
@@ -139,7 +148,7 @@ const JobCard = ({
             Pay Now
           </button>
         ) : (
-          currentStatus === "completed" && (
+          displayStatus === "completed" && (
             <button
               className="px-6 py-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-500 
                        text-white text-sm font-bold shadow-sm
@@ -157,7 +166,7 @@ const JobCard = ({
         <UpdateStatusModal
           isOpen={showModal}
           isSubmitting={submitting}
-          currentStatus={currentStatus}
+          currentStatus={displayStatus}
           onCancel={() => setShowModal(false)}
           onConfirm={handleStatusUpdate}
         />

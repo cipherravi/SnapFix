@@ -15,7 +15,7 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
-      districtId: {
+      district_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -28,11 +28,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },

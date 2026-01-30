@@ -8,6 +8,8 @@ interface ConfirmModalProps {
   onCancel: () => void;
   message?: string;
   confirmButtonName?: string;
+  confirmButtonColor?: string;
+  confirmButtonColorOnHover?: string;
 }
 
 const ConfirmModal = ({
@@ -16,6 +18,8 @@ const ConfirmModal = ({
   onCancel,
   message = "Are you sure?",
   confirmButtonName = "Delete",
+  confirmButtonColor = "bg-red-500",
+  confirmButtonColorOnHover = "bg-red-600",
 }: ConfirmModalProps) => {
   const [show, setShow] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -77,7 +81,7 @@ const ConfirmModal = ({
             Cancel
           </button>
           <button
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 cursor-pointer"
+            className={`px-4 py-2 ${confirmButtonColor} text-white rounded-lg hover:${confirmButtonColorOnHover} cursor-pointer`}
             onClick={onConfirm}
           >
             {confirmButtonName}

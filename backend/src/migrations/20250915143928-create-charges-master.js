@@ -48,11 +48,11 @@ module.exports = {
         defaultValue: true,
       },
 
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
@@ -61,13 +61,13 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("charges_master");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_charges_master_type";'
+      'DROP TYPE IF EXISTS "enum_charges_master_type";',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_charges_master_applicable_methods";'
+      'DROP TYPE IF EXISTS "enum_charges_master_applicable_methods";',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_charges_master_apply_on";'
+      'DROP TYPE IF EXISTS "enum_charges_master_apply_on";',
     );
   },
 };

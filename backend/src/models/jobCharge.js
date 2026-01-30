@@ -18,8 +18,12 @@ module.exports = (sequelize, DataTypes) => {
   JobCharge.init(
     {
       name: { type: DataTypes.STRING, allowNull: false },
-      jobId: { type: DataTypes.INTEGER, allowNull: false },
-      chargeId: { type: DataTypes.INTEGER, allowNull: false },
+      jobId: { type: DataTypes.INTEGER, allowNull: false, field: "job_id" },
+      chargeId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: "charge_id",
+      },
       amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
     },
     {
@@ -27,7 +31,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "JobCharge",
       tableName: "job_charges",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return JobCharge;
 };

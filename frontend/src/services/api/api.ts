@@ -23,6 +23,7 @@ export const api = createApi({
     "Assets",
     "Jobs",
     "Tasks",
+    "Worker",
   ],
   endpoints: () => ({}),
 });

@@ -61,7 +61,7 @@ class CrudRepository {
     try {
       const response = await this.model.findAll();
       logger.info(
-        `[${this.modelName}] getAll - SUCCESS, records fetched: ${response.length}`
+        `[${this.modelName}] getAll - SUCCESS, records fetched: ${response.length}`,
       );
       return response;
     } catch (error) {

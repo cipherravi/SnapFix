@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -20,7 +20,7 @@ module.exports = {
       },
       building: { type: Sequelize.STRING, allowNull: false },
       street: { type: Sequelize.STRING, allowNull: true },
-      areaId: {
+      area_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
@@ -29,7 +29,7 @@ module.exports = {
         },
         onDelete: "SET NULL",
       },
-      cityId: {
+      city_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -38,7 +38,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      isPrimary: {
+      is_primary: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
@@ -51,11 +51,11 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 7),
         allowNull: false,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },

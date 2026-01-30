@@ -38,6 +38,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true,
+        field: "is_active",
       },
       is_gross_up: {
         type: DataTypes.BOOLEAN,
@@ -51,7 +52,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "ChargeMaster",
       tableName: "charges_master",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return ChargeMaster;
 };

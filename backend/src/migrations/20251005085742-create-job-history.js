@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      jobId: {
+      job_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -18,7 +18,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      changedBy: {
+      changed_by: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -27,20 +27,20 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      oldStatus: {
+      old_status: {
         type: Sequelize.STRING(20),
         allowNull: false,
       },
-      newStatus: {
+      new_status: {
         type: Sequelize.STRING(20),
         allowNull: false,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,

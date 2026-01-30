@@ -27,12 +27,12 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
-      dateOfBirth: { type: Sequelize.DATE, allowNull: true },
+      date_of_birth: { type: Sequelize.DATE, allowNull: true },
       gender: {
         type: Sequelize.ENUM(MALE, FEMALE),
         allowNull: true,
       },
-      profilePicUrl: {
+      profile_pic_url: {
         type: Sequelize.STRING,
         allowNull: true,
       },
@@ -46,11 +46,11 @@ module.exports = {
         defaultValue: CLIENT,
       },
 
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },

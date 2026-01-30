@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const { serverConfig } = require("./config");
-const { connectDB } = require("./config");
+const { connectDB, sequelize } = require("./config");
 const { PORT } = serverConfig;
 const { allowedOrigins } = require("./utils/constants/allowedOrigins");
 const apiRoutes = require("./routes");
@@ -25,7 +25,7 @@ app.use(
       }
     },
     credentials: true, // Allow cookies
-  })
+  }),
 );
 
 const limiter = rateLimit({
@@ -39,6 +39,10 @@ const io = setupSocket(server, allowedOrigins);
 app.use("/api", apiRoutes);
 
 connectDB()
+  .then(async () => {
+    await sequelize.authenticate();
+    console.log("Postgres connected ✅");
+  })
   .then(() => {
     server.listen(PORT, "0.0.0.0", () => {
       console.log("Server started running at PORT ::", PORT);

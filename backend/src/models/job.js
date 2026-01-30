@@ -81,7 +81,7 @@ module.exports = (sequelize, DataTypes) => {
           COMPLETED,
           APPROVED,
           CANCELLED,
-          EXPIRED
+          EXPIRED,
         ),
         allowNull: false,
         defaultValue: INITIATED,
@@ -98,28 +98,34 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: "user_id",
       },
       workerId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        field: "worker_id",
       },
       categoryId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        field: "category_id",
       },
       cityId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: "city_id",
       },
       addressId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        field: "address_id",
       },
       initialAddress: {
         type: DataTypes.STRING,
         allowNull: false,
         comment:
           "Static address string for this job; not tied to user's current address",
+        field: "initial_address",
       },
       latitude: {
         type: DataTypes.DECIMAL(10, 7),
@@ -135,7 +141,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Job",
       tableName: "jobs",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return Job;
 };

@@ -11,7 +11,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      jobId: {
+      job_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -20,7 +20,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -38,29 +38,29 @@ module.exports = {
         allowNull: false,
         defaultValue: APPLIED,
       },
-      appliedAt: {
+      applied_at: {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      selectedAt: {
+      selected_at: {
         type: Sequelize.DATE,
         allowNull: true,
       },
-      completedAt: {
+      completed_at: {
         type: Sequelize.DATE,
         allowNull: true,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
     });
     await queryInterface.addConstraint("jobapplications", {
-      fields: ["jobId", "userId"],
+      fields: ["job_id", "user_id"],
       type: "unique",
       name: "unique_job_user_pair",
     });
@@ -69,12 +69,12 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.removeConstraint(
       "jobapplications",
-      "unique_job_user_pair"
+      "unique_job_user_pair",
     );
 
     await queryInterface.dropTable("jobapplications");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_jobapplications_status";'
+      'DROP TYPE IF EXISTS "enum_jobapplications_status";',
     );
   },
 };

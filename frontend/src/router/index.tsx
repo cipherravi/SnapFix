@@ -59,6 +59,9 @@ import About from "../pages/About";
 import Contact from "../pages/Contact";
 import PostedJobDashboardShimmer from "../components/shimmer/PostedJobDashboardShimmer";
 import AssignedTaskDashboardShimmer from "../components/shimmer/AssignedTaskDashboardShimmer";
+import BankAccounts from "../pages/Profile/BankAccounts";
+import BankAccountsMain from "../pages/BankAccounts/Main";
+import AddAccount from "../pages/BankAccounts/AddAccount";
 
 const router = createBrowserRouter([
   {
@@ -175,6 +178,20 @@ const router = createBrowserRouter([
                 <WalletTransaction />
               </Suspense>
             ),
+          },
+          {
+            path: "bank-accounts",
+            element: <BankAccounts />,
+            children: [
+              {
+                index: true,
+                element: <BankAccountsMain />,
+              },
+              {
+                path: "add",
+                element: <AddAccount />,
+              },
+            ],
           },
           {
             path: "addresses",

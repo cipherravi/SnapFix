@@ -55,9 +55,10 @@ function App() {
   const { data: userData } = useGetProfileQuery(undefined, {
     skip: !isAuthenticated,
   });
-  const { data: conversationsData } = useGetConversationsQuery(undefined, {
-    skip: !isAuthenticated,
-  });
+  const { data: conversationsData, refetch: refetchConversations } =
+    useGetConversationsQuery(undefined, {
+      skip: !isAuthenticated,
+    });
 
   // ----------------------------------------------------------------------
   // SYNC RTK QUERY → REDUX SLICE
@@ -124,9 +125,10 @@ function App() {
 
   // NOTIFY NEW CONVERSATION CREATED AND ADD IT INTO CONVERSATION LIST
   //--------------------
+
   useEffect(() => {
     const handleCreatedConversation = async (data: any) => {
-      console.log(data);
+      refetchConversations();
     };
 
     socket.on("conversationCreated", handleCreatedConversation);
@@ -134,7 +136,7 @@ function App() {
     return () => {
       socket.off("conversationCreated", handleCreatedConversation);
     };
-  }, [socket]);
+  }, [socket, refetchConversations]);
 
   //--------------------
 

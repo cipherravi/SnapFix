@@ -48,17 +48,12 @@ const TASK_STATUS = {
 type FilterType = "all" | "active" | "completed" | "failed";
 
 const AssignedTasks = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { data: tasks = [], isLoading } = useFetchMyTasksQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
 
   // default = active
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("active");
-
-  const { data: fetchedTasks, isLoading } = useFetchMyTasksQuery(undefined);
-
-  useEffect(() => {
-    if (!fetchedTasks) return;
-    setTasks(fetchedTasks);
-  }, [fetchedTasks]);
 
   // ---------------------------
   // FILTER LOGIC (same as jobs)
@@ -70,7 +65,7 @@ const AssignedTasks = () => {
 
       case "active":
         return tasks.filter(
-          (task) =>
+          (task: Task) =>
             ![
               TASK_STATUS.APPROVED,
               TASK_STATUS.CANCELLED,
@@ -84,10 +79,12 @@ const AssignedTasks = () => {
         );
 
       case "completed":
-        return tasks.filter((task) => task.status === TASK_STATUS.APPROVED);
+        return tasks.filter(
+          (task: Task) => task.status === TASK_STATUS.APPROVED
+        );
 
       case "failed":
-        return tasks.filter((task) =>
+        return tasks.filter((task: Task) =>
           [TASK_STATUS.CANCELLED, TASK_STATUS.EXPIRED].includes(
             task.status as
               | typeof TASK_STATUS.CANCELLED
@@ -144,7 +141,7 @@ const AssignedTasks = () => {
           {isLoading ? (
             <JobsRefetchShimmer />
           ) : filteredTasks.length > 0 ? (
-            filteredTasks.map((task) => (
+            filteredTasks.map((task: Task) => (
               <TaskCard
                 key={task.id}
                 id={task.id}

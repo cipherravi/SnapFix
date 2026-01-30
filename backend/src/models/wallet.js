@@ -22,14 +22,20 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0,
       },
-      userId: { type: DataTypes.INTEGER, allowNull: false, unique: true },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        unique: true,
+        field: "user_id",
+      },
     },
     {
       sequelize,
       modelName: "Wallet",
       tableName: "wallets",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return Wallet;
 };

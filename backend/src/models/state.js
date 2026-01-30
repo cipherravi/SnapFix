@@ -23,7 +23,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "State",
       tableName: "states",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return State;
 };

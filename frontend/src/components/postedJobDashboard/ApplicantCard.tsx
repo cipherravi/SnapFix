@@ -270,7 +270,7 @@ const ApplicantCard = ({
 
       {/* ACTIONS */}
       <div className="flex flex-col justify-center gap-2 min-w-[90px]">
-        {applicant.status === "selected" ? (
+        {applicant.status !== "applied" ? (
           <>
             <ActionButton onClick={chatHandler}>Chat</ActionButton>
             <ActionButton onClick={() => {}} color="danger">

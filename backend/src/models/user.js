@@ -40,7 +40,11 @@ module.exports = (sequelize, DataTypes) => {
           len: [7, 15],
         },
       },
-      dateOfBirth: { type: DataTypes.DATE, allowNull: true },
+      dateOfBirth: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: "date_of_birth",
+      },
       gender: {
         type: DataTypes.ENUM(MALE, FEMALE),
         allowNull: true,
@@ -49,6 +53,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
         validate: { len: [10, 100] },
+        field: "profile_pic_url",
       },
       password: {
         type: DataTypes.STRING,
@@ -66,7 +71,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "User",
       tableName: "users",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return User;
 };

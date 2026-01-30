@@ -18,7 +18,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      jobId: {
+      job_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -29,7 +29,7 @@ module.exports = {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -90,11 +90,11 @@ module.exports = {
         defaultValue: ACTIVE,
         allowNull: false,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
@@ -103,10 +103,10 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("payments");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_payments_method";'
+      'DROP TYPE IF EXISTS "enum_payments_method";',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_payments_status";'
+      'DROP TYPE IF EXISTS "enum_payments_status";',
     );
   },
 };

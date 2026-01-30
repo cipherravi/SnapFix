@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import useWalletFetcher from "../../utils/Hooks/useWalletFetcher";
 import { useGetTransactionsQuery } from "../../services/api/transactionApi";
+import { useGetAllBankAccountsQuery } from "../../services/api/workers";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 import { useSelector } from "react-redux";
@@ -77,8 +78,9 @@ const Wallet = () => {
           order.walletId,
           Number(order.amount),
           order.razorpay_order_id,
-          order.id
+          order.id,
         );
+        fetchLatestTransactions();
       }
     } catch (err) {
       console.error(err);
@@ -89,9 +91,10 @@ const Wallet = () => {
     }
   };
 
-  async function confirmWithdawal() {
+  async function confirmWithdawal(id: number) {
     setHandling(true);
     try {
+      if (id === 0) return;
       if (balance === null || amount <= 0 || amount > balance)
         return toast.error("Enter valid amount");
       if (amount < 200) return toast.error("Minimum ₹200 withdrawal allowed");
@@ -105,13 +108,18 @@ const Wallet = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ amount, purpose: "withdrawal" }),
-        }
+          body: JSON.stringify({
+            amount,
+            purpose: "withdrawal",
+            bankAccountId: id,
+          }),
+        },
       );
 
       const data = await res.json();
       if (res.ok) {
         await refetch();
+        fetchLatestTransactions();
         toast.success(data.message);
       } else toast.error(data.message);
     } finally {
@@ -141,8 +149,9 @@ const Wallet = () => {
           order.walletId,
           Number(order.amount),
           order.razorpay_order_id,
-          order.id
+          order.id,
         );
+        fetchLatestTransactions();
       }
     } finally {
       setHandling(false);
@@ -153,7 +162,7 @@ const Wallet = () => {
     walletId: number,
     amount: number,
     order_id: string,
-    id: number
+    id: number,
   ) {
     try {
       const options = {
@@ -183,12 +192,13 @@ const Wallet = () => {
                   walletId,
                   amount,
                 }),
-              }
+              },
             );
 
             const data = await verifyRes.json();
             if (verifyRes.ok) {
               await refetch();
+              fetchLatestTransactions();
               toast.success("Amount added successfully 🎉");
             } else toast.error(data?.message);
           } catch (err) {
@@ -229,10 +239,16 @@ const Wallet = () => {
     }
   }, [activeFilter]);
 
-  const { data: transactions, isLoading } = useGetTransactionsQuery(
-    filterParams,
-    { refetchOnMountOrArgChange: true }
-  );
+  const {
+    data: transactions,
+    isLoading,
+    refetch: fetchLatestTransactions,
+  } = useGetTransactionsQuery(filterParams, {
+    refetchOnMountOrArgChange: true,
+  });
+  const { data: bankAccounts } = useGetAllBankAccountsQuery(filterParams, {
+    refetchOnMountOrArgChange: true,
+  });
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-linear-to-b from-[#0F8DD8] to-[#0C6FB0] relative overflow-hidden ">
@@ -439,6 +455,7 @@ const Wallet = () => {
         setAmount={setAmount}
         handling={handling}
         action="withdraw"
+        bankAccounts={bankAccounts}
       />
     </div>
   );

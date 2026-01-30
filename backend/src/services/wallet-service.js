@@ -2,6 +2,8 @@ const {
   WalletRepository,
   WalletTransactionRepository,
   UserRepository,
+  WorkerBankDetailRepository,
+  WithdrawRequestRepository,
 } = require("../repositories");
 const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/AppError");
@@ -23,6 +25,8 @@ const { INITIATED } = WALLET_TRANSACTION_STATUS;
 const walletRepository = new WalletRepository();
 const walletTransactionRepository = new WalletTransactionRepository();
 const userRepository = new UserRepository();
+const workerBankDetailRepository = new WorkerBankDetailRepository();
+const withdrawRequestRepository = new WithdrawRequestRepository();
 
 async function createWallet(userId) {
   try {
@@ -62,7 +66,7 @@ async function getBalance(userId) {
   }
 }
 
-async function withdrawMoney(userId, amount, purpose) {
+async function withdrawMoney(userId, amount, purpose, bankAccountId) {
   try {
     const user = await userRepository.getByUserId(userId);
 
@@ -91,6 +95,18 @@ async function withdrawMoney(userId, amount, purpose) {
       );
     }
 
+    const bankAccount =
+      await workerBankDetailRepository.fetchBankDetailOfWorkerById(
+        bankAccountId
+      );
+
+    if (bankAccount.userId !== userId) {
+      throw new AppError(
+        "Withdrawal account doesn't belong to you",
+        StatusCodes.UNAUTHORIZED
+      );
+    }
+
     await walletTransactionRepository.create({
       walletId: wallet.id,
       transaction_type: DEBIT,
@@ -102,6 +118,11 @@ async function withdrawMoney(userId, amount, purpose) {
     });
 
     await walletRepository.decrementBalance(wallet.id, amount);
+    await withdrawRequestRepository.create({
+      userId,
+      bankDetailId: bankAccountId,
+      amount,
+    });
   } catch (error) {
     logger.error(
       `Failed to withdraw ${amount} rupees from wallet of user- ${userId}`

@@ -30,7 +30,11 @@ module.exports = (sequelize, DataTypes) => {
   }
   WalletTransaction.init(
     {
-      walletId: { type: DataTypes.INTEGER, allowNull: false },
+      walletId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: "wallet_id",
+      },
       transaction_type: {
         type: DataTypes.ENUM(CREDIT, DEBIT),
         allowNull: false,
@@ -59,7 +63,7 @@ module.exports = (sequelize, DataTypes) => {
           PENALTY,
           REFUND,
           WITHDRAWAL,
-          COMMISION
+          COMMISION,
         ),
         allowNull: true,
       },
@@ -68,7 +72,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "WalletTransaction",
       tableName: "wallet_transactions",
-    }
+      timestamps: true,
+      underscored: true,
+    },
   );
   return WalletTransaction;
 };

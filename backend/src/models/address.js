@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isInt: true,
         },
+        field: "user_id",
       },
       building: {
         type: DataTypes.STRING,
@@ -34,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isInt: true,
         },
+        field: "area_id",
       },
       cityId: {
         type: DataTypes.INTEGER,
@@ -41,11 +43,13 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isInt: true,
         },
+        field: "city_id",
       },
       isPrimary: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
         defaultValue: false,
+        field: "is_primary",
       },
       latitude: {
         type: DataTypes.DECIMAL(10, 7),
@@ -61,7 +65,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Address",
       tableName: "addresses",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return Address;
 };

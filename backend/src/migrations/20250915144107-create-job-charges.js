@@ -11,7 +11,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       name: { type: Sequelize.STRING, allowNull: false },
-      jobId: {
+      job_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -20,7 +20,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      chargeId: {
+      charge_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -34,11 +34,11 @@ module.exports = {
         allowNull: false,
       },
 
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
@@ -46,7 +46,7 @@ module.exports = {
 
     // Add composite unique constraint
     await queryInterface.addConstraint("job_charges", {
-      fields: ["jobId", "chargeId"],
+      fields: ["job_id", "charge_id"],
       type: "unique",
       name: "unique_job_charge",
     });

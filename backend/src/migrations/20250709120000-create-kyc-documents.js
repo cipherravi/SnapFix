@@ -12,7 +12,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      kycId: {
+      kyc_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -27,12 +27,12 @@ module.exports = {
         defaultValue: OTHER,
       },
       doc_url: { type: Sequelize.STRING, allowNull: false, unique: true },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
@@ -42,7 +42,7 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("kycdocuments");
     await queryInterface.sequelize.query(
-      `DROP TYPE IF EXISTS "enum_kycdocuments_doc_type";`
+      `DROP TYPE IF EXISTS "enum_kycdocuments_doc_type";`,
     );
   },
 };

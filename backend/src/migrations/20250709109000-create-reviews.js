@@ -13,7 +13,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      jobId: {
+      job_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -22,7 +22,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      reviewerId: {
+      reviewer_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -31,7 +31,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      revieweeId: {
+      reviewee_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -52,17 +52,17 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
     });
     await queryInterface.addConstraint("reviews", {
-      fields: ["reviewerId", "revieweeId", "jobId"],
+      fields: ["reviewer_id", "reviewee_id", "job_id"],
       type: "unique",
       name: "unique_review_per_user_per_job",
     });
@@ -71,11 +71,11 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.removeConstraint(
       "reviews",
-      "unique_review_per_user_per_job"
+      "unique_review_per_user_per_job",
     );
     await queryInterface.dropTable("reviews");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_reviews_role";'
+      'DROP TYPE IF EXISTS "enum_reviews_role";',
     );
   },
 };

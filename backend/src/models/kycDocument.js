@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   KycDocument.init(
     {
-      kycId: { type: DataTypes.INTEGER, allowNull: false },
+      kycId: { type: DataTypes.INTEGER, allowNull: false, field: "kyc_id" },
       doc_type: {
         type: DataTypes.ENUM(ID_BACK, ID_FRONT, SELFIE, OTHER),
         allowNull: false,
@@ -29,7 +29,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "KycDocument",
       tableName: "kycdocuments",
-    }
+      timestamps: true,
+      underscored: true,
+    },
   );
   return KycDocument;
 };

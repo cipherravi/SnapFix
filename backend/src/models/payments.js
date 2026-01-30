@@ -25,8 +25,8 @@ module.exports = (sequelize, DataTypes) => {
   }
   Payment.init(
     {
-      jobId: { type: DataTypes.INTEGER, allowNull: false },
-      userId: { type: DataTypes.INTEGER, allowNull: false },
+      jobId: { type: DataTypes.INTEGER, allowNull: false, field: "job_id" },
+      userId: { type: DataTypes.INTEGER, allowNull: false, field: "user_id" },
       amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
       currency: { type: DataTypes.STRING(10), defaultValue: "INR" },
       method: DataTypes.ENUM(ONLINE, WALLET, COD),
@@ -55,7 +55,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "Payment",
       tableName: "payments",
-    }
+      timestamps: true,
+      underscored: true,
+    },
   );
   return Payment;
 };

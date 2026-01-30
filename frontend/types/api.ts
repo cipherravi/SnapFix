@@ -1,59 +1,54 @@
-export interface State{
-    id:number;
-    name:string;
+export interface State {
+  id: number;
+  name: string;
 }
 
-export interface District{
-    id:number;
-    name:string;
-    stateId:number;
+export interface District {
+  id: number;
+  name: string;
+  stateId: number;
 }
 
-interface DistrictWithState extends District{
-    state:State
-
+interface DistrictWithState extends District {
+  state: State;
 }
 
-export interface City{
-    id:number;
-    name:string;
-    districtId:number;
-    pincode:string;
+export interface City {
+  id: number;
+  name: string;
+  districtId: number;
+  pincode: string;
 }
 interface CityWithDistrict extends City {
-    district:DistrictWithState
-
+  district: DistrictWithState;
 }
 
-export interface Area{
-    id: number;
-    name: string;
-    cityId: number;
-    latitude:string;
-    longitude:string;
+export interface Area {
+  id: number;
+  name: string;
+  cityId: number;
+  latitude: string;
+  longitude: string;
 }
 interface AreaWithCity extends Area {
-    city:CityWithDistrict;
-
+  city: CityWithDistrict;
 }
-
 
 export interface Address {
-    id: number;
-    building: string;
-    street: string;
-    areaId:number ;
-    cityId: number;
-    isPrimary:boolean;
-    latitude:string;
-    longitude:string;
-    area:AreaWithCity;
-    createdAt: string;
-    updatedAt: string;
+  id: number;
+  building: string;
+  street: string;
+  areaId: number;
+  cityId: number;
+  isPrimary: boolean;
+  latitude: string;
+  longitude: string;
+  area: AreaWithCity;
+  createdAt: string;
+  updatedAt: string;
 }
 
-
- interface Kyc {
+interface Kyc {
   id: number;
   userId: number;
   status: string;
@@ -76,7 +71,6 @@ export interface User {
   kyc: Kyc;
   city: City;
 }
-
 
 export interface Asset {
   id: number;
@@ -106,5 +100,15 @@ export interface Job {
   assets: Asset[];
 }
 
-
-
+export interface Account {
+  id: number;
+  userId: number;
+  accountHolder: string;
+  accountNumber: number;
+  bankName: string;
+  ifsc: string;
+  isPrimary: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

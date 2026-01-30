@@ -40,7 +40,7 @@ module.exports = {
           COMPLETED,
           APPROVED,
           CANCELLED,
-          EXPIRED
+          EXPIRED,
         ),
         allowNull: false,
         defaultValue: INITIATED,
@@ -49,7 +49,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -58,7 +58,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      workerId: {
+      worker_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
@@ -67,7 +67,7 @@ module.exports = {
         },
         onDelete: "SET NULL",
       },
-      categoryId: {
+      category_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
@@ -76,7 +76,7 @@ module.exports = {
         },
         onDelete: "SET NULL",
       },
-      cityId: {
+      city_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -85,7 +85,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      addressId: {
+      address_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
@@ -94,7 +94,7 @@ module.exports = {
         },
         onDelete: "SET NULL",
       },
-      initialAddress: {
+      initial_address: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -107,11 +107,11 @@ module.exports = {
         allowNull: false,
       },
 
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
@@ -121,7 +121,7 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("jobs");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_jobs_status";'
+      'DROP TYPE IF EXISTS "enum_jobs_status";',
     );
   },
 };

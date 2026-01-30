@@ -16,16 +16,29 @@ module.exports = (sequelize, DataTypes) => {
   JobHistory.init(
     {
       jobId: { type: DataTypes.INTEGER, allowNull: false },
-      changedBy: { type: DataTypes.INTEGER, allowNull: false },
-      oldStatus: { type: DataTypes.STRING(20), allowNull: false },
-      newStatus: { type: DataTypes.STRING(20), allowNull: false },
+      changedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: "changed_by",
+      },
+      oldStatus: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        field: "old_status",
+      },
+      newStatus: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        field: "new_status",
+      },
     },
     {
       sequelize,
       modelName: "JobHistory",
       tableName: "job_histories",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return JobHistory;
 };

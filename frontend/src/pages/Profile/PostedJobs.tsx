@@ -32,7 +32,6 @@ const JOB_STATUS = {
 type FilterType = "all" | "active" | "completed" | "failed";
 
 const PostedJobs = () => {
-  const [myJobs, setMyJobs] = useState<MyJob[]>([]);
   const [workerProfiles, setWorkerProfiles] = useState<any[]>([]);
 
   // DEFAULT FILTER = "active"
@@ -45,16 +44,14 @@ const PostedJobs = () => {
     [workerProfiles]
   );
 
-  const { data: fetchedMyJobs, isLoading } = useFetchMyJobsQuery(undefined);
+  const { data: myJobs = [], isLoading } = useFetchMyJobsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
 
   useEffect(() => {
-    if (!fetchedMyJobs) return;
-
-    setMyJobs(fetchedMyJobs);
-
     const workerIds = [
       ...new Set(
-        fetchedMyJobs
+        myJobs
           .map((job: MyJob) => job.workerId)
           .filter((id: number | null): id is number => id != null)
       ),
@@ -68,7 +65,7 @@ const PostedJobs = () => {
       });
       setWorkerProfiles(profiles);
     })();
-  }, [fetchedMyJobs]);
+  }, [myJobs]);
 
   // ---------------------------
   // FILTER LOGIC
@@ -80,7 +77,7 @@ const PostedJobs = () => {
 
       case "active":
         return myJobs.filter(
-          (job) =>
+          (job: MyJob) =>
             ![
               JOB_STATUS.APPROVED,
               JOB_STATUS.CANCELLED,
@@ -94,10 +91,12 @@ const PostedJobs = () => {
         );
 
       case "completed":
-        return myJobs.filter((job) => job.status === JOB_STATUS.APPROVED);
+        return myJobs.filter(
+          (job: MyJob) => job.status === JOB_STATUS.APPROVED
+        );
 
       case "failed":
-        return myJobs.filter((job) =>
+        return myJobs.filter((job: MyJob) =>
           [JOB_STATUS.CANCELLED, JOB_STATUS.EXPIRED].includes(
             job.status as
               | typeof JOB_STATUS.CANCELLED
@@ -153,7 +152,7 @@ const PostedJobs = () => {
           {isLoading ? (
             <JobsRefetchShimmer />
           ) : filteredJobs.length > 0 ? (
-            filteredJobs.map((job) => {
+            filteredJobs.map((job: MyJob) => {
               const worker = workerMap[job.workerId];
               return (
                 <JobCard

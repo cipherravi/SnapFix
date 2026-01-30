@@ -146,6 +146,9 @@ const conversationSlice = createSlice({
         ...state.conversations.filter((c) => c.id !== conversationId),
       ];
     },
+    setNewConversation: (state, action) => {
+      state.conversations.push(action.payload);
+    },
   },
 });
 
@@ -158,5 +161,6 @@ export const {
   updateSingleConversation,
   setNewMessage,
   setLastMessage,
+  setNewConversation,
 } = conversationSlice.actions;
 export default conversationSlice.reducer;

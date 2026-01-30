@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
-      stateId: {
+      state_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -23,11 +23,11 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },

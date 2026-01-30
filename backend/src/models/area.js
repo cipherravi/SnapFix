@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
           len: [1, 30],
         },
       },
-      cityId: { type: DataTypes.INTEGER, allowNull: false },
+      cityId: { type: DataTypes.INTEGER, allowNull: false, field: "city_id" },
       latitude: {
         type: DataTypes.DECIMAL(10, 7),
         allowNull: false,
@@ -32,7 +32,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Area",
       tableName: "areas",
       timestamps: true,
-    }
+      underscored: true,
+    },
   );
   return Area;
 };

@@ -53,8 +53,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       tableName: "withdraw_requests",
       modelName: "WithdrawRequest",
+      timestamps: true,
       underscored: true,
-    }
+    },
   );
   return WithdrawRequest;
 };

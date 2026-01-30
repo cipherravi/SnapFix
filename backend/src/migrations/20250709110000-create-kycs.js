@@ -11,7 +11,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         unique: true,
@@ -26,7 +26,7 @@ module.exports = {
         defaultValue: PENDING,
         allowNull: false,
       },
-      verifiedBy: {
+      verified_by: {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
@@ -35,12 +35,12 @@ module.exports = {
         },
         onDelete: "SET NULL",
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
@@ -50,7 +50,7 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("kycs");
     await queryInterface.sequelize.query(
-      `DROP TYPE IF EXISTS "enum_kycs_status";`
+      `DROP TYPE IF EXISTS "enum_kycs_status";`,
     );
   },
 };
