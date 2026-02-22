@@ -5,7 +5,6 @@ const path = require("path");
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 }
-console.log("DATABASE_URL from config =", process.env.DATABASE_URL);
 
 // ------------- POSTGRES ---------------
 
