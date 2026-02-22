@@ -4,7 +4,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 module.exports = {
-  PORT: process.env.PORT,
+  PORT: process.env.PORT || 2944,
   SECRET_KEY: process.env.SECRET_KEY,
   SALT_ROUNDS: process.env.SALT_ROUNDS,
   EXPIRES_IN: process.env.EXPIRES_IN,
