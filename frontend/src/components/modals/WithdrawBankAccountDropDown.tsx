@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Account } from "../../../types";
+import { useNavigate } from "react-router-dom";
 
 interface WithdrawBankDropdownProps {
   accounts: Account[];
@@ -12,6 +13,7 @@ const WithdrawBankDropdown = ({
   selected,
   onSelect,
 }: WithdrawBankDropdownProps) => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -48,6 +50,8 @@ const WithdrawBankDropdown = ({
               </span>
             )}
           </div>
+        ) : accounts.length === 0 ? (
+          <span className="text-white/60">No Bank accounts Found</span>
         ) : (
           <span className="text-white/60">Select bank account</span>
         )}
@@ -63,8 +67,11 @@ const WithdrawBankDropdown = ({
           "
         >
           {accounts.length === 0 && (
-            <p className="px-4 py-3 text-white/60 text-sm">
-              No bank accounts found
+            <p
+              className="px-4 py-3 text-white/60 text-sm"
+              onClick={() => navigate("/profile/bank-accounts/add")}
+            >
+              + Add Bank account
             </p>
           )}
 
@@ -92,6 +99,14 @@ const WithdrawBankDropdown = ({
               )}
             </button>
           ))}
+          <p
+            className="  w-full px-4 py-3 text-left text-white
+                hover:bg-white/10 transition-all
+                flex justify-between items-center"
+            onClick={() => navigate("/profile/bank-accounts/add")}
+          >
+            + Add Bank account
+          </p>
         </div>
       )}
     </div>

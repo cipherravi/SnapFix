@@ -32,7 +32,7 @@ const CreateAddress = () => {
 
   const [districts, setDistricts] = useState<District[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState<District | null>(
-    null
+    null,
   );
 
   const [cities, setCities] = useState<City[]>([]);
@@ -212,7 +212,7 @@ const CreateAddress = () => {
       </div>
 
       {/* Map */}
-      <div className="w-full max-w-3xl mt-6 rounded-xl overflow-hidden shadow-md h-56 sm:h-64 md:h-72 z-10">
+      <div className="w-full max-w-3xl mt-6 rounded-xl overflow-hidden shadow-md  sm:h-max   z-10">
         <MapPicker
           onLocationSelect={(coords) => setCoords(coords)}
           location={
