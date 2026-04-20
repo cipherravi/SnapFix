@@ -13,10 +13,15 @@ module.exports = {
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        references: { model: "users", key: "id" },
       },
       wallet_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: "wallets",
+          key: "id",
+        },
       },
       amount: { type: Sequelize.DECIMAL(10, 2), allowNull: false },
       currency: {
@@ -37,21 +42,16 @@ module.exports = {
       previous_hash: { type: Sequelize.STRING(64) },
       current_hash: { type: Sequelize.STRING(64), allowNull: false },
 
+      sequence: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
-    });
-
-    // composite index on user_id and wallet_id
-    await queryInterface.addIndex("wallet_ledgers", ["user_id", "wallet_id"], {
-      name: "idx_user_wallet",
-    });
-
-    //Reference index
-    await queryInterface.addIndex("wallet_ledgers", ["reference_id"], {
-      name: "idx_reference",
     });
 
     await queryInterface.addIndex("wallet_ledgers", ["wallet_id", "id"], {
@@ -66,12 +66,15 @@ module.exports = {
         name: "uq_wallet_reference",
       },
     );
+    await queryInterface.addIndex("wallet_ledgers", ["wallet_id", "sequence"], {
+      unique: true,
+      name: "uq_wallet_sequence",
+    });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeIndex("wallet_ledgers", "idx_user_wallet");
-    await queryInterface.removeIndex("wallet_ledgers", "idx_reference");
     await queryInterface.removeIndex("wallet_ledgers", "idx_wallet_latest");
     await queryInterface.removeIndex("wallet_ledgers", "uq_wallet_reference");
+    await queryInterface.removeIndex("wallet_ledgers", "uq_wallet_sequence");
     await queryInterface.dropTable("wallet_ledgers");
   },
 };

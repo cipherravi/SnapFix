@@ -10,6 +10,10 @@ class CrudRepository {
   async create(data, options = {}) {
     logger.info(`[${this.modelName}] create - START`, { data });
 
+    if (!this.model || typeof this.model.create !== "function") {
+      throw new Error(`${this.modelName} model is not properly initialized`);
+    }
+
     try {
       const response = await this.model.create(data, { ...options });
 
@@ -21,8 +25,13 @@ class CrudRepository {
     } catch (error) {
       logger.error(`[${this.modelName}] create - ERROR`, {
         data,
-        error: error.message,
-        stack: error.stack,
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack,
+        parent: error?.parent,
+        original: error?.original,
+        errors: error?.errors,
+        sql: error?.sql,
       });
       throw error;
     }

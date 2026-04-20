@@ -8,11 +8,12 @@ class WalletRepository extends CrudRepository {
     super(Wallet);
   }
 
-  async findWallet(userId) {
+  async findWallet(userId, options = {}) {
     try {
       const wallet = await Wallet.findOne({
         where: { userId },
         attributes: { exclude: ["updatedAt", "createdAt"] },
+        ...options,
       });
 
       return wallet;
@@ -26,13 +27,13 @@ class WalletRepository extends CrudRepository {
     try {
       const response = await Wallet.increment(
         { balance: amount },
-        { where: { id: walletId }, returning: true, ...options }
+        { where: { id: walletId }, returning: true, ...options },
       );
       return response;
     } catch (error) {
       logger.error(
         "Error occured in incrementBalance of wallet-repository: ",
-        error
+        error,
       );
       throw error;
     }
@@ -41,13 +42,13 @@ class WalletRepository extends CrudRepository {
     try {
       const response = await Wallet.decrement(
         { balance: amount },
-        { where: { id: walletId }, returning: true, ...options }
+        { where: { id: walletId }, returning: true, ...options },
       );
       return response;
     } catch (error) {
       logger.error(
         "Error occured in decrementBalance of wallet-repository: ",
-        error
+        error,
       );
       throw error;
     }

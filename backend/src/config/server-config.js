@@ -14,4 +14,5 @@ module.exports = {
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   GMAIL_ID: process.env.GMAIL_ID,
   GMAIL_PASSWORD: process.env.GMAIL_PASSWORD,
+  LEDGER_SECRET_KEY: process.env.LEDGER_SECRET_KEY,
 };

@@ -19,7 +19,7 @@ async function createCharge(data) {
     }
     throw new AppError(
       "Failed to create charge",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }

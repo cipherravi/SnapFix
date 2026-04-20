@@ -1,5 +1,7 @@
 const CrudRepository = require("./crud-repository");
 const { ChargeMaster } = require("../models");
+const { getLogger } = require("../config");
+const logger = getLogger(__filename);
 class ChargeMasterRepository extends CrudRepository {
   constructor() {
     super(ChargeMaster);
@@ -12,7 +14,7 @@ class ChargeMasterRepository extends CrudRepository {
     } catch (error) {
       logger.error(
         "Error occured in findActiveCharges of chargeMaster-repository",
-        error
+        error,
       );
       throw error;
     }

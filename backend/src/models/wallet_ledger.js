@@ -3,15 +3,15 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class wallet_ledger extends Model {
+  class WalletLedger extends Model {
     static associate(models) {
       // Optional associations
-      // wallet_ledger.belongsTo(models.user, { foreignKey: 'user_id' });
-      // wallet_ledger.belongsTo(models.wallet, { foreignKey: 'wallet_id' });
+      // WalletLedger.belongsTo(models.user, { foreignKey: 'user_id' });
+      // WalletLedger.belongsTo(models.wallet, { foreignKey: 'wallet_id' });
     }
   }
 
-  wallet_ledger.init(
+  WalletLedger.init(
     {
       id: {
         type: DataTypes.BIGINT,
@@ -62,7 +62,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(64),
         allowNull: false,
       },
-
+      sequence: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -71,12 +74,12 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "wallet_ledger",
+      modelName: "WalletLedger",
       tableName: "wallet_ledgers",
       timestamps: false, // only created_at exists
       underscored: true,
     },
   );
 
-  return wallet_ledger;
+  return WalletLedger;
 };

@@ -42,7 +42,7 @@ module.exports = {
         allowNull: false,
       },
       priority: { type: Sequelize.INTEGER, allowNull: false },
-      isActive: {
+      is_active: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: true,

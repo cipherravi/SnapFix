@@ -21,6 +21,7 @@ const WalletPaymentRepository = require("./walletPayment-repository");
 const WalletTransactionRepository = require("./walletTransaction-repository");
 const WithdrawRequestRepository = require("./withdrawRequest-repository");
 const WorkerBankDetailRepository = require("./workerBankDetail-repository");
+const WalletLedgerRepository = require("./walletLedger-repository");
 
 module.exports = {
   UserRepository,
@@ -46,4 +47,5 @@ module.exports = {
   WalletTransactionRepository,
   WithdrawRequestRepository,
   WorkerBankDetailRepository,
+  WalletLedgerRepository,
 };

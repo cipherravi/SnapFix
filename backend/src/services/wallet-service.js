@@ -4,6 +4,7 @@ const {
   UserRepository,
   WorkerBankDetailRepository,
   WithdrawRequestRepository,
+  WalletLedgerRepository,
 } = require("../repositories");
 const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/AppError");
@@ -17,6 +18,9 @@ const {
   WALLET_TRANSACTION_STATUS,
 } = require("../utils/common/ENUM");
 
+const { sequelize } = require("../models");
+const generateHash = require("../utils/helper/generateLedgerHash");
+
 const { APPROVED } = JOB_STATUS;
 const { WORKER } = USER_ROLE;
 const { DEBIT } = TRANSACTION_TYPE;
@@ -27,6 +31,7 @@ const walletTransactionRepository = new WalletTransactionRepository();
 const userRepository = new UserRepository();
 const workerBankDetailRepository = new WorkerBankDetailRepository();
 const withdrawRequestRepository = new WithdrawRequestRepository();
+const walletLedgerRepository = new WalletLedgerRepository();
 
 async function createWallet(userId) {
   try {
@@ -34,20 +39,20 @@ async function createWallet(userId) {
     if (!wallet) {
       throw new AppError(
         `Failed to create wallet for user - ${userId}`,
-        StatusCodes.INTERNAL_SERVER_ERROR
+        StatusCodes.INTERNAL_SERVER_ERROR,
       );
     }
     return true;
   } catch (error) {
     logger.error(
-      `Something went wrong during creation of wallet for user- ${userId}`
+      `Something went wrong during creation of wallet for user- ${userId}`,
     );
     if (error instanceof AppError) {
       throw error;
     }
     throw new AppError(
       `Something went wrong during creation of wallet`,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -67,72 +72,135 @@ async function getBalance(userId) {
 }
 
 async function withdrawMoney(userId, amount, purpose, bankAccountId) {
+  const transaction = await sequelize.transaction();
   try {
     const user = await userRepository.getByUserId(userId);
 
     if (!user) {
       throw new AppError(
         "Something went wrong, try again",
-        StatusCodes.NOT_FOUND
+        StatusCodes.NOT_FOUND,
       );
     }
     if (user.role !== WORKER) {
       throw new AppError(
         "Only worker can withdraw money",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
-    const wallet = await walletRepository.findWallet(userId);
+    //Lock wallet Row
+    const wallet = await walletRepository.findWallet(userId, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
     if (!wallet) {
       throw new AppError("Cannot fetch user wallet", StatusCodes.NOT_FOUND);
     }
 
     if (Number(wallet.balance) < Number(amount)) {
-      throw AppError(
+      throw new AppError(
         "Insufficient funds cannot withdraw",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
     const bankAccount =
       await workerBankDetailRepository.fetchBankDetailOfWorkerById(
-        bankAccountId
+        bankAccountId,
       );
 
-    if (bankAccount.userId !== userId) {
+    if (!bankAccount || bankAccount.userId !== userId) {
       throw new AppError(
         "Withdrawal account doesn't belong to you",
-        StatusCodes.UNAUTHORIZED
+        StatusCodes.UNAUTHORIZED,
       );
     }
 
-    await walletTransactionRepository.create({
-      walletId: wallet.id,
-      transaction_type: DEBIT,
-      amount,
-      status: INITIATED,
-      previous_balance: wallet.balance,
-      new_balance: Number(wallet.balance) - Number(amount),
-      purpose,
+    // Wallet transaction
+    await walletTransactionRepository.create(
+      {
+        walletId: wallet.id,
+        transaction_type: DEBIT,
+        amount,
+        status: INITIATED,
+        previous_balance: wallet.balance,
+        new_balance: Number(wallet.balance) - Number(amount),
+        purpose,
+      },
+      { transaction },
+    );
+
+    // Update wallet balance
+    await walletRepository.decrementBalance(wallet.id, amount, { transaction });
+
+    // Withdraw Request
+    const request = await withdrawRequestRepository.create(
+      {
+        userId,
+        bankDetailId: bankAccountId,
+        amount,
+      },
+      { transaction },
+    );
+
+    // Get last ledger entry (WITH LOCK)
+    const lastEntry = await walletLedgerRepository.lastEntry(wallet.id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
 
-    await walletRepository.decrementBalance(wallet.id, amount);
-    await withdrawRequestRepository.create({
+    const previous_hash = lastEntry ? lastEntry.current_hash : null;
+    const sequence = lastEntry ? lastEntry.sequence + 1 : 1;
+
+    const created_at = new Date();
+
+    // Generate hash
+    const current_hash = generateHash({
       userId,
-      bankDetailId: bankAccountId,
+      walletId: wallet.id,
       amount,
+      transaction_type: DEBIT,
+      reference_id: `withdraw_${request.id}`,
+      created_at,
+      previous_hash,
+      sequence,
     });
-  } catch (error) {
-    logger.error(
-      `Failed to withdraw ${amount} rupees from wallet of user- ${userId}`
+
+    // Insert Ledger Entry
+    await walletLedgerRepository.create(
+      {
+        userId,
+        walletId: wallet.id,
+        amount,
+        transaction_type: DEBIT,
+        reference_id: `withdraw_${request.id}`,
+        previous_hash,
+        current_hash,
+        sequence,
+        created_at,
+      },
+      { transaction },
     );
+
+    await transaction.commit();
+  } catch (error) {
+    await transaction.rollback();
+
+    logger.error(error);
+    if (error.name === "SequelizeUniqueConstraintError") {
+      throw new AppError(
+        "Concurrent transaction detected, retry",
+        StatusCodes.CONFLICT,
+      );
+    }
+
     if (error instanceof AppError) {
       throw error;
     }
     throw new AppError(
       "Failed to withdraw money from wallet",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -148,7 +216,7 @@ async function getAllTransactions(userId, filters = {}) {
     const transactions =
       await walletTransactionRepository.getAllTransactionsByWalletId(
         wallet.id,
-        filters
+        filters,
       );
     return transactions;
   } catch (error) {
@@ -158,7 +226,7 @@ async function getAllTransactions(userId, filters = {}) {
     }
     throw new AppError(
       "Failed to fetch wallet transactions",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }

@@ -33,6 +33,7 @@ module.exports = {
           model: "wallets",
           key: "id",
         },
+        onDelete: "CASCADE",
       },
       amount: {
         type: Sequelize.DECIMAL(10, 2),

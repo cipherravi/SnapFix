@@ -12,7 +12,20 @@ const isProd = process.env.NODE_ENV === "production";
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
-  logging: false,
+
+  benchmark: true, // ✅ gives query execution time
+
+  logging: (query, timing) => {
+    // timing is in ms (because benchmark: true)
+
+    if (timing > 1) {
+      console.log("🐢 Slow Query:");
+      console.log("⏱ Time:", timing + "ms");
+      console.log("📄 SQL:", query);
+      console.log("----------------------------------");
+    }
+  },
+
   dialectOptions: isProd
     ? {
         ssl: {
@@ -38,6 +51,7 @@ const connectDB = async () => {
       "⚠️ MongoDB connection failed (chat system down):",
       err.message,
     );
+    process.exit(1);
   }
 };
 
