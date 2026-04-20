@@ -10,21 +10,24 @@ if (process.env.NODE_ENV !== "production") {
 
 const isProd = process.env.NODE_ENV === "production";
 
+const devLogging = (query, timing) => {
+  if (timing > 1) {
+    console.log("🐢 Slow Query:");
+
+    console.log("⏱ Time:", timing + "ms");
+
+    console.log("📄 SQL:", query);
+
+    console.log("----------------------------------");
+  }
+};
+
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
 
-  benchmark: true, // ✅ gives query execution time
+  benchmark: !isProd, // ✅ gives query execution time
 
-  logging: (query, timing) => {
-    // timing is in ms (because benchmark: true)
-
-    if (timing > 1) {
-      console.log("🐢 Slow Query:");
-      console.log("⏱ Time:", timing + "ms");
-      console.log("📄 SQL:", query);
-      console.log("----------------------------------");
-    }
-  },
+  logging: !isProd ? devLogging : false,
 
   dialectOptions: isProd
     ? {
