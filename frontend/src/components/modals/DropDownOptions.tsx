@@ -1,3 +1,5 @@
+// REFACTOR IT FOR NO BUGS AND NO ERRORS`
+
 import { useEffect, useRef, useState } from "react";
 import type { Address } from "../../../types";
 
@@ -56,25 +58,29 @@ const DropDownOptions = <T extends DropDownOptionType>({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  const safeOptions = Array.isArray(options) ? options : [];
+  const filteredOptions =
+    variant === "address" ? safeOptions.filter(isAddressOption) : safeOptions;
+
   const handleSelect = (option: T) => {
     if (disabled) return;
     setSelected(option);
     setIsOpen(false);
-    buttonRef.current?.focus();
+    buttonRef?.current?.focus();
   };
 
   const toggleDropdown = () => {
     if (!disabled) {
       setIsOpen((prev) => !prev);
-      if (!isOpen && options.length > 0) setHighlightedIndex(0);
+      if (!isOpen && options?.length > 0) setHighlightedIndex(0);
     }
   };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
+        dropdownRef?.current &&
+        !dropdownRef?.current?.contains(e.target as Node)
       ) {
         setIsOpen(false);
       }
@@ -84,31 +90,31 @@ const DropDownOptions = <T extends DropDownOptionType>({
   }, []);
 
   const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLButtonElement | HTMLUListElement>
+    e: React.KeyboardEvent<HTMLButtonElement | HTMLUListElement>,
   ) => {
     if (!isOpen) {
-      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
+      if (e?.key === "ArrowDown" || e?.key === "Enter" || e?.key === " ") {
+        e?.preventDefault();
         setIsOpen(true);
         setHighlightedIndex(0);
       }
       return;
     }
 
-    if (e.key === "ArrowDown") {
+    if (e?.key === "ArrowDown") {
       e.preventDefault();
       setHighlightedIndex((prev) => (prev + 1) % options.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
+    } else if (e?.key === "ArrowUp") {
+      e?.preventDefault();
       setHighlightedIndex(
-        (prev) => (prev - 1 + options.length) % options.length
+        (prev) => (prev - 1 + options.length) % options.length,
       );
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
+    } else if (e?.key === "Enter" || e?.key === " ") {
+      e?.preventDefault();
       handleSelect(options[highlightedIndex]);
-    } else if (e.key === "Escape") {
+    } else if (e?.key === "Escape") {
       setIsOpen(false);
-      buttonRef.current?.focus();
+      buttonRef?.current?.focus();
     }
   };
 
@@ -135,8 +141,8 @@ const DropDownOptions = <T extends DropDownOptionType>({
             ? variant === "address" && isAddressOption(selected)
               ? getFullAddress(selected)
               : isBaseOption(selected)
-              ? selected.name
-              : ""
+                ? selected?.name
+                : ""
             : placeholder}
         </span>
         <img
@@ -155,20 +161,20 @@ const DropDownOptions = <T extends DropDownOptionType>({
           tabIndex={-1}
           onKeyDown={handleKeyDown}
         >
-          {options.map((option, idx) => {
+          {filteredOptions?.map((option, idx) => {
             const displayValue =
               variant === "address" && isAddressOption(option)
                 ? getFullAddress(option)
                 : isBaseOption(option)
-                ? option.name
-                : "";
+                  ? option?.name
+                  : "No address available";
 
-            const isSelected = selected?.id === option.id;
+            const isSelected = selected?.id === option?.id;
             const isHighlighted = highlightedIndex === idx;
 
             return (
               <li
-                key={option.id}
+                key={option?.id}
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => handleSelect(option)}
@@ -181,6 +187,11 @@ const DropDownOptions = <T extends DropDownOptionType>({
               </li>
             );
           })}
+          {safeOptions.length === 0 && variant === "address" ? (
+            <p className="px-4 py-3 cursor-pointer bg-gray-200">
+              No address found
+            </p>
+          ) : null}
         </ul>
       )}
     </div>

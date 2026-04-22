@@ -26,7 +26,7 @@ const Create = () => {
   const { addresses } = useAddressContext();
   const [categoryOptions, setCategoryOptions] = useState<BaseOption[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<BaseOption | null>(
-    null
+    null,
   );
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [jobTitle, setJobTitle] = useState("");
