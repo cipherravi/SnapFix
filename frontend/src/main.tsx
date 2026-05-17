@@ -8,7 +8,6 @@ import Providers from "./utils/context/Providers";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./app/store";
-import { initNotifications } from "./notifications";
 
 if ("serviceWorker" in navigator) {
   let refreshing = false;

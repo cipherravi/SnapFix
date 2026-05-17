@@ -2,16 +2,24 @@ import { initializeApp } from "firebase/app";
 // import { getAnalytics } from "firebase/analytics";
 import { getMessaging, isSupported } from "firebase/messaging";
 
+const API_KEY = import.meta.env.apiKey;
+const AUTH_DOMAIN = import.meta.env.authDomain;
+const PROJECT_ID = import.meta.env.projectId;
+const STORAGE_BUCKET = import.meta.env.storageBucket;
+const MESSAGING_SENDER_ID = import.meta.env.messagingSenderId;
+const APP_ID = import.meta.env.appId;
+const MEASUREMENT_ID = import.meta.env.measurementId;
+
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCT9qAijl3dSG-LuyTpG834WTJcrXv7N3c",
-  authDomain: "snapfix1812.firebaseapp.com",
-  projectId: "snapfix1812",
-  storageBucket: "snapfix1812.firebasestorage.app",
-  messagingSenderId: "20565820203",
-  appId: "1:20565820203:web:f666d6e5f819866c413b6e",
-  measurementId: "G-ZMY8M5WRRN",
+  apiKey: API_KEY,
+  authDomain: AUTH_DOMAIN,
+  projectId: PROJECT_ID,
+  storageBucket: STORAGE_BUCKET,
+  messagingSenderId: MESSAGING_SENDER_ID,
+  appId: APP_ID,
+  measurementId: MEASUREMENT_ID,
 };
 
 // Initialize Firebase

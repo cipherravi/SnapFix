@@ -1,6 +1,7 @@
 import { messaging } from "./firebase";
 import { getToken, onMessage } from "firebase/messaging";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const VAPID_KEY = import.meta.env.vapidKey;
 
 type InitNotificationsParams = {
   authToken: string;
@@ -34,13 +35,11 @@ export const initNotifications = async ({
     }
 
     const token = await getToken(msgInstance, {
-      vapidKey:
-        "BDJPBSaqyHxXxzFxZ7O0Qdl_Le2QA65j79i3wVM_HVdXkhbkgqE91HKfkXPBMqGJIN7FYcLB-7O40ZFounAX3IU",
+      vapidKey: VAPID_KEY,
       serviceWorkerRegistration: registration,
     });
 
     if (token) {
-      console.log("🚀 FCM Token:", token);
       // Sync with backend
       const res = await fetch(
         `${VITE_API_BASE_URL}/api/v1/users/me/push-subscriptions`,
@@ -55,19 +54,20 @@ export const initNotifications = async ({
       );
 
       const data = await res.json();
-      console.log(data);
     }
 
     // Foreground listener
     onMessage(msgInstance, (payload) => {
       console.log("Foreground message received:", payload);
       // Logic to show a toast or a browser notification
-      if (Notification.permission === "granted") {
-        new Notification(payload.notification?.title || "New Alert", {
-          body: payload.notification?.body,
-          icon: "/icons/icon-192.png",
-        });
-      }
+      // DON't SHOW OS Notfiication , show inbuilt application notification if not in focus of what we are trying to show
+
+      // if (Notification.permission === "granted") {
+      //   new Notification(payload.notification?.title || "New Alert", {
+      //     body: payload.notification?.body,
+      //     icon: "/icons/icon-192.png",
+      //   });
+      // }
     });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
