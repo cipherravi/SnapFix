@@ -55,6 +55,34 @@ onBackgroundMessage(messaging, async (payload) => {
   }
 });
 
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  // Extract the target URL from the notification data fallback to '/' if empty
+  const targetUrl = event.notification.data?.url || "/";
+
+  // Resolve the URL to an absolute URL based on the service worker's origin
+  const absoluteUrl = new URL(targetUrl, self.location.origin).href;
+
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((windowClients) => {
+        // 1. Check if a tab with this exact URL is already open
+        for (const client of windowClients) {
+          if (client.url === absoluteUrl && "focus" in client) {
+            return client.focus();
+          }
+        }
+
+        // 2. If no matching tab is found, open a new one
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(absoluteUrl);
+        }
+      }),
+  );
+});
+
 // Force new SW to activate immediately
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => {
