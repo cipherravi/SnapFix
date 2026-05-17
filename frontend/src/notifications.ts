@@ -1,7 +1,7 @@
 import { messaging } from "./firebase";
 import { getToken, onMessage } from "firebase/messaging";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const VAPID_KEY = import.meta.env.vapidKey;
+const VITE_VAPID_KEY = import.meta.env.VITE_VAPID_KEY;
 
 type InitNotificationsParams = {
   authToken: string;
@@ -35,7 +35,7 @@ export const initNotifications = async ({
     }
 
     const token = await getToken(msgInstance, {
-      vapidKey: VAPID_KEY,
+      vapidKey: VITE_VAPID_KEY,
       serviceWorkerRegistration: registration,
     });
 

@@ -4,12 +4,12 @@ import { precacheAndRoute } from "workbox-precaching";
 import { initializeApp } from "firebase/app";
 import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
 
-const API_KEY = import.meta.env.apiKey;
-const AUTH_DOMAIN = import.meta.env.authDomain;
-const PROJECT_ID = import.meta.env.projectId;
-const STORAGE_BUCKET = import.meta.env.storageBucket;
-const MESSAGING_SENDER_ID = import.meta.env.messagingSenderId;
-const APP_ID = import.meta.env.appId;
+const VITE_API_KEY = import.meta.env.VITE_API_KEY;
+const VITE_AUTH_DOMAIN = import.meta.env.VITE_AUTH_DOMAIN;
+const VITE_PROJECT_ID = import.meta.env.VITE_PROJECT_ID;
+const VITE_STORAGE_BUCKET = import.meta.env.VITE_STORAGE_BUCKET;
+const VITE_MESSAGING_SENDER_ID = import.meta.env.VITE_MESSAGING_SENDER_ID;
+const VITE_APP_ID = import.meta.env.VITE_APP_ID;
 
 declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: any;
@@ -20,12 +20,12 @@ precacheAndRoute(self.__WB_MANIFEST);
 
 // 1. Initialize Firebase inside the worker
 const firebaseConfig = {
-  apiKey: API_KEY,
-  authDomain: AUTH_DOMAIN,
-  projectId: PROJECT_ID,
-  storageBucket: STORAGE_BUCKET,
-  messagingSenderId: MESSAGING_SENDER_ID,
-  appId: APP_ID,
+  apiKey: VITE_API_KEY,
+  authDomain: VITE_AUTH_DOMAIN,
+  projectId: VITE_PROJECT_ID,
+  storageBucket: VITE_STORAGE_BUCKET,
+  messagingSenderId: VITE_MESSAGING_SENDER_ID,
+  appId: VITE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
