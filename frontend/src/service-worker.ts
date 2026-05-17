@@ -58,27 +58,34 @@ onBackgroundMessage(messaging, async (payload) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  // Extract the target URL from the notification data fallback to '/' if empty
+  // 1. Get the relative URL and make it absolute
   const targetUrl = event.notification.data?.url || "/";
-
-  // Resolve the URL to an absolute URL based on the service worker's origin
   const absoluteUrl = new URL(targetUrl, self.location.origin).href;
 
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((windowClients) => {
-        // 1. Check if a tab with this exact URL is already open
-        for (const client of windowClients) {
-          if (client.url === absoluteUrl && "focus" in client) {
-            return client.focus();
-          }
+        // 2. Look for an existing open tab matching the target URL
+        const matchingClient = windowClients.find((client) => {
+          // Normalize URLs to remove trailing slashes for safer comparison
+          const clientUrlClean = client.url.replace(/\/$/, "");
+          const targetUrlClean = absoluteUrl.replace(/\/$/, "");
+          return clientUrlClean === targetUrlClean;
+        });
+
+        // 3. If found, focus it
+        if (matchingClient && "focus" in matchingClient) {
+          return matchingClient.focus();
         }
 
-        // 2. If no matching tab is found, open a new one
+        // 4. If not found, open a brand new window/tab
         if (self.clients.openWindow) {
           return self.clients.openWindow(absoluteUrl);
         }
+      })
+      .catch((error) => {
+        console.error("Failed to handle notification click:", error);
       }),
   );
 });
