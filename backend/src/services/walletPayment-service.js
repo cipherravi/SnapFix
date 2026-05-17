@@ -153,6 +153,7 @@ async function verifyPayment(
     await transaction.commit();
     logger.info(`Payment verified for wallet ${walletId}`);
   } catch (error) {
+    console.log(error);
     await transaction.rollback();
     logger.error(`Failed to verify payment for wallet ${walletId}`, { error });
     if (error instanceof AppError) {

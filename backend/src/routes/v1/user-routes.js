@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { UserController } = require("../../controllers");
+const { UserController, NotificationController } = require("../../controllers");
 const { getProfile, getMyProfile, getProfiles, updateUser } = UserController;
+const { savePushToken } = NotificationController;
 
 const { verifyUser } = require("../../middlewares");
 
@@ -14,5 +15,8 @@ router.patch("/me", verifyUser, updateUser);
 router.get("/tasks", verifyUser, getMyTasks);
 
 router.get("/:id", verifyUser, getProfile);
+
+router.put("/me/push-subscriptions", verifyUser, savePushToken);
+// router.delete("/me/push-subscriptions");
 
 module.exports = router;

@@ -1,7 +1,12 @@
 const path = require("path");
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
-}
+require("dotenv").config({
+  path: path.resolve(
+    __dirname,
+    process.env.NODE_ENV === "production"
+      ? "../../.env.production"
+      : "../../.env.development",
+  ),
+});
 
 module.exports = {
   PORT: process.env.PORT || 2944,
@@ -15,4 +20,7 @@ module.exports = {
   GMAIL_ID: process.env.GMAIL_ID,
   GMAIL_PASSWORD: process.env.GMAIL_PASSWORD,
   LEDGER_SECRET_KEY: process.env.LEDGER_SECRET_KEY,
+  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+  FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
+  FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
 };

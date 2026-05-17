@@ -69,7 +69,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("wallet_payments");
     await queryInterface.sequelize.query(
       'DROP TYPE IF EXISTS "enum_wallet_payments_status";',
     );
@@ -79,5 +78,6 @@ module.exports = {
     await queryInterface.sequelize.query(
       'DROP TYPE IF EXISTS "enum_wallet_payments_method";',
     );
+    await queryInterface.dropTable("wallet_payments");
   },
 };

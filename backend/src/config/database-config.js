@@ -2,16 +2,21 @@ const { Sequelize } = require("sequelize");
 const mongoose = require("mongoose");
 const path = require("path");
 
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
-}
+require("dotenv").config({
+  path: path.resolve(
+    __dirname,
+    process.env.NODE_ENV === "production"
+      ? "../../.env.production"
+      : "../../.env.development",
+  ),
+});
 
 // ------------- POSTGRES ---------------
 
 const isProd = process.env.NODE_ENV === "production";
 
 const devLogging = (query, timing) => {
-  if (timing > 1) {
+  if (timing > 50) {
     console.log("🐢 Slow Query:");
 
     console.log("⏱ Time:", timing + "ms");

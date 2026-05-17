@@ -22,6 +22,7 @@ const workerRoutes = require("./worker-routes");
 const walletRoutes = require("./wallet-routes");
 const withdrawalRoutes = require("./withdrawal-routes");
 const aiRoutes = require("./ai-routes");
+const notificationRoutes = require("./notification-routes");
 const { verifyUser } = require("../../middlewares");
 
 router.get("/health", (req, res) => {
@@ -52,5 +53,6 @@ router.use("/workers", workerRoutes);
 router.use("/wallet", walletRoutes);
 router.use("/withdrawals", withdrawalRoutes);
 router.use("/ai", aiRoutes);
+router.use("/notification", notificationRoutes);
 
 module.exports = router;

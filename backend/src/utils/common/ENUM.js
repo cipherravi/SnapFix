@@ -117,6 +117,11 @@ const WITHDRAW_REQUEST_STATUS = {
   REJECTED: "rejected",
   CANCELLED: "cancelled",
 };
+const PLATFORM_TYPE = {
+  ANDROID: "android",
+  IOS: "ios",
+  WEB: "web",
+};
 
 module.exports = {
   USER_ROLE,
@@ -139,4 +144,5 @@ module.exports = {
   WALLET_TRANSACTION_STATUS,
   WALLET_TRANSACTION_PURPOSE,
   WITHDRAW_REQUEST_STATUS,
+  PLATFORM_TYPE,
 };

@@ -6,6 +6,12 @@ import { useDispatch } from "react-redux";
 import { setAuthenticated, setToken } from "../../features/auth/authSlice";
 import BackButton from "../Buttons/BackButton";
 import { saveToken } from "../../utils/tokenDB";
+import { initNotifications } from "../../notifications";
+
+const handleEnableNotifications = async () => {
+  // Safari and Brave love this because it's a "User Gesture"
+  await initNotifications();
+};
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -257,6 +263,7 @@ const Login = () => {
             type="submit"
             className="text-white bg-[#0385C2] rounded-full h-12 w-full flex items-center justify-center
               hover:scale-[0.97] active:scale-95 transition"
+            onClick={handleEnableNotifications}
           >
             <p className="poppins-semibold text-xl">Login</p>
           </button>

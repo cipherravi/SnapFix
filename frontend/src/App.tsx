@@ -24,12 +24,15 @@ import { useNotificationQueue } from "./utils/context/NotificationQueueContext";
 import NewMessageNotification from "./components/modals/NewMessageNotificationModal";
 import { setConversations } from "./features/conversation/conversationSlice";
 import { setUserCoords } from "./features/user/userSlice";
+import NotificationPermissionModal from "./components/modals/NotificationPermissionModal";
 
 function App() {
   const dispatch = useDispatch();
   const location = useLocation();
 
   const isAuthenticated = useSelector((s: any) => s.auth.isAuthenticated);
+
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   // ----------------------------------------------------------------------
   // SPLASH SCREEN STATE
@@ -120,7 +123,7 @@ function App() {
   // Show new message modal
   const socket = useSocket();
   const conversations = useSelector(
-    (s: RootState) => s.conversation.conversations
+    (s: RootState) => s.conversation.conversations,
   );
 
   // NOTIFY NEW CONVERSATION CREATED AND ADD IT INTO CONVERSATION LIST
@@ -151,7 +154,7 @@ function App() {
       const { conversationId, text, senderId } = msg;
 
       const currentConversation = conversations.find(
-        (conv) => conv.id === conversationId
+        (conv) => conv.id === conversationId,
       );
       // resolve sender details however you already do it
       const sender = currentConversation?.participant?.name ?? "Unknown";
@@ -181,7 +184,10 @@ function App() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           dispatch(
-            setUserCoords([position.coords.latitude, position.coords.longitude])
+            setUserCoords([
+              position.coords.latitude,
+              position.coords.longitude,
+            ]),
           );
         },
         (error) => {
@@ -191,12 +197,39 @@ function App() {
           enableHighAccuracy: true,
           timeout: 10000,
           maximumAge: 0,
-        }
+        },
       );
     }
   }, []);
 
   //---------------------------------------------------------
+
+  // ----------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    // already handled
+    if (Notification.permission !== "default") {
+      return;
+    }
+
+    // already shown before
+    const prompted = localStorage.getItem("notifications_prompted");
+
+    if (prompted) {
+      return;
+    }
+
+    // optional UX delay
+    const timer = setTimeout(() => {
+      setShowNotificationModal(true);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated]);
 
   // ----------------------------------------------------------------------
   // RENDER
@@ -215,6 +248,12 @@ function App() {
       <Outlet />
 
       {shouldShowTabs && <Tabs />}
+      {showNotificationModal && (
+        <NotificationPermissionModal
+          open={showNotificationModal}
+          onClose={() => setShowNotificationModal(false)}
+        />
+      )}
 
       <Toaster position="top-right" />
     </div>

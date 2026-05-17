@@ -14,6 +14,11 @@ export default defineConfig({
       filename: "service-worker.ts", // our custom SW
       registerType: "autoUpdate",
       injectRegister: "auto",
+      devOptions: {
+        enabled: true,
+        type: "module",
+        navigateFallback: "index.html",
+      },
       manifest: {
         name: "SnapFix",
         short_name: "SnapFix",

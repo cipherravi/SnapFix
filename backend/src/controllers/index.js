@@ -19,6 +19,7 @@ const WalletPaymentController = require("./walletPayment-controller");
 const WorkerBankDetailController = require("./workerBankDetail-controller");
 const WithdrawRequestController = require("./withdrawRequest-controller");
 const AiController = require("./ai-controller");
+const NotificationController = require("./notification-controller");
 
 module.exports = {
   UserController,
@@ -42,4 +43,5 @@ module.exports = {
   WorkerBankDetailController,
   WithdrawRequestController,
   AiController,
+  NotificationController,
 };

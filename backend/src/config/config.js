@@ -1,6 +1,12 @@
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
-
+require("dotenv").config({
+  path: path.resolve(
+    __dirname,
+    process.env.NODE_ENV === "production"
+      ? "../../.env.production"
+      : "../../.env.development",
+  ),
+});
 module.exports = {
   development: {
     use_env_variable: "MIGRATION_DATABASE_URL",

@@ -8,6 +8,7 @@ import Providers from "./utils/context/Providers";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./app/store";
+import { initNotifications } from "./notifications";
 
 if ("serviceWorker" in navigator) {
   let refreshing = false;
@@ -19,6 +20,10 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// Initialize notifications
+// We wrap it in a check to ensure it doesn't block rendering
+// initNotifications().catch(console.error);
+
 createRoot(document.getElementById("root")!).render(
   // <StrictMode>
   <Provider store={store}>
@@ -27,6 +32,6 @@ createRoot(document.getElementById("root")!).render(
         <RouterProvider router={router} />
       </Providers>
     </PersistGate>
-  </Provider>
+  </Provider>,
   // </StrictMode>
 );
