@@ -40,18 +40,23 @@ async function sendNotification(req, res) {
   if (!req.body) {
     throw new AppError("Empty fields", StatusCodes.BAD_REQUEST);
   }
-  const { token, title, body, data } = req.body;
+  const { token, title, body, url, data } = req.body;
 
   try {
     const message = {
       token,
 
-      notification: {
+      // notification: {
+      //   title,
+      //   body,
+      // },
+
+      data: {
         title,
         body,
+        url,
+        ...data,
       },
-
-      data: data || {},
 
       android: {
         priority: "high",
