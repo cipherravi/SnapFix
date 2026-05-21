@@ -6,14 +6,20 @@ const { CLIENT, WORKER } = ENUM.USER_ROLE;
 module.exports = (sequelize, DataTypes) => {
   class Review extends Model {
     static associate(models) {
-      Review.belongsTo(models.Job, { foreignKey: "jobId", as: "job" });
+      Review.belongsTo(models.Job, {
+        foreignKey: "jobId",
+        as: "job",
+        onDelete: "CASCADE",
+      });
       Review.belongsTo(models.User, {
         foreignKey: "reviewerId",
         as: "reviewer",
+        onDelete: "CASCADE",
       });
       Review.belongsTo(models.User, {
         foreignKey: "revieweeId",
         as: "reviewee",
+        onDelete: "CASCADE",
       });
     }
   }
@@ -66,12 +72,24 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "Review",
       tableName: "reviews",
-      timestamps: true,
       underscored: true,
       indexes: [
         {
+          name: "idx_reviews_reviewer_id_reviewee_id_job_id_unique",
           unique: true,
-          fields: ["reviewerId", "revieweeId", "jobId"],
+          fields: ["reviewer_id", "reviewee_id", "job_id"],
+        },
+        {
+          name: "idx_reviews_reviewer_id",
+          fields: ["reviewer_id"],
+        },
+        {
+          name: "idx_reviews_reviewee_id",
+          fields: ["reviewee_id"],
+        },
+        {
+          name: "idx_reviews_job_id",
+          fields: ["job_id"],
         },
       ],
     },

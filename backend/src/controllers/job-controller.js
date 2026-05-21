@@ -47,7 +47,7 @@ async function createJob(req, res) {
     ) {
       throw new AppError(
         `Title must be between ${TITLE_MIN_LENGTH} and ${TITLE_MAX_LENGTH} characters`,
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -55,7 +55,7 @@ async function createJob(req, res) {
     if (!HAS_LETTER_REGEX.test(sanitizedTitle)) {
       throw new AppError(
         "Title must contain at least one letter",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -63,7 +63,7 @@ async function createJob(req, res) {
     if (!VALID_TITLE_REGEX.test(sanitizedTitle)) {
       throw new AppError(
         "Title contains invalid characters",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -71,7 +71,7 @@ async function createJob(req, res) {
     if (REPEATED_SPECIALS_REGEX.test(sanitizedTitle)) {
       throw new AppError(
         "Title contains excessive special characters",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -79,7 +79,7 @@ async function createJob(req, res) {
     if (!budget || isNaN(budget)) {
       throw new AppError(
         "Budget is required and must be a number",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -88,7 +88,7 @@ async function createJob(req, res) {
     if (numericBudget < LOW || numericBudget > HIGH) {
       throw new AppError(
         `Budget must be between ${LOW} and ${HIGH}`,
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
     const userId = req.user.id;
@@ -253,7 +253,6 @@ async function getAllJobs(req, res) {
 
 async function updateJob(req, res) {
   try {
-    console.log(req.body);
     if (req.body === undefined) {
       throw new AppError("Empty fields", StatusCodes.BAD_REQUEST);
     }
@@ -377,7 +376,7 @@ async function updateJobStatus(req, res) {
       userId,
       jobId,
       status,
-      workerId
+      workerId,
     );
 
     SuccessResponse.data = response;

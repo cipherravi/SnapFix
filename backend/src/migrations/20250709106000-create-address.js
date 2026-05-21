@@ -1,4 +1,5 @@
 "use strict";
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -18,8 +19,14 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
-      building: { type: Sequelize.STRING, allowNull: false },
-      street: { type: Sequelize.STRING, allowNull: true },
+      building: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      street: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       area_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -54,13 +61,26 @@ module.exports = {
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
     });
+
+    await queryInterface.addIndex("addresses", ["user_id"], {
+      name: "idx_addresses_user_id",
+    });
+    await queryInterface.addIndex("addresses", ["area_id"], {
+      name: "idx_addresses_area_id",
+    });
+    await queryInterface.addIndex("addresses", ["city_id"], {
+      name: "idx_addresses_city_id",
+    });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("addresses");
   },

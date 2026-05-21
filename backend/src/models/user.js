@@ -3,17 +3,25 @@ const { Model } = require("sequelize");
 const { ENUM } = require("../utils/common");
 const { CLIENT, WORKER, MODERATOR, ADMIN, AGENT } = ENUM.USER_ROLE;
 const { MALE, FEMALE } = ENUM.USER_GENDER;
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      User.hasOne(models.Kyc, { foreignKey: "userId", as: "kyc" });
-      User.hasMany(models.PushToken, { foreignKey: "userId", as: "tokens" });
+      User.hasOne(models.Kyc, {
+        foreignKey: "userId",
+        as: "kyc",
+      });
+      User.hasMany(models.PushToken, {
+        foreignKey: "userId",
+        as: "tokens",
+      });
       User.hasMany(models.Address, {
         foreignKey: "userId",
         as: "addresses",
       });
     }
   }
+
   User.init(
     {
       name: {
@@ -21,7 +29,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: { len: [5, 30] },
       },
-
       email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -31,7 +38,6 @@ module.exports = (sequelize, DataTypes) => {
           len: [5, 40],
         },
       },
-
       phone: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -71,9 +77,21 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "User",
       tableName: "users",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_users_email_unique",
+          unique: true,
+          fields: ["email"],
+        },
+        {
+          name: "idx_users_phone_unique",
+          unique: true,
+          fields: ["phone"],
+        },
+      ],
     },
   );
+
   return User;
 };

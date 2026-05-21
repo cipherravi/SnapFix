@@ -72,9 +72,9 @@ const Payment = () => {
         if (order.method === "online") {
           handlePayment(
             Number(order.amount),
-            order.razorpay_order_id,
+            order.razorpayOrderId,
             order.id,
-            order.jobId
+            order.jobId,
           );
         } else if (order.method === "wallet") {
           navigate("/wallet-success");
@@ -97,7 +97,7 @@ const Payment = () => {
     amount: number,
     order_id: string,
     paymentId: number,
-    jobId: string
+    jobId: string,
   ) {
     try {
       const options = {
@@ -138,7 +138,7 @@ const Payment = () => {
                   id: paymentId,
                   jobId,
                 }),
-              }
+              },
             );
 
             const data = await verifyRes.json();

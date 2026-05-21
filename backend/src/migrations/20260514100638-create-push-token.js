@@ -58,9 +58,8 @@ module.exports = {
       },
     });
 
-    await queryInterface.addConstraint("push_tokens", {
-      fields: ["user_id", "token"],
-      type: "unique",
+    await queryInterface.addIndex("push_tokens", ["user_id", "token"], {
+      unique: true,
       name: "unique_user_token_combination",
     });
     await queryInterface.addIndex("push_tokens", ["user_id"], {
@@ -75,7 +74,7 @@ module.exports = {
     await queryInterface.dropTable("push_tokens");
 
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_push_tokens_platform";',
+      'DROP TYPE IF EXISTS "enum_push_tokens_platform CASCADE";',
     );
   },
 };

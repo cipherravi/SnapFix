@@ -5,11 +5,11 @@ import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 interface TransactionCardProps {
   amount: number;
   id: number;
-  new_balance: number;
-  previous_balance: number;
+  newBalance: number;
+  previousBalance: number;
   purpose: string;
   status: string;
-  transaction_type: string;
+  transactionType: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,13 +19,13 @@ const TransactionCard: React.FC<TransactionCardProps> = (props) => {
     amount,
     purpose,
     status,
-    transaction_type,
-    new_balance,
-    previous_balance,
+    transactionType,
+    newBalance,
+    previousBalance,
     createdAt,
   } = props;
 
-  const isCredit = transaction_type?.toLowerCase() === "credit";
+  const isCredit = transactionType?.toLowerCase() === "credit";
 
   return (
     <div
@@ -99,7 +99,7 @@ const TransactionCard: React.FC<TransactionCardProps> = (props) => {
         >
           <p className="text-[11px] text-gray-500">Previous Balance</p>
           <p className="font-medium text-gray-800">
-            ₹{Number(previous_balance).toLocaleString()}
+            ₹{Number(previousBalance).toLocaleString()}
           </p>
         </div>
 
@@ -112,7 +112,7 @@ const TransactionCard: React.FC<TransactionCardProps> = (props) => {
         >
           <p className="text-[11px] text-gray-500">New Balance</p>
           <p className="font-medium text-gray-800">
-            ₹{Number(new_balance).toLocaleString()}
+            ₹{Number(newBalance).toLocaleString()}
           </p>
         </div>
       </div>

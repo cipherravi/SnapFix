@@ -45,7 +45,7 @@ async function createOrder(amount, jobId, userId, method) {
     if (codActiveCount > 0) {
       throw new AppError(
         "You can only post 1 job using COD. Please choose another payment option.",
-        StatusCodes.FORBIDDEN
+        StatusCodes.FORBIDDEN,
       );
     }
   }
@@ -72,9 +72,9 @@ async function createOrder(amount, jobId, userId, method) {
       await paymentRepository.update(
         existingPayment.id,
         {
-          attempt_status: ABANDONED,
+          attemptStatus: ABANDONED,
         },
-        { transaction }
+        { transaction },
       );
     }
 
@@ -87,13 +87,13 @@ async function createOrder(amount, jobId, userId, method) {
       if (!wallet) {
         throw new AppError(
           "Payment failed, Unable to find your wallet",
-          StatusCodes.NOT_FOUND
+          StatusCodes.NOT_FOUND,
         );
       }
       if (wallet.balance < amountInRs) {
         throw new AppError(
           `Insufficient wallet balance. Your current balance is ₹${wallet.balance}.`,
-          StatusCodes.PAYMENT_REQUIRED
+          StatusCodes.PAYMENT_REQUIRED,
         );
       }
 
@@ -106,15 +106,15 @@ async function createOrder(amount, jobId, userId, method) {
       const walletTransaction = await walletTransactionRepository.create(
         {
           walletId: wallet.id,
-          transaction_type: DEBIT,
+          transactionType: DEBIT,
           amount: amountInRs,
           status: SUCCESS,
-          previous_balance: currentBalance,
-          new_balance: currentBalance - amountInRs,
+          previousBalance: currentBalance,
+          newBalance: currentBalance - amountInRs,
           reference: `JOB-${jobId}-CLIENT-DEBIT`,
           purpose: JOB_PAYMENT,
         },
-        { transaction }
+        { transaction },
       );
 
       // create payment repository with success
@@ -126,9 +126,9 @@ async function createOrder(amount, jobId, userId, method) {
           method,
           status: SUCCESS,
           provider: "snapfix",
-          txn_reference: `wallet transaction - ${walletTransaction.id}`,
+          txnReference: `wallet transaction - ${walletTransaction.id}`,
         },
-        { transaction }
+        { transaction },
       );
       await jobRepository.update(jobId, { status: POSTED }, { transaction });
     } else if (method === ONLINE) {
@@ -151,9 +151,9 @@ async function createOrder(amount, jobId, userId, method) {
           currency: order.currency,
           method,
           status: INITIATED,
-          razorpay_order_id: order.id,
+          razorpayOrderId: order.id,
         },
-        { transaction }
+        { transaction },
       );
     } else if (method === COD) {
       const amountInRs = amount / 100;
@@ -167,7 +167,7 @@ async function createOrder(amount, jobId, userId, method) {
           status: PENDING,
           provider: "snapfix",
         },
-        { transaction }
+        { transaction },
       );
       await jobRepository.update(jobId, { status: POSTED }, { transaction });
     }
@@ -181,7 +181,7 @@ async function createOrder(amount, jobId, userId, method) {
     }
     throw new AppError(
       "Failed to create Order",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -192,7 +192,7 @@ async function verifyPayment(
   jobId,
   razorpay_order_id,
   razorpay_payment_id,
-  razorpay_signature
+  razorpay_signature,
 ) {
   const transaction = await sequelize.transaction();
   try {
@@ -204,7 +204,7 @@ async function verifyPayment(
     if (generated_signature !== razorpay_signature) {
       throw new AppError(
         "Payment verification failed",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -213,12 +213,12 @@ async function verifyPayment(
       id,
       {
         userId,
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
         status: SUCCESS,
       },
-      { transaction }
+      { transaction },
     );
 
     await jobRepository.update(jobId, { status: POSTED }, { transaction });
@@ -231,7 +231,7 @@ async function verifyPayment(
     }
     throw new AppError(
       "Failed to verify payment",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }

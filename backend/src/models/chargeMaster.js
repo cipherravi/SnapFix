@@ -18,42 +18,66 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
+
   ChargeMaster.init(
     {
-      name: { type: DataTypes.STRING, allowNull: false },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       type: {
         type: DataTypes.ENUM(FIXED, PERCENTAGE),
-        validate: {
-          isIn: [[FIXED, PERCENTAGE]],
-        },
+        allowNull: false,
       },
-      value: DataTypes.DECIMAL(10, 2),
-      applicable_methods: {
+      value: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      applicableMethods: {
         type: DataTypes.ENUM(ONLINE, WALLET, COD, ALL),
         defaultValue: ALL,
         allowNull: false,
+        field: "applicable_methods",
       },
-      apply_on: { type: DataTypes.ENUM(BASE, SUBTOTAL) },
+      applyOn: {
+        type: DataTypes.ENUM(BASE, SUBTOTAL),
+        allowNull: false,
+        field: "apply_on",
+      },
+      isGrossUp: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+        field: "is_gross_up",
+      },
+      priority: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       isActive: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true,
         field: "is_active",
       },
-      is_gross_up: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-        allowNull: false,
-      },
-      priority: { type: DataTypes.INTEGER, allowNull: false },
     },
     {
       sequelize,
       modelName: "ChargeMaster",
       tableName: "charges_master",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_charges_master_priority",
+          fields: ["priority"],
+        },
+        {
+          name: "idx_charges_master_is_active",
+          fields: ["is_active"],
+        },
+      ],
     },
   );
+
   return ChargeMaster;
 };

@@ -16,7 +16,7 @@ class NotificationRepository extends CrudRepository {
         lastUsedAt: now,
         updatedAt: now,
       });
-      console.log(response);
+
       return response;
     } catch (error) {
       console.log(error);

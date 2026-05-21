@@ -22,19 +22,19 @@ async function createJobCharges(req, res) {
     if (![ONLINE, COD].includes(paymentMethod)) {
       throw new AppError(
         "Payment Method doesn't exist",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
     const response = await JobChargeService.calculateJobCharges(
       jobId,
-      paymentMethod
+      paymentMethod,
     );
 
     if (!response) {
       throw new AppError(
         "Failed to create job charges",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -65,13 +65,13 @@ async function getChargesForJob(req, res) {
     if (![ONLINE, COD, WALLET].includes(paymentMethod)) {
       throw new AppError(
         "Payment Method doesn't exist",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
     const response = await JobChargeService.calculateJobChargesPreview(
       jobId,
-      paymentMethod
+      paymentMethod,
     );
 
     SuccessResponse.data = response;

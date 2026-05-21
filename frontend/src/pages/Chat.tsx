@@ -39,7 +39,7 @@ const Chat = ({ verified = true }: ChatProps) => {
   const dispatch = useDispatch();
 
   const conversations = useSelector(
-    (s: RootState) => s.conversation.conversations
+    (s: RootState) => s.conversation.conversations,
   );
 
   const userData = useSelector((s: any) => s.user.userData);
@@ -319,7 +319,7 @@ const Chat = ({ verified = true }: ChatProps) => {
         senderId: userData.id,
         text: trimmed,
         createdAt: new Date(),
-      })
+      }),
     );
   }, [input, socket, id, userData?.id]);
 
@@ -361,7 +361,6 @@ const Chat = ({ verified = true }: ChatProps) => {
     const loadProfilePic = async () => {
       // Case 1: user has NO profile picture
       if (!profilePic && currentConversation) {
-        console.log("first");
         setProfilePicUrl("/svg/profile.svg");
         setLoadingProfilePic(false);
         return;
@@ -369,7 +368,7 @@ const Chat = ({ verified = true }: ChatProps) => {
 
       // Case 2: user HAS a profile picture → show shimmer until RTK Query resolves
       setLoadingProfilePic(
-        currentConversation === undefined || isImageLoading || isImageFetching
+        currentConversation === undefined || isImageLoading || isImageFetching,
       );
 
       if (!isImageLoading && !isImageFetching) {
@@ -468,8 +467,8 @@ const Chat = ({ verified = true }: ChatProps) => {
                       ? "text-5xl self-end bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
                       : "self-end bg-blue-500 text-white text-sm shadow-md animate-slideUpFade"
                     : onlyEmoji
-                    ? "text-5xl self-start bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
-                    : "self-start bg-white text-gray-800 text-sm shadow-md animate-slideUpFade"
+                      ? "text-5xl self-start bg-transparent shadow-none px-0 py-0 animate-slideUpFade"
+                      : "self-start bg-white text-gray-800 text-sm shadow-md animate-slideUpFade"
                 }`}
               >
                 {msg.text}

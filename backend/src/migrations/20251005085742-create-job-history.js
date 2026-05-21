@@ -1,4 +1,5 @@
 "use strict";
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -46,7 +47,18 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
+
+    // High performance sequential lookup index for timeline tracks
+    await queryInterface.addIndex("job_histories", ["job_id"], {
+      name: "idx_job_histories_job_id",
+    });
+
+    // Performance tracking index for admin mutation audit logs
+    await queryInterface.addIndex("job_histories", ["changed_by"], {
+      name: "idx_job_histories_changed_by",
+    });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("job_histories");
   },

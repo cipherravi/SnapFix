@@ -15,49 +15,118 @@ module.exports = (sequelize, DataTypes) => {
       Payment.belongsTo(models.User, {
         foreignKey: "userId",
         as: "user",
+        onDelete: "CASCADE",
       });
-
       Payment.belongsTo(models.Job, {
         foreignKey: "jobId",
         as: "job",
+        onDelete: "CASCADE",
       });
     }
   }
+
   Payment.init(
     {
-      jobId: { type: DataTypes.INTEGER, allowNull: false, field: "job_id" },
-      userId: { type: DataTypes.INTEGER, allowNull: false, field: "user_id" },
-      amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-      currency: { type: DataTypes.STRING(10), defaultValue: "INR" },
-      method: DataTypes.ENUM(ONLINE, WALLET, COD),
-      razorpay_order_id: { type: DataTypes.STRING(100), allowNull: true },
-      razorpay_payment_id: { type: DataTypes.STRING(100), allowNull: true },
-      razorpay_signature: { type: DataTypes.STRING(255), allowNull: true },
-      txn_reference: { type: DataTypes.STRING, allowNull: true },
+      jobId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: "job_id",
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: "user_id",
+      },
+      amount: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      currency: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+        defaultValue: "INR",
+      },
+      method: {
+        type: DataTypes.ENUM(ONLINE, WALLET, COD),
+        allowNull: false,
+      },
+      razorpayOrderId: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        field: "razorpay_order_id",
+      },
+      razorpayPaymentId: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        field: "razorpay_payment_id",
+      },
+      razorpaySignature: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: "razorpay_signature",
+      },
+      txnReference: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        field: "txn_reference",
+      },
       provider: {
         type: DataTypes.STRING(50),
-        defaultValue: "razorpay",
         allowNull: false,
+        defaultValue: "razorpay",
       },
       status: {
         type: DataTypes.ENUM(INITIATED, PENDING, SUCCESS, FAILED, REFUNDED),
+        allowNull: false,
         defaultValue: INITIATED,
       },
-      refund_amount: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0.0 },
-      refund_reference: { type: DataTypes.STRING(100), allowNull: true },
-      attempt_status: {
-        type: DataTypes.ENUM(ACTIVE, ABANDONED),
-        defaultValue: ACTIVE,
+      refundAmount: {
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+        defaultValue: 0.0,
+        field: "refund_amount",
+      },
+      refundReference: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        field: "refund_reference",
+      },
+      attemptStatus: {
+        type: DataTypes.ENUM(ACTIVE, ABANDONED),
+        allowNull: false,
+        defaultValue: ACTIVE,
+        field: "attempt_status",
       },
     },
     {
       sequelize,
       modelName: "Payment",
       tableName: "payments",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_payments_job_id",
+          fields: ["job_id"],
+        },
+        {
+          name: "idx_payments_user_id",
+          fields: ["user_id"],
+        },
+        {
+          name: "idx_payments_razorpay_order_id",
+          fields: ["razorpay_order_id"],
+        },
+        {
+          name: "idx_payments_txn_reference",
+          fields: ["txn_reference"],
+        },
+        {
+          name: "idx_payments_status",
+          fields: ["status"],
+        },
+      ],
     },
   );
+
   return Payment;
 };

@@ -21,12 +21,12 @@ interface Transaction {
   amount: number;
   createdAt: string;
   id: number;
-  new_balance: number;
-  previous_balance: number;
+  newBalance: number;
+  previousBalance: number;
   purpose: string;
   reference: string;
   status: string;
-  transaction_type: string;
+  transactionType: string;
   updatedAt: string;
   walletId: number;
 }
@@ -77,7 +77,7 @@ const Wallet = () => {
         handlePayment(
           order.walletId,
           Number(order.amount),
-          order.razorpay_order_id,
+          order.razorpayOrderId,
           order.id,
         );
         fetchLatestTransactions();
@@ -166,7 +166,7 @@ const Wallet = () => {
   ) {
     try {
       const options = {
-        key: "rzp_test_REMwhCk2iZqINK",
+        key: "rzp_test_REMwhCk2iZqINK", // PUT IN ENV
         amount,
         currency: "INR",
         name: "Snapfix",

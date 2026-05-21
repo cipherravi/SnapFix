@@ -4,7 +4,10 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Category extends Model {
     static associate(models) {
-      Category.hasMany(models.Job, { foreignKey: "categoryId", as: "jobs" });
+      Category.hasMany(models.Job, {
+        foreignKey: "categoryId",
+        as: "jobs",
+      });
     }
   }
 
@@ -26,8 +29,14 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "Category",
       tableName: "categories",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_categories_name_unique",
+          unique: true,
+          fields: ["name"],
+        },
+      ],
     },
   );
 

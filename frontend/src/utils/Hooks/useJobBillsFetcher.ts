@@ -20,9 +20,10 @@ const useJobBillsFetcher = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       const data = await res.json();
+
       return data?.data || [];
     } catch (error) {
       console.error(error);

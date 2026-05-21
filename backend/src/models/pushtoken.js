@@ -6,13 +6,7 @@ const { ANDROID, IOS, WEB } = PLATFORM_TYPE;
 
 module.exports = (sequelize, DataTypes) => {
   class PushToken extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // Mapping to the 'users' table via 'user_id'
       PushToken.belongsTo(models.User, {
         foreignKey: "userId",
         as: "user",
@@ -26,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        field: "user_id", // Maps camelCase property to snake_case column
+        field: "user_id",
       },
       token: {
         type: DataTypes.TEXT,

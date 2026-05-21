@@ -40,14 +40,14 @@ async function calculateJobCharges(jobId, paymentMethod = ONLINE) {
     const applicableCharges = charges
       .filter(
         (charge) =>
-          charge.applicable_methods === ALL ||
-          charge.applicable_methods === paymentMethod
+          charge.applicableMethods === ALL ||
+          charge.applicableMethods === paymentMethod,
       )
       .sort((a, b) => a.priority - b.priority);
 
     // 4. Apply non-gross-up charges
     for (const charge of applicableCharges) {
-      if (charge.is_gross_up) continue;
+      if (charge.isGrossUp) continue;
 
       const rawValue = toNumberSafe(charge.value);
       let amountPaise = 0;
@@ -55,9 +55,9 @@ async function calculateJobCharges(jobId, paymentMethod = ONLINE) {
       if (charge.type === FIXED) {
         amountPaise = Math.round(rawValue * 100); // fixed rupees -> paise
       } else if (charge.type === PERCENTAGE) {
-        if (charge.apply_on === BASE) {
+        if (charge.applyOn === BASE) {
           amountPaise = Math.round((basePaise * rawValue) / 100);
-        } else if (charge.apply_on === SUBTOTAL) {
+        } else if (charge.applyOn === SUBTOTAL) {
           amountPaise = Math.round((subtotal * rawValue) / 100);
         }
       }
@@ -74,12 +74,12 @@ async function calculateJobCharges(jobId, paymentMethod = ONLINE) {
 
     // 5. Apply gross-up charges (like PG fee)
     for (const charge of applicableCharges) {
-      if (!charge.is_gross_up) continue;
+      if (!charge.isGrossUp) continue;
 
       const feePercent = toNumberSafe(charge.value);
       // gross-up in paise
       const grossedTotal = Math.round(
-        subtotal / (1 - (feePercent + (feePercent * 18) / 100) / 100)
+        subtotal / (1 - (feePercent + (feePercent * 18) / 100) / 100),
       );
 
       let amountPaise = grossedTotal - subtotal;
@@ -109,7 +109,7 @@ async function calculateJobCharges(jobId, paymentMethod = ONLINE) {
     logger.error(error.stack || error.message);
     throw new AppError(
       "Failed to calculate job charges",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -131,14 +131,14 @@ async function calculateJobChargesPreview(jobId, paymentMethod) {
     const applicableCharges = charges
       .filter(
         (charge) =>
-          charge.applicable_methods === ALL ||
-          charge.applicable_methods === paymentMethod
+          charge.applicableMethods === ALL ||
+          charge.applicableMethods === paymentMethod,
       )
       .sort((a, b) => a.priority - b.priority);
 
     // 4. Apply non-gross-up charges
     for (const charge of applicableCharges) {
-      if (charge.is_gross_up) continue;
+      if (charge.isGrossUp) continue;
 
       const rawValue = toNumberSafe(charge.value);
       let amountPaise = 0;
@@ -146,9 +146,9 @@ async function calculateJobChargesPreview(jobId, paymentMethod) {
       if (charge.type === FIXED) {
         amountPaise = Math.round(rawValue * 100); // fixed rupees -> paise
       } else if (charge.type === PERCENTAGE) {
-        if (charge.apply_on === BASE) {
+        if (charge.applyOn === BASE) {
           amountPaise = Math.round((basePaise * rawValue) / 100);
-        } else if (charge.apply_on === SUBTOTAL) {
+        } else if (charge.applyOn === SUBTOTAL) {
           amountPaise = Math.round((subtotal * rawValue) / 100);
         }
       }
@@ -165,13 +165,13 @@ async function calculateJobChargesPreview(jobId, paymentMethod) {
 
     // 5. Apply gross-up charges (like PG fee)
     for (const charge of applicableCharges) {
-      if (!charge.is_gross_up) continue;
+      if (!charge.isGrossUp) continue;
 
       const feePercent = toNumberSafe(charge.value);
       // gross-up in paise
 
       const grossedTotal = Math.round(
-        subtotal / (1 - (feePercent + (feePercent * 18) / 100) / 100)
+        subtotal / (1 - (feePercent + (feePercent * 18) / 100) / 100),
       );
       let amountPaise = grossedTotal - subtotal;
 
@@ -197,7 +197,7 @@ async function calculateJobChargesPreview(jobId, paymentMethod) {
     logger.error(error.stack || error.message);
     throw new AppError(
       "Failed to calculate job charges",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }

@@ -1,5 +1,4 @@
 "use strict";
-/** @type {import('sequelize-cli').Migration} */
 const {
   WALLET_TRANSACTION_STATUS,
   WALLET_TRANSACTION_PURPOSE,
@@ -18,6 +17,8 @@ const {
   COMMISION,
 } = WALLET_TRANSACTION_PURPOSE;
 const { CREDIT, DEBIT } = TRANSACTION_TYPE;
+
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("wallet_transactions", {
@@ -57,7 +58,10 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
       },
-      reference: { type: Sequelize.STRING(100), allowNull: true, unique: true },
+      reference: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
       purpose: {
         type: Sequelize.ENUM(
           JOB_PAYMENT,
@@ -71,7 +75,6 @@ module.exports = {
         ),
         allowNull: true,
       },
-
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -83,22 +86,32 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
-    await queryInterface.addConstraint("wallet_transactions", {
-      fields: ["reference"],
-      type: "unique",
-      name: "unique_wallet_transaction_reference",
+
+    // Explicit unique index configuration for transaction idempotency checking
+    await queryInterface.addIndex("wallet_transactions", ["reference"], {
+      name: "idx_wallet_transactions_reference_unique",
+      unique: true,
+    });
+
+    // High performance sequential ledger optimization lookup indexes
+    await queryInterface.addIndex("wallet_transactions", ["wallet_id"], {
+      name: "idx_wallet_transactions_wallet_id",
+    });
+    await queryInterface.addIndex("wallet_transactions", ["status"], {
+      name: "idx_wallet_transactions_status",
     });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("wallet_transactions");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_transactions_transaction_type";',
+      'DROP TYPE IF EXISTS "enum_wallet_transactions_transaction_type" CASCADE;',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_transactions_status";',
+      'DROP TYPE IF EXISTS "enum_wallet_transactions_status" CASCADE;',
     );
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_transactions_purpose";',
+      'DROP TYPE IF EXISTS "enum_wallet_transactions_purpose" CASCADE;',
     );
   },
 };

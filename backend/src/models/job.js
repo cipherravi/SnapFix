@@ -18,12 +18,30 @@ const { ACTIVE } = ATTEMPT_STATUS;
 module.exports = (sequelize, DataTypes) => {
   class Job extends Model {
     static associate(models) {
-      Job.belongsTo(models.User, { foreignKey: "userId", as: "client" });
-      Job.belongsTo(models.User, { foreignKey: "workerId", as: "worker" });
-      Job.belongsTo(models.City, { foreignKey: "cityId", as: "city" });
+      Job.belongsTo(models.User, {
+        foreignKey: "userId",
+        as: "client",
+        onDelete: "CASCADE",
+      });
+      Job.belongsTo(models.User, {
+        foreignKey: "workerId",
+        as: "worker",
+        onDelete: "SET NULL",
+      });
+      Job.belongsTo(models.City, {
+        foreignKey: "cityId",
+        as: "city",
+        onDelete: "SET NULL",
+      });
       Job.belongsTo(models.Category, {
         foreignKey: "categoryId",
         as: "category",
+        onDelete: "SET NULL",
+      });
+      Job.belongsTo(models.Address, {
+        foreignKey: "addressId",
+        as: "address",
+        onDelete: "SET NULL",
       });
 
       Job.hasMany(models.JobApplication, {
@@ -31,9 +49,7 @@ module.exports = (sequelize, DataTypes) => {
         as: "applications",
       });
       Job.hasMany(models.Review, { foreignKey: "jobId", as: "reviews" });
-      Job.belongsTo(models.Address, { foreignKey: "addressId", as: "address" });
       Job.hasMany(models.JobAsset, { foreignKey: "jobId", as: "assets" });
-
       Job.hasMany(models.JobCharge, {
         foreignKey: "jobId",
         as: "job_charges",
@@ -112,7 +128,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       cityId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: "city_id",
       },
       addressId: {
@@ -140,9 +156,35 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "Job",
       tableName: "jobs",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_jobs_user_id",
+          fields: ["user_id"],
+        },
+        {
+          name: "idx_jobs_worker_id",
+          fields: ["worker_id"],
+        },
+        {
+          name: "idx_jobs_category_id",
+          fields: ["category_id"],
+        },
+        {
+          name: "idx_jobs_city_id",
+          fields: ["city_id"],
+        },
+        {
+          name: "idx_jobs_address_id",
+          fields: ["address_id"],
+        },
+        {
+          name: "idx_jobs_status",
+          fields: ["status"],
+        },
+      ],
     },
   );
+
   return Job;
 };

@@ -1,9 +1,8 @@
 "use strict";
-
-/** @type {import('sequelize-cli').Migration} */
 const { ENUM } = require("../utils/common");
 const { CLIENT, WORKER } = ENUM.USER_ROLE;
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("reviews", {
@@ -55,27 +54,40 @@ module.exports = {
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
     });
-    await queryInterface.addConstraint("reviews", {
-      fields: ["reviewer_id", "reviewee_id", "job_id"],
-      type: "unique",
-      name: "unique_review_per_user_per_job",
+
+    // Composite unique index to prevent duplicate reviews for the exact same transaction path
+    await queryInterface.addIndex(
+      "reviews",
+      ["reviewer_id", "reviewee_id", "job_id"],
+      {
+        name: "idx_reviews_reviewer_id_reviewee_id_job_id_unique",
+        unique: true,
+      },
+    );
+
+    await queryInterface.addIndex("reviews", ["reviewer_id"], {
+      name: "idx_reviews_reviewer_id",
+    });
+    await queryInterface.addIndex("reviews", ["reviewee_id"], {
+      name: "idx_reviews_reviewee_id",
+    });
+    await queryInterface.addIndex("reviews", ["job_id"], {
+      name: "idx_reviews_job_id",
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeConstraint(
-      "reviews",
-      "unique_review_per_user_per_job",
-    );
     await queryInterface.dropTable("reviews");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_reviews_role";',
+      'DROP TYPE IF EXISTS "enum_reviews_role" CASCADE;',
     );
   },
 };

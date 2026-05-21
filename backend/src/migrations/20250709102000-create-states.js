@@ -1,4 +1,5 @@
 "use strict";
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -17,13 +18,21 @@ module.exports = {
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
     });
+
+    await queryInterface.addIndex("states", ["name"], {
+      name: "idx_states_name_unique",
+      unique: true,
+    });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("states");
   },

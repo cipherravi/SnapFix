@@ -1,5 +1,4 @@
 "use strict";
-/** @type {import('sequelize-cli').Migration} */
 const {
   PAYMENT_STATUS,
   PAYMENT_METHOD,
@@ -9,6 +8,7 @@ const { INITIATED, PENDING, SUCCESS, FAILED, REFUNDED } = PAYMENT_STATUS;
 const { ONLINE } = PAYMENT_METHOD;
 const { ADD_BALANCE, WITHDRAWAL, REPAYMENT } = WALLET_PAYMENT_PURPOSE;
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("wallet_payments", {
@@ -25,6 +25,8 @@ module.exports = {
           model: "users",
           key: "id",
         },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       wallet_id: {
         type: Sequelize.INTEGER,
@@ -34,6 +36,7 @@ module.exports = {
           key: "id",
         },
         onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       amount: {
         type: Sequelize.DECIMAL(10, 2),
@@ -44,12 +47,26 @@ module.exports = {
         allowNull: false,
         defaultValue: ONLINE,
       },
-      provider: { type: Sequelize.STRING(50), defaultValue: "razorpay" },
-      razorpay_order_id: Sequelize.STRING,
-      razorpay_payment_id: Sequelize.STRING,
-      razorpay_signature: Sequelize.STRING,
+      provider: {
+        type: Sequelize.STRING(50),
+        allowNull: false,
+        defaultValue: "razorpay",
+      },
+      razorpay_order_id: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+      razorpay_payment_id: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+      razorpay_signature: {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+      },
       status: {
         type: Sequelize.ENUM(INITIATED, PENDING, SUCCESS, FAILED, REFUNDED),
+        allowNull: false,
         defaultValue: INITIATED,
       },
       purpose: {
@@ -67,17 +84,30 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
+
+    await queryInterface.addIndex("wallet_payments", ["user_id"], {
+      name: "idx_wallet_payments_user_id",
+    });
+    await queryInterface.addIndex("wallet_payments", ["wallet_id"], {
+      name: "idx_wallet_payments_wallet_id",
+    });
+
+    // High performance order mapping index for payment webhook handlers
+    await queryInterface.addIndex("wallet_payments", ["razorpay_order_id"], {
+      name: "idx_wallet_payments_razorpay_order_id",
+    });
   },
+
   async down(queryInterface, Sequelize) {
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_payments_status";',
-    );
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_payments_purpose";',
-    );
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_wallet_payments_method";',
-    );
     await queryInterface.dropTable("wallet_payments");
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_wallet_payments_status" CASCADE;',
+    );
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_wallet_payments_purpose" CASCADE;',
+    );
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_wallet_payments_method" CASCADE;',
+    );
   },
 };

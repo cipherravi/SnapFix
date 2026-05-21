@@ -14,7 +14,7 @@ async function createOrder(req, res) {
       amount,
       jobId,
       userId,
-      method
+      method,
     );
 
     SuccessResponse.message = "Successfully created payment order";
@@ -56,7 +56,7 @@ async function verifyPayment(req, res) {
     ) {
       throw new AppError(
         "Missing payment verification params",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -66,7 +66,7 @@ async function verifyPayment(req, res) {
       jobId,
       razorpay_order_id,
       razorpay_payment_id,
-      razorpay_signature
+      razorpay_signature,
     );
 
     SuccessResponse.data = response;

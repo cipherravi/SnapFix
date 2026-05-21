@@ -1,4 +1,5 @@
 "use strict";
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -33,13 +34,25 @@ module.exports = {
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
     });
+
+    await queryInterface.addIndex("areas", ["city_id"], {
+      name: "idx_areas_city_id",
+    });
+
+    // Composite index for ultra-fast area filtering by name inside specific cities
+    await queryInterface.addIndex("areas", ["city_id", "name"], {
+      name: "idx_areas_city_id_name",
+    });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("areas");
   },

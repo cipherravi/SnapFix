@@ -1,5 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class State extends Model {
     static associate(models) {
@@ -9,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
+
   State.init(
     {
       name: {
@@ -22,9 +24,16 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "State",
       tableName: "states",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_states_name_unique",
+          unique: true,
+          fields: ["name"],
+        },
+      ],
     },
   );
+
   return State;
 };

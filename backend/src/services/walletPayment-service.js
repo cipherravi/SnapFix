@@ -63,7 +63,7 @@ async function createOrder(amount, userId, purpose) {
         amount: amountInRs,
         method: ONLINE,
         status: INITIATED,
-        razorpay_order_id: order.id,
+        razorpayOrderId: order.id,
         purpose,
       },
       { transaction },
@@ -74,11 +74,11 @@ async function createOrder(amount, userId, purpose) {
     await walletTransactionRepository.create(
       {
         walletId: wallet.id,
-        transaction_type: CREDIT,
+        transactionType: CREDIT,
         amount: amountInRs,
         status: INITIATED,
-        previous_balance: currentBalance,
-        new_balance: currentBalance + amountInRs,
+        previousBalance: currentBalance,
+        newBalance: currentBalance + amountInRs,
         reference: order.id,
         purpose,
       },
@@ -126,8 +126,8 @@ async function verifyPayment(
     await walletPaymentRepository.update(
       id,
       {
-        razorpay_payment_id,
-        razorpay_signature,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
         status: SUCCESS,
       },
       { transaction },
@@ -153,7 +153,6 @@ async function verifyPayment(
     await transaction.commit();
     logger.info(`Payment verified for wallet ${walletId}`);
   } catch (error) {
-    console.log(error);
     await transaction.rollback();
     logger.error(`Failed to verify payment for wallet ${walletId}`, { error });
     if (error instanceof AppError) {
@@ -197,7 +196,7 @@ async function payDebt(userId, purpose) {
         amount: amountInRs,
         method: ONLINE,
         status: INITIATED,
-        razorpay_order_id: order.id,
+        razorpayOrderId: order.id,
         purpose,
       },
       { transaction },
@@ -208,11 +207,11 @@ async function payDebt(userId, purpose) {
     await walletTransactionRepository.create(
       {
         walletId: wallet.id,
-        transaction_type: CREDIT,
+        transactionType: CREDIT,
         amount: amountInRs,
         status: INITIATED,
-        previous_balance: currentBalance,
-        new_balance: currentBalance + amountInRs,
+        previousBalance: currentBalance,
+        newBalance: currentBalance + amountInRs,
         reference: order.id,
         purpose,
       },

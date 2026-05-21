@@ -82,7 +82,7 @@ async function createJob(data) {
     }
     throw new AppError(
       "Failed to create job",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -98,7 +98,7 @@ async function getJobForClient(userId, jobId) {
     if (response.userId !== Number(userId)) {
       throw new AppError(
         "Job doesn't belong to you, cannot fetch details",
-        StatusCodes.UNAUTHORIZED
+        StatusCodes.UNAUTHORIZED,
       );
     }
 
@@ -109,7 +109,7 @@ async function getJobForClient(userId, jobId) {
     }
     throw new AppError(
       "Failed to fetch job",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -125,7 +125,7 @@ async function getJobForWorker(userId, jobId) {
     if (response.workerId !== Number(userId)) {
       throw new AppError(
         "Job doesn't belong to you, cannot fetch details",
-        StatusCodes.UNAUTHORIZED
+        StatusCodes.UNAUTHORIZED,
       );
     }
 
@@ -136,7 +136,7 @@ async function getJobForWorker(userId, jobId) {
     }
     throw new AppError(
       "Failed to fetch job",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -154,7 +154,7 @@ async function getJobForPublic(jobId) {
     }
     throw new AppError(
       "Failed to fetch job",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -185,7 +185,7 @@ async function getAllJobs({
     if (postedWithin) {
       const now = new Date();
       const cutoffDate = new Date(
-        now.getTime() - postedWithin * 60 * 60 * 1000
+        now.getTime() - postedWithin * 60 * 60 * 1000,
       ); // hours to ms
       filter.createdAt = { [Op.gte]: cutoffDate };
     }
@@ -202,7 +202,7 @@ async function getAllJobs({
     }
     throw new AppError(
       "Failed to fetch All jobs",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -217,19 +217,18 @@ async function updateJob(userId, jobId, data) {
     if (userId !== job.userId) {
       throw new AppError(
         "User does not belong to job",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
     if (![POSTED, INITIATED].includes(job.status)) {
       throw new AppError(
         "Job details cannot change now",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
-    const applicants = await jobApplicationRepository.findAllJobApplications(
-      jobId
-    );
+    const applicants =
+      await jobApplicationRepository.findAllJobApplications(jobId);
 
     if (applicants.length > 0) {
       throw new Error("Failed to update Job details, Job contains applicants");
@@ -241,13 +240,12 @@ async function updateJob(userId, jobId, data) {
     }
     return response;
   } catch (error) {
-    console.log(error);
     if (error instanceof AppError) {
       throw error;
     }
     throw new AppError(
       "Failed to update job",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -276,7 +274,7 @@ async function destroyJob(userId, jobId) {
     }
     throw new AppError(
       "Failed to destroy job",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -299,37 +297,37 @@ async function accept(userId, jobId, workerId) {
     if (job.workerId !== null) {
       throw new AppError(
         "Failed to assign Job, Worker already working",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
     const jobApplication = await jobApplicationRepository.findJobApplication(
       workerId,
-      jobId
+      jobId,
     );
     if (jobApplication[0] === 0) {
       throw new AppError(
         "Job application not found for this worker",
-        StatusCodes.NOT_FOUND
+        StatusCodes.NOT_FOUND,
       );
     }
 
     await jobApplicationRepository.update(
       jobApplication.id,
       { status: SELECTED, selectedAt: new Date() },
-      { transaction }
+      { transaction },
     );
 
     const assignToWorker = await jobRepository.update(
       job.id,
       { workerId, status: ASSIGNED },
-      { transaction }
+      { transaction },
     );
 
     if (assignToWorker[0] === 0) {
       throw new AppError(
         "Failed to assign Job to worker, try again",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -339,7 +337,7 @@ async function accept(userId, jobId, workerId) {
     const io = getIO();
     if (!io) {
       logger.error(
-        "Soket.io not initialized and got called in job-service for accept handler"
+        "Soket.io not initialized and got called in job-service for accept handler",
       );
       console.error("Socket.io not initialized");
       return;
@@ -391,7 +389,7 @@ async function accept(userId, jobId, workerId) {
     }
     throw new AppError(
       "Failed to asssign Job to worker , try again",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -413,7 +411,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
     if (!isClient && !isWorker) {
       throw new AppError(
         "You are not authorized to change this job",
-        StatusCodes.FORBIDDEN
+        StatusCodes.FORBIDDEN,
       );
     }
 
@@ -429,7 +427,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
     if (!allowedNext.includes(newStatus)) {
       throw new AppError(
         `Invalid transition: ${currentStatus} → ${newStatus}`,
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
     const clientOnly = [ASSIGNED, APPROVED, CANCELLED];
@@ -438,13 +436,13 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
     if (clientOnly.includes(newStatus) && !isClient) {
       throw new AppError(
         "Only client can perform this action",
-        StatusCodes.FORBIDDEN
+        StatusCodes.FORBIDDEN,
       );
     }
     if (workerOnly.includes(newStatus) && !isWorker) {
       throw new AppError(
         "Only worker can perform this action",
-        StatusCodes.FORBIDDEN
+        StatusCodes.FORBIDDEN,
       );
     }
 
@@ -454,20 +452,20 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
       if (job.workerId) {
         throw new AppError(
           "Worker already assigned to this job",
-          StatusCodes.BAD_REQUEST
+          StatusCodes.BAD_REQUEST,
         );
       }
       if (!workerId) {
         throw new AppError(
           "Worker ID is required for assignment",
-          StatusCodes.BAD_REQUEST
+          StatusCodes.BAD_REQUEST,
         );
       }
 
       // ensure valid job application exists
       const jobApplication = await jobApplicationRepository.findJobApplication(
         workerId,
-        jobId
+        jobId,
       );
       if (!jobApplication) {
         throw new AppError("Job application not found", StatusCodes.NOT_FOUND);
@@ -475,12 +473,12 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
       await jobRepository.update(
         jobId,
         { workerId, status: newStatus },
-        { transaction }
+        { transaction },
       );
       await jobApplicationRepository.update(
         jobApplication.id,
         { status: SELECTED },
-        { transaction }
+        { transaction },
       );
     }
 
@@ -492,13 +490,13 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
         if (!wallet) {
           throw new AppError(
             "Couldn't find your wallet, try again",
-            StatusCodes.NOT_FOUND
+            StatusCodes.NOT_FOUND,
           );
         }
         await paymentRepository.update(
           payment.id,
           { status: SUCCESS },
-          { transaction }
+          { transaction },
         );
         const debitAmount = payment.amount - JOB_COMMISSION_ON_COD * job.budget;
         const currentBalance = Number(wallet.balance);
@@ -517,19 +515,19 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
             purpose: COMMISION,
             reference: `SnapFix commision for job - ${jobId}`,
           },
-          { transaction }
+          { transaction },
         );
       }
 
       // mark jobapplicaton to be completed
       const application = await jobApplicationRepository.findJobApplication(
         job.workerId,
-        jobId
+        jobId,
       );
       await jobApplicationRepository.update(
         application.id,
         { completedAt: new Date(), status: COMPLETED },
-        { transaction }
+        { transaction },
       );
     }
 
@@ -545,7 +543,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
         const existingTxn =
           await walletTransactionRepository.getByReferenceWithFilters(
             `Payment for job - ${jobId}`,
-            { status: SUCCESS, transaction_type: CREDIT }
+            { status: SUCCESS, transaction_type: CREDIT },
           );
 
         if (existingTxn) {
@@ -556,7 +554,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
           if (!wallet) {
             throw new AppError(
               "Couldn't find worker wallet, try again or raise help on customer support",
-              StatusCodes.NOT_FOUND
+              StatusCodes.NOT_FOUND,
             );
           }
 
@@ -578,7 +576,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
               purpose: JOB_PAYMENT,
               reference,
             },
-            { transaction }
+            { transaction },
           );
         }
       }
@@ -590,7 +588,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
       if (job.workerId) {
         throw new AppError(
           "Cannot cancel job after worker assignment",
-          StatusCodes.BAD_REQUEST
+          StatusCodes.BAD_REQUEST,
         );
       }
     }
@@ -608,7 +606,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
         oldStatus: currentStatus,
         newStatus,
       },
-      { transaction }
+      { transaction },
     );
 
     await transaction.commit();
@@ -645,7 +643,7 @@ async function updateJobStatus(userId, jobId, newStatus, workerId = null) {
     }
     throw new AppError(
       "Failed to update job status, try again",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -658,14 +656,14 @@ async function markApproved(userId, jobId) {
     if (job.userId != userId) {
       throw new AppError(
         "Failed to Approve as you don't own this job",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
     if (job.status !== COMPLETED) {
       throw new AppError(
         "Failed to Approve as job is not in completed state",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -683,7 +681,7 @@ async function markApproved(userId, jobId) {
     }
     throw new AppError(
       "Failed to asssign Job to worker , try again",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -701,14 +699,14 @@ async function cancelJob(userId, jobId) {
     if (job.userId != userId) {
       throw new AppError(
         "Failed to cancel Job poster as you don't own this job",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
     if (job.status !== POSTED || job.workerId !== null) {
       throw new AppError(
         "Failed to Cancel Job poster, it is assigned for worker",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -722,7 +720,7 @@ async function cancelJob(userId, jobId) {
     }
     throw new AppError(
       "Failed to Cancel Job poster, try again",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -738,7 +736,7 @@ async function getMyTasks(userId) {
     }
     throw new AppError(
       "Failed to Fetch your tasks, try again",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -753,7 +751,7 @@ async function getMyJobs(userId) {
     }
     throw new AppError(
       "Failed to Fetch your jobs, try again",
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 }

@@ -1,6 +1,5 @@
 "use strict";
 const { Model } = require("sequelize");
-
 const {
   PAYMENT_STATUS,
   PAYMENT_METHOD,
@@ -16,16 +15,23 @@ module.exports = (sequelize, DataTypes) => {
       WalletPayment.belongsTo(models.User, {
         foreignKey: "userId",
         as: "user",
+        onDelete: "CASCADE",
       });
       WalletPayment.belongsTo(models.Wallet, {
         foreignKey: "walletId",
         as: "wallet",
+        onDelete: "CASCADE",
       });
     }
   }
+
   WalletPayment.init(
     {
-      userId: { type: DataTypes.INTEGER, allowNull: false, field: "user_id" },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: "user_id",
+      },
       walletId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -34,21 +40,35 @@ module.exports = (sequelize, DataTypes) => {
       amount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        validate: {
-          isDecimal: true,
-        },
       },
       method: {
         type: DataTypes.ENUM(ONLINE),
         allowNull: false,
         defaultValue: ONLINE,
       },
-      provider: { type: DataTypes.STRING(50), defaultValue: "razorpay" },
-      razorpay_order_id: DataTypes.STRING,
-      razorpay_payment_id: DataTypes.STRING,
-      razorpay_signature: DataTypes.STRING,
+      provider: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        defaultValue: "razorpay",
+      },
+      razorpayOrderId: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        field: "razorpay_order_id",
+      },
+      razorpayPaymentId: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        field: "razorpay_payment_id",
+      },
+      razorpaySignature: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: "razorpay_signature",
+      },
       status: {
         type: DataTypes.ENUM(INITIATED, PENDING, SUCCESS, FAILED, REFUNDED),
+        allowNull: false,
         defaultValue: INITIATED,
       },
       purpose: {
@@ -60,9 +80,23 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "WalletPayment",
       tableName: "wallet_payments",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_wallet_payments_user_id",
+          fields: ["user_id"],
+        },
+        {
+          name: "idx_wallet_payments_wallet_id",
+          fields: ["wallet_id"],
+        },
+        {
+          name: "idx_wallet_payments_razorpay_order_id",
+          fields: ["razorpay_order_id"],
+        },
+      ],
     },
   );
+
   return WalletPayment;
 };

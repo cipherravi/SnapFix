@@ -25,9 +25,11 @@ module.exports = (sequelize, DataTypes) => {
       WalletTransaction.belongsTo(models.Wallet, {
         foreignKey: "walletId",
         as: "wallet",
+        onDelete: "CASCADE",
       });
     }
   }
+
   WalletTransaction.init(
     {
       walletId: {
@@ -35,25 +37,34 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         field: "wallet_id",
       },
-      transaction_type: {
+      transactionType: {
         type: DataTypes.ENUM(CREDIT, DEBIT),
         allowNull: false,
+        field: "transaction_type",
       },
       amount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        validate: {
-          isDecimal: true,
-        },
       },
       status: {
         type: DataTypes.ENUM(INITIATED, PENDING, SUCCESS, FAILED, REFUNDED),
         defaultValue: PENDING,
         allowNull: false,
       },
-      previous_balance: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-      new_balance: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-      reference: { type: DataTypes.STRING(100), allowNull: true, unique: true },
+      previousBalance: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        field: "previous_balance",
+      },
+      newBalance: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        field: "new_balance",
+      },
+      reference: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
       purpose: {
         type: DataTypes.ENUM(
           JOB_PAYMENT,
@@ -72,9 +83,24 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "WalletTransaction",
       tableName: "wallet_transactions",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_wallet_transactions_reference_unique",
+          unique: true,
+          fields: ["reference"],
+        },
+        {
+          name: "idx_wallet_transactions_wallet_id",
+          fields: ["wallet_id"],
+        },
+        {
+          name: "idx_wallet_transactions_status",
+          fields: ["status"],
+        },
+      ],
     },
   );
+
   return WalletTransaction;
 };

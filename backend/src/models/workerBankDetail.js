@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       WorkerBankDetail.belongsTo(models.User, {
         foreignKey: "userId",
         as: "bankDetail",
+        onDelete: "CASCADE",
       });
       WorkerBankDetail.hasMany(models.WithdrawRequest, {
         foreignKey: "bankDetailId",
@@ -22,45 +23,48 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         field: "user_id",
       },
-
       accountHolder: {
         type: DataTypes.STRING(30),
         allowNull: false,
-        validate: { len: [5, 30] },
         field: "account_holder",
+        validate: {
+          len: [3, 30],
+        },
       },
-
       accountNumber: {
         type: DataTypes.STRING(30),
         allowNull: false,
-        unique: true,
-        validate: { len: [10, 30], isNumeric: true },
         field: "account_number",
+        validate: {
+          len: [9, 30],
+          isNumeric: true,
+        },
       },
-
       bankName: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        validate: { len: [10, 50] },
         field: "bank_name",
+        validate: {
+          len: [2, 50],
+        },
       },
-
       ifsc: {
         type: DataTypes.STRING(30),
         allowNull: false,
+        field: "ifsc",
         validate: {
           is: /^[A-Z]{4}0[A-Z0-9]{6}$/i,
         },
-        field: "ifsc",
       },
-
       isPrimary: {
         type: DataTypes.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
         field: "is_primary",
       },
       isActive: {
         type: DataTypes.BOOLEAN,
+        allowNull: false,
         defaultValue: true,
         field: "is_active",
       },
@@ -69,8 +73,22 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "WorkerBankDetail",
       tableName: "worker_bank_details",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_worker_bank_details_account_number_unique",
+          unique: true,
+          fields: ["account_number"],
+        },
+        {
+          name: "idx_worker_bank_details_user_id",
+          fields: ["user_id"],
+        },
+        {
+          name: "idx_worker_bank_details_active_primary",
+          fields: ["is_active", "is_primary"],
+        },
+      ],
     },
   );
 

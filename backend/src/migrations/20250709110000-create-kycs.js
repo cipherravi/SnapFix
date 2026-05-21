@@ -1,7 +1,8 @@
 "use strict";
-/** @type {import('sequelize-cli').Migration} */
 const { KYC_STATUS } = require("../utils/common/ENUM");
 const { PENDING, REJECTED, VERIFIED } = KYC_STATUS;
+
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("kycs", {
@@ -14,7 +15,6 @@ module.exports = {
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        unique: true,
         references: {
           model: "users",
           key: "id",
@@ -46,11 +46,28 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
+
+    // 1-to-1 Profile mapping constraint enforced via unique index tracking
+    await queryInterface.addIndex("kycs", ["user_id"], {
+      name: "idx_kycs_user_id_unique",
+      unique: true,
+    });
+
+    // Relational performance index for internal admin audits and verification loops
+    await queryInterface.addIndex("kycs", ["verified_by"], {
+      name: "idx_kycs_verified_by",
+    });
+
+    // Filtering optimization index for admin dashboard pipeline views
+    await queryInterface.addIndex("kycs", ["status"], {
+      name: "idx_kycs_status",
+    });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("kycs");
     await queryInterface.sequelize.query(
-      `DROP TYPE IF EXISTS "enum_kycs_status";`,
+      'DROP TYPE IF EXISTS "enum_kycs_status" CASCADE;',
     );
   },
 };

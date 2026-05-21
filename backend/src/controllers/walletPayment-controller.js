@@ -20,7 +20,7 @@ async function createOrder(req, res) {
     const response = await WalletPaymentService.createOrder(
       amount,
       userId,
-      purpose
+      purpose,
     );
 
     SuccessResponse.message = "Successfully created wallet payment order";
@@ -52,6 +52,7 @@ async function verifyPayment(req, res) {
       id,
       amount,
     } = req.body;
+
     if (
       !razorpay_order_id ||
       !razorpay_payment_id ||
@@ -62,7 +63,7 @@ async function verifyPayment(req, res) {
     ) {
       throw new AppError(
         "Missing payment verification params",
-        StatusCodes.BAD_REQUEST
+        StatusCodes.BAD_REQUEST,
       );
     }
 
@@ -72,7 +73,7 @@ async function verifyPayment(req, res) {
       amount,
       razorpay_order_id,
       razorpay_payment_id,
-      razorpay_signature
+      razorpay_signature,
     );
 
     SuccessResponse.data = response;

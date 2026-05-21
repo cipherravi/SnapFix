@@ -1,11 +1,11 @@
 "use strict";
-/** @type {import('sequelize-cli').Migration} */
-
 const { KYC_DOCUMENT_TYPE } = require("../utils/common/ENUM");
 const { ID_BACK, ID_FRONT, SELFIE, OTHER } = KYC_DOCUMENT_TYPE;
+
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("kycdocuments", {
+    await queryInterface.createTable("kyc_documents", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -26,7 +26,10 @@ module.exports = {
         allowNull: false,
         defaultValue: OTHER,
       },
-      doc_url: { type: Sequelize.STRING, allowNull: false, unique: true },
+      doc_url: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -38,11 +41,23 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
+
+    // Unique index mapping for document URLs to prevent identical document duplicate leaks
+    await queryInterface.addIndex("kyc_documents", ["doc_url"], {
+      name: "idx_kyc_documents_doc_url_unique",
+      unique: true,
+    });
+
+    // Relational performance performance lookup index for parent KYC profile assemblies
+    await queryInterface.addIndex("kyc_documents", ["kyc_id"], {
+      name: "idx_kyc_documents_kyc_id",
+    });
   },
+
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("kycdocuments");
+    await queryInterface.dropTable("kyc_documents");
     await queryInterface.sequelize.query(
-      `DROP TYPE IF EXISTS "enum_kycdocuments_doc_type";`,
+      'DROP TYPE IF EXISTS "enum_kyc_documents_doc_type" CASCADE;',
     );
   },
 };

@@ -1,4 +1,5 @@
 "use strict";
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -12,12 +13,11 @@ module.exports = {
       balance: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: 0,
+        defaultValue: 0.0,
       },
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        unique: true,
         references: {
           model: "users",
           key: "id",
@@ -35,7 +35,14 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
+
+    // 1-to-1 mapping validation unique constraint index for accounting isolation
+    await queryInterface.addIndex("wallets", ["user_id"], {
+      name: "idx_wallets_user_id_unique",
+      unique: true,
+    });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("wallets");
   },

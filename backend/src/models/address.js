@@ -1,14 +1,31 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class Address extends Model {
     static associate(models) {
-      Address.belongsTo(models.User, { foreignKey: "userId", as: "user" });
-      Address.belongsTo(models.Area, { foreignKey: "areaId", as: "area" });
-      Address.belongsTo(models.City, { foreignKey: "cityId", as: "city" });
-      Address.hasMany(models.Job, { foreignKey: "addressId", as: "jobs" });
+      Address.belongsTo(models.User, {
+        foreignKey: "userId",
+        as: "user",
+        onDelete: "CASCADE",
+      });
+      Address.belongsTo(models.Area, {
+        foreignKey: "areaId",
+        as: "area",
+        onDelete: "SET NULL",
+      });
+      Address.belongsTo(models.City, {
+        foreignKey: "cityId",
+        as: "city",
+        onDelete: "CASCADE",
+      });
+      Address.hasMany(models.Job, {
+        foreignKey: "addressId",
+        as: "jobs",
+      });
     }
   }
+
   Address.init(
     {
       userId: {
@@ -47,7 +64,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       isPrimary: {
         type: DataTypes.BOOLEAN,
-        allowNull: true,
+        allowNull: false, // Matched with migration's allowNull: false
         defaultValue: false,
         field: "is_primary",
       },
@@ -64,9 +81,23 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "Address",
       tableName: "addresses",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_addresses_user_id",
+          fields: ["user_id"],
+        },
+        {
+          name: "idx_addresses_area_id",
+          fields: ["area_id"],
+        },
+        {
+          name: "idx_addresses_city_id",
+          fields: ["city_id"],
+        },
+      ],
     },
   );
+
   return Address;
 };

@@ -7,8 +7,12 @@ module.exports = (sequelize, DataTypes) => {
       City.belongsTo(models.District, {
         foreignKey: "districtId",
         as: "district",
+        onDelete: "CASCADE",
       });
-      City.hasMany(models.Area, { foreignKey: "cityId", as: "areas" });
+      City.hasMany(models.Area, {
+        foreignKey: "cityId",
+        as: "areas",
+      });
       City.hasMany(models.Address, {
         foreignKey: "cityId",
         as: "addresses",
@@ -39,8 +43,18 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "City",
       tableName: "cities",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_cities_name_unique",
+          unique: true,
+          fields: ["name"],
+        },
+        {
+          name: "idx_cities_district_id",
+          fields: ["district_id"],
+        },
+      ],
     },
   );
 

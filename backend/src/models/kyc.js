@@ -6,22 +6,27 @@ const { PENDING, REJECTED, VERIFIED } = KYC_STATUS;
 module.exports = (sequelize, DataTypes) => {
   class Kyc extends Model {
     static associate(models) {
+      Kyc.belongsTo(models.User, {
+        foreignKey: "userId",
+        as: "user",
+        onDelete: "CASCADE",
+      });
+      Kyc.belongsTo(models.User, {
+        foreignKey: "verifiedBy",
+        as: "verifier",
+        onDelete: "SET NULL",
+      });
       Kyc.hasMany(models.KycDocument, {
         foreignKey: "kycId",
         as: "documents",
       });
-      Kyc.belongsTo(models.User, { foreignKey: "userId", as: "user" });
-      Kyc.belongsTo(models.User, {
-        foreignKey: "verifiedBy",
-        as: "verifier",
-      });
     }
   }
+
   Kyc.init(
     {
       userId: {
         type: DataTypes.INTEGER,
-        unique: true,
         allowNull: false,
         field: "user_id",
       },
@@ -40,9 +45,24 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "Kyc",
       tableName: "kycs",
-      timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          name: "idx_kycs_user_id_unique",
+          unique: true,
+          fields: ["user_id"],
+        },
+        {
+          name: "idx_kycs_verified_by",
+          fields: ["verified_by"],
+        },
+        {
+          name: "idx_kycs_status",
+          fields: ["status"],
+        },
+      ],
     },
   );
+
   return Kyc;
 };

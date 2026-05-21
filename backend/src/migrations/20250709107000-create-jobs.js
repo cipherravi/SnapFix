@@ -1,5 +1,4 @@
 "use strict";
-/** @type {import('sequelize-cli').Migration} */
 const { ENUM } = require("../utils/common");
 const {
   INITIATED,
@@ -13,6 +12,7 @@ const {
   EXPIRED,
 } = ENUM.JOB_STATUS;
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("jobs", {
@@ -78,12 +78,12 @@ module.exports = {
       },
       city_id: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: "cities",
           key: "id",
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
       },
       address_id: {
         type: Sequelize.INTEGER,
@@ -106,22 +106,43 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 7),
         allowNull: false,
       },
-
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
+    });
+
+    await queryInterface.addIndex("jobs", ["user_id"], {
+      name: "idx_jobs_user_id",
+    });
+    await queryInterface.addIndex("jobs", ["worker_id"], {
+      name: "idx_jobs_worker_id",
+    });
+    await queryInterface.addIndex("jobs", ["category_id"], {
+      name: "idx_jobs_category_id",
+    });
+    await queryInterface.addIndex("jobs", ["city_id"], {
+      name: "idx_jobs_city_id",
+    });
+    await queryInterface.addIndex("jobs", ["address_id"], {
+      name: "idx_jobs_address_id",
+    });
+
+    await queryInterface.addIndex("jobs", ["status"], {
+      name: "idx_jobs_status",
     });
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("jobs");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_jobs_status";',
+      'DROP TYPE IF EXISTS "enum_jobs_status" CASCADE;',
     );
   },
 };

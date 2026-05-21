@@ -1,10 +1,11 @@
 "use strict";
-/** @type {import('sequelize-cli').Migration} */
 const { ENUM } = require("../utils/common");
 const { APPLIED, SELECTED, COMPLETED, REJECTED } = ENUM.JOB_APPLICATION_STATUS;
+
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("jobapplications", {
+    await queryInterface.createTable("job_applications", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -41,6 +42,7 @@ module.exports = {
       applied_at: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
       selected_at: {
         type: Sequelize.DATE,
@@ -53,28 +55,34 @@ module.exports = {
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
     });
-    await queryInterface.addConstraint("jobapplications", {
-      fields: ["job_id", "user_id"],
-      type: "unique",
-      name: "unique_job_user_pair",
+
+    // Composite unique index to prevent a worker from applying to the same job twice
+    await queryInterface.addIndex("job_applications", ["job_id", "user_id"], {
+      name: "idx_job_applications_job_id_user_id_unique",
+      unique: true,
+    });
+
+    // Standalone performance indexes for fast profile histories and dashboard lookups
+    await queryInterface.addIndex("job_applications", ["job_id"], {
+      name: "idx_job_applications_job_id",
+    });
+    await queryInterface.addIndex("job_applications", ["user_id"], {
+      name: "idx_job_applications_user_id",
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeConstraint(
-      "jobapplications",
-      "unique_job_user_pair",
-    );
-
-    await queryInterface.dropTable("jobapplications");
+    await queryInterface.dropTable("job_applications");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_jobapplications_status";',
+      'DROP TYPE IF EXISTS "enum_job_applications_status" CASCADE;',
     );
   },
 };

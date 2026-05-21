@@ -29,7 +29,7 @@ async function createReview(req, res) {
       role,
       jobId,
       rating,
-      comment
+      comment,
     );
 
     if (!response) {
@@ -54,7 +54,6 @@ async function createReview(req, res) {
 }
 async function getAllJobReviews(req, res) {
   try {
-    console.log("first");
     const { jobId } = req.params;
     const response = await ReviewService.getAllJobReviews(jobId);
     if (!response) {
