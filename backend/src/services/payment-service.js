@@ -39,70 +39,93 @@ const { DEBIT } = TRANSACTION_TYPE;
 const { JOB_PAYMENT } = WALLET_TRANSACTION_PURPOSE;
 
 async function createOrder(amount, jobId, userId, method) {
+  // 1️⃣ Early Validation (COD Check & Amount Mismatch)
   if (method === COD) {
     const codActiveCount = await jobRepository.countMyCODActiveJobs(userId);
-
     if (codActiveCount > 0) {
       throw new AppError(
-        "You can only post 1 job using COD. Please choose another payment option.",
+        "You can only post 1 job using COD.",
         StatusCodes.FORBIDDEN,
       );
     }
   }
 
-  // 1️⃣ Validate and calculate first (no DB locks yet)
   const actualAmount = await calculateJobCharges(jobId, method);
-
   if (actualAmount.total !== amount) {
     throw new AppError("Details Mismatch", StatusCodes.BAD_REQUEST);
   }
 
-  // 3️⃣ Now start DB transaction
+  // 2️⃣ Quick Peek: Read the DB early (No transaction/locks yet)
+  // This allows us to see if we can short-circuit early
+  const existingPayment = await paymentRepository.findPayment(jobId);
+
+  if (existingPayment && existingPayment.method === method) {
+    return existingPayment; // Clean return, zero external API calls made!
+  }
+
+  // 3️⃣ Safe Third-Party Call: Only triggered if we ACTUALLY need a new order
+  let razorpayOrder = null;
+  if (method === ONLINE) {
+    try {
+      razorpayOrder = await Razorpay.orders.create({
+        amount,
+        currency: "INR",
+        receipt: `Job_${jobId}_payment`,
+        notes: { reason: "Job creation" },
+      });
+    } catch (apiError) {
+      logger.error("Razorpay order creation failed", { jobId, apiError });
+      throw new AppError(
+        "Payment gateway unavailable",
+        StatusCodes.BAD_GATEWAY,
+      );
+    }
+  }
+
+  // 4️⃣ Write Transaction: Open the transaction ONLY for updates and insertions
   const transaction = await sequelize.transaction();
   try {
-    let result;
+    // Re-verify the existing payment inside the transaction to prevent race conditions
+    const strictExistingPayment = await paymentRepository.findPayment(jobId);
 
-    // 🔍 Check for existing active payment
-    const existingPayment = await paymentRepository.findPayment(jobId);
-    // ⏪ If existing active payment has same method then return otherwise ABAND that paymemt and create new
-    if (existingPayment && existingPayment.method == method) {
+    // If someone somehow created a matching payment in the split-second
+    // it took to call Razorpay, handle it gracefully
+    if (strictExistingPayment && strictExistingPayment.method === method) {
       await transaction.commit();
-      return existingPayment;
-    } else if (existingPayment) {
+      return strictExistingPayment;
+    } else if (strictExistingPayment) {
+      // Abandon the old method payment since the user is changing methods
       await paymentRepository.update(
-        existingPayment.id,
-        {
-          attemptStatus: ABANDONED,
-        },
+        strictExistingPayment.id,
+        { attemptStatus: ABANDONED },
         { transaction },
       );
     }
 
-    // 🆕 Else, create new one
-    if (method === WALLET) {
-      const amountInRs = amount / 100;
+    let result;
+    const amountInRs = amount / 100;
 
-      // deduct from wallet if balance available
-      const wallet = await walletRepository.findWallet(userId);
-      if (!wallet) {
+    // --- WALLET METHOD ---
+    if (method === WALLET) {
+      const wallet = await walletRepository.findWallet(userId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      if (!wallet)
+        throw new AppError("Wallet not found", StatusCodes.NOT_FOUND);
+      if (parseFloat(wallet.balance) < amountInRs) {
         throw new AppError(
-          "Payment failed, Unable to find your wallet",
-          StatusCodes.NOT_FOUND,
-        );
-      }
-      if (wallet.balance < amountInRs) {
-        throw new AppError(
-          `Insufficient wallet balance. Your current balance is ₹${wallet.balance}.`,
+          "Insufficient wallet balance.",
           StatusCodes.PAYMENT_REQUIRED,
         );
       }
 
+      const currentBalance = parseFloat(wallet.balance);
       await walletRepository.decrementBalance(wallet.id, amountInRs, {
         transaction,
       });
 
-      const currentBalance = parseFloat(wallet.balance);
-      // create wallet txn
       const walletTransaction = await walletTransactionRepository.create(
         {
           walletId: wallet.id,
@@ -117,7 +140,6 @@ async function createOrder(amount, jobId, userId, method) {
         { transaction },
       );
 
-      // create payment repository with success
       result = await paymentRepository.create(
         {
           jobId,
@@ -130,34 +152,26 @@ async function createOrder(amount, jobId, userId, method) {
         },
         { transaction },
       );
-      await jobRepository.update(jobId, { status: POSTED }, { transaction });
-    } else if (method === ONLINE) {
-      const order = await Razorpay.orders.create({
-        amount,
-        currency: "INR",
-        receipt: `Job_${jobId}_payment`,
-        notes: {
-          reason: "Job creation",
-        },
-      });
 
-      const amountInRs = order.amount / 100;
-      //save to db
+      await jobRepository.update(jobId, { status: POSTED }, { transaction });
+
+      // --- ONLINE METHOD ---
+    } else if (method === ONLINE) {
       result = await paymentRepository.create(
         {
           jobId,
           userId,
-          amount: amountInRs,
-          currency: order.currency,
+          amount: razorpayOrder.amount / 100,
+          currency: razorpayOrder.currency,
           method,
           status: INITIATED,
-          razorpayOrderId: order.id,
+          razorpayOrderId: razorpayOrder.id,
         },
         { transaction },
       );
-    } else if (method === COD) {
-      const amountInRs = amount / 100;
 
+      // --- COD METHOD ---
+    } else if (method === COD) {
       result = await paymentRepository.create(
         {
           jobId,
@@ -169,16 +183,16 @@ async function createOrder(amount, jobId, userId, method) {
         },
         { transaction },
       );
+
       await jobRepository.update(jobId, { status: POSTED }, { transaction });
     }
+
     await transaction.commit();
     return result;
   } catch (error) {
     await transaction.rollback();
-    logger.error("Create order failed", { jobId, userId, error });
-    if (error instanceof AppError) {
-      throw error;
-    }
+    logger.error("Create order transaction failed", { jobId, userId, error });
+    if (error instanceof AppError) throw error;
     throw new AppError(
       "Failed to create Order",
       StatusCodes.INTERNAL_SERVER_ERROR,

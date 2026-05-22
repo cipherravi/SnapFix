@@ -3,7 +3,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const { serverConfig } = require("./config");
-const { connectDB, sequelize } = require("./config");
+const { connectDB, sequelize, redisClient } = require("./config");
 const { PORT } = serverConfig;
 const { allowedOrigins } = require("./utils/constants/allowedOrigins");
 const apiRoutes = require("./routes");
@@ -40,15 +40,12 @@ const io = setupSocket(server, allowedOrigins);
 app.use("/api", apiRoutes);
 
 connectDB()
-  .then(async () => {
-    await sequelize.authenticate();
-    console.log("Postgres connected ✅");
-  })
   .then(() => {
     server.listen(PORT, "0.0.0.0", () => {
-      console.log("Server started running at PORT ::", PORT);
+      console.log("🚀 Server started running at PORT ::", PORT);
     });
   })
   .catch((err) => {
-    console.log("ERROR", err);
+    console.error("FATAL SERVER ERROR ON STARTUP:", err);
+    process.exit(1);
   });

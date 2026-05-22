@@ -119,7 +119,7 @@ const Payment = () => {
           // ✅ Razorpay gives you these fields
           const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
             response;
-
+          console.log(response);
           // Now call your backend to verify payment
           try {
             const verifyRes = await fetch(
